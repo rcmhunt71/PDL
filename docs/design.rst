@@ -45,7 +45,7 @@ Download Abstraction (non-tool specific)
 .. _PyCharm Support: https://www.jetbrains.com/help/pycharm/restructured-text.html
 .. _Restructured Text Directives: http://docutils.sourceforge.net/docs/user/rst/quickref.html
 
-.. _logging: _components/logging.rst
-.. _configuration: _components/configuration.rst
-.. _Image Management Object: _components/image_class.rst
+.. _logging: components/logging.rst
+.. _configuration: components/configuration.rst
+.. _Image Management Object: components/image_class.rst
 
