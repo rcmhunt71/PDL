@@ -58,6 +58,8 @@ Author               String
 -------------------- --------------------------------
 Model                String
 -------------------- --------------------------------
+DL Time              DeltaTime Object
+-------------------- --------------------------------
 Disk Locations(s)    List of Strings: PATH(S)
 -------------------- --------------------------------
 Download Status      ENUM (DOWNLOAD, EXIST, ERROR)

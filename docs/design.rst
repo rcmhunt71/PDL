@@ -14,15 +14,10 @@ Components
 1) `Logging`_
 2) `Configuration`_
 3) `Image Management Object`_
-
-Command-line Arguments
-======================
+4) `Command Line Args`_
 
 Package Structure and Hierarchy
 ===============================
-
-Image Object
-============
 
 Elements
 --------
@@ -48,4 +43,4 @@ Download Abstraction (non-tool specific)
 .. _logging: components/logging.rst
 .. _configuration: components/configuration.rst
 .. _Image Management Object: components/image_class.rst
-
+.. _Command Line Args: components/command-line.rst
