@@ -46,7 +46,7 @@ Group: Inventory
 =============== ============ ======================== =============================
 **Full option** **Shortcut** **ArgType**              **Description**
 --------------- ------------ ------------------------ -----------------------------
---inv           -i           <path filespec> * = ALL  Lists inventory (filespec)
+--inv           -i           <path filespec> * = ALL  Lists inventory (filespec); reg exp accepted
 =============== ============ ======================== =============================
 
 
