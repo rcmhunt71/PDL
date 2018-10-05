@@ -19,36 +19,41 @@ Implementation
 Arguments
 ~~~~~~~~~~~~~~~~~
 
-Group: Downloads
-==================
+Group: Downloads (dl)
+=======================
 =============== ============ ========================== =============================
 **Full option** **Shortcut** **ArgType**                **Description**
 --------------- ------------ -------------------------- -----------------------------
---download      -d           <comma separated list>     List of URLs to download
+<URLs>                       <space separated list>     List of URLs to download
 =============== ============ ========================== =============================
 
 
-Group: Duplicates
-==================
+Group: Duplicates (dups)
+==========================
 =============== ============ ========================== =============================
 **Full option** **Shortcut** **ArgType**                **Description**
 --------------- ------------ -------------------------- -----------------------------
---duplicate     -x           Bool                       Check and list inventory for duplicates
-                             (**True**)
---------------- ------------ -------------------------- -----------------------------
---remove_dup    -r           Bool                       Deletes identified duplicates, based on smallest or most recent.
+--remove_dups   -x           Bool                       Deletes identified duplicates, based on smallest or most recent.
                              (**True**)
 =============== ============ ========================== =============================
 
 
-Group: Inventory
-==================
+Group: Inventory (inv)
+=======================
 =============== ============ ======================== =============================
 **Full option** **Shortcut** **ArgType**              **Description**
 --------------- ------------ ------------------------ -----------------------------
---inv           -i           <path filespec> * = ALL  Lists inventory (filespec); reg exp accepted
+<file_spec>                   <path filespec> * = ALL  Lists inventory (filespec); reg exp accepted
 =============== ============ ======================== =============================
 
+
+Group: Information (info)
+=========================
+=============== ============ ======================== =============================
+**Full option** **Shortcut** **ArgType**              **Description**
+--------------- ------------ ------------------------ -----------------------------
+<image>                      String: <image name>     Lists inventory (filespec); reg exp accepted
+=============== ============ ======================== =============================
 
 
 Group: General
@@ -56,7 +61,7 @@ Group: General
 =============== ============ ======================= =============================
 **Full option** **Shortcut** **ArgType**             **Description**
 --------------- ------------ ----------------------- -----------------------------
---debug         -D           Boolean (**True**)      Enable Debug Statements
+--debug         -d           Boolean (**True**)      Enable Debug Statements
 --------------- ------------ ----------------------- -----------------------------
 --help          -h           Boolean (**True**)      Detail list of options
 =============== ============ ======================= =============================
