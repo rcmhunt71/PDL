@@ -42,5 +42,5 @@ Download Abstraction (non-tool specific)
 
 .. _logging: components/logging.rst
 .. _configuration: components/configuration.rst
-.. _Image Management Object: components/image_class.rst
+.. _Image Management Object: components/image_data.rst
 .. _Command Line Args: components/command-line.rst
