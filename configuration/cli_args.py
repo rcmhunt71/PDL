@@ -131,7 +131,7 @@ class CLIArgs(object):
             help="Options for querying info about a specific image")
 
         image_info_args.add_argument(
-            'image', metavar="<IMAGE>", help="Image Name to query")
+            'image', metavar="<IMAGE_NAME>", help="Image Name to query")
 
 
 # Used for visual checks like the help screen and namespaces
