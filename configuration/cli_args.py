@@ -68,6 +68,9 @@ class CLIArgs(object):
             '-d', '--debug', help="Enable debug logging and reporting",
             action='store_true')
 
+        self.parser.add_argument(
+            '-c', '--cfg', help="Specify configuration file")
+
     def _downloads(self):
         """
         Args associated with downloading images
