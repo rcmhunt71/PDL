@@ -37,6 +37,7 @@ class CLIArgs(object):
     """
 
     PURPOSE = "Christopher's Image Download Utility"
+    FLAGS = ['debug']
 
     def __init__(self, test_args_list=None):
         self.parser = argparse.ArgumentParser(description=self.PURPOSE)
@@ -65,7 +66,7 @@ class CLIArgs(object):
         :return: None.
         """
         self.parser.add_argument(
-            '-d', '--debug', help="Enable debug logging and reporting",
+            '-d', '--debug', help="Enable debug flag for logging and reporting",
             action='store_true')
 
         self.parser.add_argument(
@@ -84,6 +85,11 @@ class CLIArgs(object):
             'urls', nargs=argparse.REMAINDER, metavar="<URLS>",
             help=("List of URLs to parse and download, should be last argument "
                   "on the CLI")
+        )
+
+        dl_args.add_argument(
+            '-f', '--file', metavar="<DL_FILE>",
+            help="Download PLAY file from a previous execution"
         )
 
     def _duplicates(self):
@@ -132,6 +138,27 @@ class CLIArgs(object):
 
         image_info_args.add_argument(
             'image', metavar="<IMAGE_NAME>", help="Image Name to query")
+
+    def list_args(self):
+        """
+        Prints list of configured arguments (primary purpose is debugging)
+        :return: None
+        """
+        for arg, val in sorted(vars(self.args).items()):
+            print("{arg}: {value}".format(arg=arg, value=val))
+        print("\n\n")
+
+    def get_opt_args_states(self):
+        """
+        Build string for CLI Args flag states. (For logging to file)
+        :return: Multi-line string of flag states
+
+        """
+        msg = '\n'
+        for flag in self.FLAGS:
+            if getattr(self.args, flag):
+                msg += "--> {0} ENABLED <<--\n".format(flag)
+        return msg
 
 
 # Used for visual checks like the help screen and namespaces

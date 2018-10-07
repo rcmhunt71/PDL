@@ -25,6 +25,8 @@ Group: Downloads (dl)
 **Full option** **Shortcut** **ArgType**                **Description**
 --------------- ------------ -------------------------- -----------------------------
 <URLs>                       <space separated list>     List of URLs to download
+--------------- ------------ -------------------------- -----------------------------
+--file          -f           <DL FILE> (file spec)      Redownload images listed in file
 =============== ============ ========================== =============================
 
 
