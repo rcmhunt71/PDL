@@ -7,21 +7,36 @@ class TestCommandLine(object):
 
     def test_debug_flag(self):
         attr = 'debug'
-        designator = ArgSubmodules.DOWNLOAD
-
-        cli = CLIArgs(test_args_list=['--{0}'.format(attr), designator])
-        attribute = getattr(cli.args, attr)
-        print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=attribute))
-        assert_true(attribute)
+        cli_args = ['--{0}'.format(attr), ArgSubmodules.DOWNLOAD]
+        expectation = True
+        self._resp_should_be_bool(attr=attr, cli_args=cli_args, bool_expectation=expectation)
 
     def test_no_debug_flag(self):
         attr = 'debug'
-        designator = ArgSubmodules.DOWNLOAD
+        cli_args = [ArgSubmodules.DOWNLOAD]
+        expectation = False
+        self._resp_should_be_bool(attr=attr, cli_args=cli_args, bool_expectation=expectation)
 
-        cli = CLIArgs(test_args_list=[designator])
+    def test_dryrun_flag(self):
+        attr = 'dryrun'
+        cli_args = ['--{0}'.format(attr), ArgSubmodules.DOWNLOAD]
+        expectation = True
+        self._resp_should_be_bool(attr=attr, cli_args=cli_args, bool_expectation=expectation)
+
+    def test_no_dryrun_flag(self):
+        attr = 'dryrun'
+        cli_args = [ArgSubmodules.DOWNLOAD]
+        expectation = False
+        self._resp_should_be_bool(attr=attr, cli_args=cli_args, bool_expectation=expectation)
+
+    def _resp_should_be_bool(self, attr, cli_args, bool_expectation):
+        cli = CLIArgs(test_args_list=cli_args)
         attribute = getattr(cli.args, attr)
         print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=attribute))
-        assert_false(attribute)
+        if bool_expectation:
+            assert_true(attribute)
+        else:
+            assert_false(attribute)
 
     def test_command_attr_set(self):
         attr = 'command'

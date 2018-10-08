@@ -56,6 +56,11 @@ class CLIArgs(object):
         return ArgSubmodules._get_const_values()
 
     def parse_args(self, test_args_list=None):
+        """
+        Parses CLI, but allows injection of arguments for testing purposes
+        :param test_args_list:
+        :return:
+        """
         return (self.parser.parse_args() if test_args_list is None else
                 self.parser.parse_args(test_args_list))
 
@@ -67,6 +72,10 @@ class CLIArgs(object):
         """
         self.parser.add_argument(
             '-d', '--debug', help="Enable debug flag for logging and reporting",
+            action='store_true')
+
+        self.parser.add_argument(
+            '-r', '--dryrun', help="Enable flag for dry-run. See what happens without taking action",
             action='store_true')
 
         self.parser.add_argument(
