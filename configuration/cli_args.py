@@ -36,7 +36,7 @@ class CLIArgs(object):
             - the parser.command is defined as part of the subparsers attribute.
     """
 
-    PURPOSE = "Christopher's Image Download Utility"
+    PURPOSE = "Image Download Utility"
     FLAGS = ['debug']
 
     def __init__(self, test_args_list=None):
