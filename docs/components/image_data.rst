@@ -46,26 +46,26 @@ Attributes
 =================== ======================= ================================
 Attribute           Property Description    Data Type
 =================== ======================= ================================
-_image_name         Image Name              String
+image_name          Image Name              String
 ------------------- ----------------------- --------------------------------
-_description        Description             String
+description         Description             String
 ------------------- ----------------------- --------------------------------
-_page_url           Page URL                String - URL
+page_url            Page URL                String - URL
 ------------------- ----------------------- --------------------------------
-_image_url          Image URL               String - URL
+image_url           Image URL               String - URL
 ------------------- ----------------------- --------------------------------
-_author             Author                  String
+author              Author                  String
 ------------------- ----------------------- --------------------------------
-_subject            Subject Of Image        String
+subject             Subject Of Image        String
 ------------------- ----------------------- --------------------------------
-_downloaded_on      Downloaded On           Datetime Object
+downloaded_on       Downloaded On           Datetime Object
 ------------------- ----------------------- --------------------------------
-_download_dur       Download Duration (sec) DeltaTime Object
+download_dur        Download Duration (sec) DeltaTime Object
 ------------------- ----------------------- --------------------------------
-_locations          Disk Locations(s)       List of Strings: PATH(S)
+locations           Disk Locations(s)       List of Strings: PATH(S)
 ------------------- ----------------------- --------------------------------
-_dl_status          Download Status         ENUM (PENDING, DOWNLOADED, EXISTS, ERROR)
+dl_status           Download Status         ENUM (PENDING, DOWNLOADED, EXISTS, ERROR)
 ------------------- ----------------------- --------------------------------
-_mod_status         Modification Flag       ENUM (NEW, UPDATED, DELETE)
+mod_status          Modification Flag       ENUM (NEW, UPDATED, DELETE)
 =================== ======================= ================================
 

@@ -6,14 +6,15 @@ from PDL.images.consts import (
 
 class ImageData(object):
     def __init__(self):
-        self._image_name = None
-        self._description = None
-        self._page_url = None
-        self._image_url = None
-        self._author = None
-        self._subject = None
-        self._downloaded_on = None
-        self._download_dur = None
-        self._locations = list()
-        self._dl_status = DownloadStatus.NOT_SET
-        self._mod_status = ModStatus.NEW
+        self.image_name = None
+        self.description = None
+        self.page_url = None
+        self.image_url = None
+        self.author = None
+        self.subject = None
+        self.downloaded_on = None
+        self.download_dur = None
+        self.locations = list()
+        self.dl_status = DownloadStatus.NOT_SET
+        self.mod_status = ModStatus.NEW
+
