@@ -7,14 +7,16 @@ class TestCommandLine(object):
 
     def test_debug_flag(self):
         attr = 'debug'
-        cli = CLIArgs(test_args_list=['--{0}'.format(attr)])
+        designator = ArgSubmodules.DOWNLOAD
+        cli = CLIArgs(test_args_list=['--{0}'.format(attr), designator])
         attribute = getattr(cli.args, attr)
         print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=attribute))
         assert (attribute is True)
 
     def test_no_debug_flag(self):
         attr = 'debug'
-        cli = CLIArgs(test_args_list=[])
+        designator = ArgSubmodules.DOWNLOAD
+        cli = CLIArgs(test_args_list=[designator])
         attribute = getattr(cli.args, attr)
         print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=attribute))
         assert (attribute is False)

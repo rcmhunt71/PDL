@@ -26,7 +26,7 @@ class TestUrlProcessing(object):
 
     def test_unique_list_with_single_dups(self):
         # Create a list of duplicate elements (unique * 2)
-        dup_list = self.UNIQUE_URL_LIST.copy()
+        dup_list = self.UNIQUE_URL_LIST[:]
         dup_list.extend(self.UNIQUE_URL_LIST)
 
         # Expected number of duplicates
@@ -44,7 +44,7 @@ class TestUrlProcessing(object):
 
     def test_unique_list_with_multiple_dups(self):
         # Create a list of duplicate elements (unique * 3)
-        dup_list = self.UNIQUE_URL_LIST.copy()
+        dup_list = self.UNIQUE_URL_LIST[:]
         dup_list.extend(self.UNIQUE_URL_LIST)
         dup_list.extend(self.UNIQUE_URL_LIST)
 
@@ -136,6 +136,15 @@ class TestUrlProcessing(object):
     def test_split_urls_list_concatenated_into_single_element(self):
         list_size = 10
         valid_split_url_list = [''.join([self.VALID_URL_FORMAT.format(id_) for id_ in range(0, list_size)])]
+        updated_list = CliArgProcessing.split_urls(valid_split_url_list)
+        assert_not_equals(len(valid_split_url_list), len(updated_list))
+        assert_equals(len(updated_list), list_size)
+
+    def test_split_urls_list_concatenated_into_two_elements(self):
+        list_size = 10
+        valid_split_url_list = [''.join([self.VALID_URL_FORMAT.format(id_) for id_ in range(0, list_size)])]
+        valid_split_url_list.append(
+            [''.join([self.VALID_URL_FORMAT.format(id_) for id_ in range(list_size, list_size * 2)])])
         updated_list = CliArgProcessing.split_urls(valid_split_url_list)
         assert_not_equals(len(valid_split_url_list), len(updated_list))
         assert_equals(len(updated_list), list_size)
