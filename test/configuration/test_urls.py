@@ -124,9 +124,9 @@ class TestUrlProcessing(object):
         assert_false(valid, "Invalid URL ({url}) was marked as valid with valid delimiter ({delim}).".format(
             url=url, delim=delimiter))
 
-    # ================================================================
+    # ===================================================================
     # ------- CliArgProcessing::split_urls(url_list, [delimiter]) -------
-    # ================================================================
+    # ===================================================================
 
     def test_split_urls_all_elems_valid_urls(self):
         valid_split_url_list = [self.VALID_URL_FORMAT.format(id_) for id_ in range(1, 10)]
