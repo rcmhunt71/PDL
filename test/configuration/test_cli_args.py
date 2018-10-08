@@ -1,6 +1,6 @@
 from PDL.configuration.cli_args import CLIArgs, ArgSubmodules
 
-from nose.tools import raises, assert_equals
+from nose.tools import raises, assert_equals, assert_false, assert_true
 
 
 class TestCommandLine(object):
@@ -8,18 +8,20 @@ class TestCommandLine(object):
     def test_debug_flag(self):
         attr = 'debug'
         designator = ArgSubmodules.DOWNLOAD
+
         cli = CLIArgs(test_args_list=['--{0}'.format(attr), designator])
         attribute = getattr(cli.args, attr)
         print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=attribute))
-        assert (attribute is True)
+        assert_true(attribute)
 
     def test_no_debug_flag(self):
         attr = 'debug'
         designator = ArgSubmodules.DOWNLOAD
+
         cli = CLIArgs(test_args_list=[designator])
         attribute = getattr(cli.args, attr)
         print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=attribute))
-        assert (attribute is False)
+        assert_false(attribute)
 
     def test_command_attr_set(self):
         attr = 'command'
@@ -76,7 +78,6 @@ class TestCommandLine(object):
     def test_invalid_designator(self):
         # Proper arg list: <known_designator>
         # Actual arg list: <unknown_designator>
-
         designator = 'FOO'
         CLIArgs(test_args_list=[designator])
 
