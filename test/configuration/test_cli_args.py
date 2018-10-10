@@ -1,4 +1,4 @@
-from PDL.configuration.cli_args import CLIArgs, ArgSubmodules
+from PDL.configuration.cli.args import CLIArgs, ArgSubmodules
 
 from nose.tools import raises, assert_equals, assert_false, assert_true
 
