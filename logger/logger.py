@@ -5,6 +5,7 @@ import os
 
 class Logger(object):
 
+    DEFAULT_PROJECT = 'PDL'
     DEFAULT_LOG_LEVEL = logging.DEBUG
 
     LOG_FORMAT = (r'[%(asctime)-15s][%(levelname)-5s][%(pid)s]'
@@ -14,16 +15,25 @@ class Logger(object):
     DEFAULT_DEPTH = 3
 
     def __init__(
-            self, filename=None, default_level=None, added_depth=0):
+            self, filename=None, default_level=None, added_depth=0,
+            project=None):
 
         self.filename = filename
         self.loglevel = default_level or self.DEFAULT_LOG_LEVEL
         self.depth = self.DEFAULT_DEPTH + int(added_depth)
+        self.project = project or self.DEFAULT_PROJECT
 
         self.logger = None
         self._start_logger()
 
     def _start_logger(self):
+        """
+        Define the logger for the current context.
+          + Set the default logging level
+          + Set the format
+          + Set the filename, as needed.
+        :return: None
+        """
         default_config = {
             'level': self.loglevel,
             'format': self.LOG_FORMAT,
@@ -40,13 +50,34 @@ class Logger(object):
         self.logger.setLevel(self.loglevel)
 
     def _log_level(self, level, msg, prefix=''):
+        """
+        Determine and use the proper logging level (abstracted to expose logging
+        routines at class level; also reduces the dotted path when invoking in
+        code.
+
+        :param level: logging.LEVEL (or corresponding integer value)
+        :param msg: message to log
+        :param prefix: If preamble needs an additional internal prefix.
+        :return: None
+
+        """
         log_routine = getattr(self.logger, level.lower())
         log_routine(str(prefix) + str(msg), extra=self._method())
 
     def _method(self):
+        """
+        Get calling frame's basic info
+        + File name relative to project name
+        + Calling linenum
+        + Calling routine
+        + Process pid
+
+        :return: Dictionary of values listed above.
+
+        """
         frame_info = inspect.stack()[self.depth]
         return {'file_name': os.path.abspath(frame_info[1]).split(
-            'PDL{0}'.format(os.path.sep))[-1],
+            '{0}{1}'.format(self.project, os.path.sep))[-1],
                 'linenum': frame_info[2],
                 'routine': frame_info[3],
                 'pid': os.getpid()}
@@ -73,9 +104,9 @@ if __name__ == '__main__':
         testlog = getattr(logger, level.lower())
         testlog(msg)
 
-    def wooba():
+    def test_logging():
         test_routine(log, 'info', 'TEST')
         test_routine(log, 'debug', 'TEST2')
 
     log = Logger(default_level=logging.DEBUG, added_depth=1)
-    wooba()
+    test_logging()
