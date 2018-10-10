@@ -5,7 +5,8 @@ import os
 
 class Logger(object):
 
-    LOG_FORMAT = r'[%(asctime)-15s] [%(levelname)-5s] [%(name)s] [%(file_name)s:%(routine)s:%(linenum)d] - %(message)s'
+    LOG_FORMAT = (r'[%(asctime)-15s][%(levelname)-5s][%(uuid)s][%(name)s]'
+                  r'[%(file_name)s:%(routine)s:%(linenum)d] - %(message)s')
     DATE_FORMAT = r'%m%d%y-%T'
 
     DEFAULT_DEPTH = 3
@@ -34,42 +35,47 @@ class Logger(object):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(self.loglevel)
 
-    def _log_level(self, level, msg, prefix=''):
+    def _log_level(self, level, msg, prefix='', uuid=None):
         log_routine = getattr(self.logger, level.lower())
-        log_routine(str(prefix) + str(msg), extra=self._method())
+        log_routine(str(prefix) + str(msg), extra=self._method(uuid=uuid))
 
-    def _method(self):
+    def _method(self, uuid=None):
         frame_info = inspect.stack()[self.depth]
+
+        uuid = uuid or 'UUID:not_set'
 
         return {'file_name': frame_info[1],
                 'linenum': frame_info[2],
-                'routine': frame_info[3]}
+                'routine': frame_info[3],
+                'uuid': uuid}
 
-    def fatal(self, msg):
-        self._log_level(level='FATAL', msg=msg)
+    def fatal(self, msg, uuid=None):
+        self._log_level(level='FATAL', msg=msg, uuid=uuid)
 
-    def error(self, msg):
-        self._log_level(level='ERROR', msg=msg)
+    def error(self, msg, uuid=None):
+        self._log_level(level='ERROR', msg=msg, uuid=uuid)
 
-    def warn(self, msg):
-        self._log_level(level='WARN', msg=msg)
+    def warn(self, msg, uuid=None):
+        self._log_level(level='WARN', msg=msg, uuid=uuid)
 
-    def info(self, msg):
-        self._log_level(level='INFO', msg=msg)
+    def info(self, msg, uuid=None):
+        self._log_level(level='INFO', msg=msg, uuid=uuid)
 
-    def debug(self, msg):
-        self._log_level(level='DEBUG', msg=msg)
+    def debug(self, msg, uuid=None):
+        self._log_level(level='DEBUG', msg=msg, uuid=uuid)
 
 
 if __name__ == '__main__':
 
-    def test_routine(logger, level, msg):
+    import uuid
+
+    def test_routine(logger, level, msg, uuid=None):
         testlog = getattr(logger, level.lower())
-        testlog(msg)
+        testlog(msg, uuid=uuid)
 
     def wooba():
-        test_routine(log, 'info', 'TEST')
-        test_routine(log, 'debug', 'TEST2')
+        test_routine(log, 'info', 'TEST', str(uuid.uuid4()).split('-')[-1])
+        test_routine(log, 'debug', 'TEST2', str(uuid.uuid4()).split('-')[-1])
 
     log = Logger(default_level=logging.DEBUG, added_depth=1)
     wooba()
