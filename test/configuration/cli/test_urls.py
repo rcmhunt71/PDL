@@ -143,11 +143,11 @@ class TestUrlProcessing(object):
     def test_split_urls_list_concatenated_into_two_elements(self):
         list_size = 10
         valid_split_url_list = [''.join([self.VALID_URL_FORMAT.format(id_) for id_ in range(0, list_size)])]
-        valid_split_url_list.append(
+        valid_split_url_list.extend(
             [''.join([self.VALID_URL_FORMAT.format(id_) for id_ in range(list_size, list_size * 2)])])
         updated_list = CliArgProcessing.split_urls(valid_split_url_list)
         assert_not_equals(len(valid_split_url_list), len(updated_list))
-        assert_equals(len(updated_list), list_size)
+        assert_equals(len(updated_list), list_size * 2)
 
     def test_split_urls_with_concatenated_element(self):
         list_size = 10
