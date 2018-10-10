@@ -191,4 +191,3 @@ if __name__ == '__main__':
     log.debug(parser.args)
     log.info("Modules: {0}".format(parser.get_module_names()))
     parser.get_args_str()
-

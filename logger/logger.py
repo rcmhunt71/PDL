@@ -32,7 +32,9 @@ class Logger(object):
           + Set the default logging level
           + Set the format
           + Set the filename, as needed.
+
         :return: None
+
         """
         default_config = {
             'level': self.loglevel,
@@ -58,6 +60,7 @@ class Logger(object):
         :param level: logging.LEVEL (or corresponding integer value)
         :param msg: message to log
         :param prefix: If preamble needs an additional internal prefix.
+
         :return: None
 
         """
@@ -98,6 +101,7 @@ class Logger(object):
         self._log_level(level='DEBUG', msg=msg)
 
 
+# FOR TESTING PURPOSES
 if __name__ == '__main__':
 
     def test_routine(logger, level, msg):
