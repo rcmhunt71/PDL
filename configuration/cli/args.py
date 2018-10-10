@@ -2,6 +2,10 @@ import argparse
 
 # Argparse docs: https://docs.python.org/3/library/argparse.html
 
+from PDL.logging.logger import Logger as PDL_log
+
+log = PDL_log()
+
 
 class ArgSubmodules(object):
     DOWNLOAD = 'dl'
@@ -173,6 +177,10 @@ class CLIArgs(object):
 # Used for visual checks like the help screen and namespaces
 # (e.g.- things not easily validated though automation)
 if __name__ == '__main__':
+    import PDL.test.utils.test_utils as test_utils
+
     parser = CLIArgs()
-    print(parser.args)
-    print("Modules: {0}".format(parser.get_module_names()))
+    uuid = test_utils.get_truncated_uuid()
+    log.debug(parser.args, uuid=uuid)
+    log.info("Modules: {0}".format(parser.get_module_names()),
+             uuid=uuid)

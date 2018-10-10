@@ -1,9 +1,10 @@
 import inspect
 import logging
-import os
 
 
 class Logger(object):
+
+    DEFAULT_LOG_LEVEL = logging.DEBUG
 
     LOG_FORMAT = (r'[%(asctime)-15s][%(levelname)-5s][%(uuid)s][%(name)s]'
                   r'[%(file_name)s:%(routine)s:%(linenum)d] - %(message)s')
@@ -11,9 +12,11 @@ class Logger(object):
 
     DEFAULT_DEPTH = 3
 
-    def __init__(self, filename=None, default_level=logging.INFO, added_depth=0):
+    def __init__(
+            self, filename=None, default_level=None, added_depth=0):
+
         self.filename = filename
-        self.loglevel = default_level
+        self.loglevel = default_level or self.DEFAULT_LOG_LEVEL
         self.depth = self.DEFAULT_DEPTH + int(added_depth)
 
         self.logger = None
@@ -67,15 +70,15 @@ class Logger(object):
 
 if __name__ == '__main__':
 
-    import uuid
+    import PDL.test.utils.test_utils as test_utils
 
     def test_routine(logger, level, msg, uuid=None):
         testlog = getattr(logger, level.lower())
         testlog(msg, uuid=uuid)
 
     def wooba():
-        test_routine(log, 'info', 'TEST', str(uuid.uuid4()).split('-')[-1])
-        test_routine(log, 'debug', 'TEST2', str(uuid.uuid4()).split('-')[-1])
+        test_routine(log, 'info', 'TEST', test_utils.get_truncated_uuid())
+        test_routine(log, 'debug', 'TEST2', test_utils.get_truncated_uuid())
 
     log = Logger(default_level=logging.DEBUG, added_depth=1)
     wooba()
