@@ -1,12 +1,13 @@
 import inspect
 import logging
+import os
 
 
 class Logger(object):
 
     DEFAULT_LOG_LEVEL = logging.DEBUG
 
-    LOG_FORMAT = (r'[%(asctime)-15s][%(levelname)-5s][%(uuid)s][%(name)s]'
+    LOG_FORMAT = (r'[%(asctime)-15s][%(levelname)-5s][%(pid)s]'
                   r'[%(file_name)s:%(routine)s:%(linenum)d] - %(message)s')
     DATE_FORMAT = r'%m%d%y-%T'
 
@@ -38,47 +39,43 @@ class Logger(object):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(self.loglevel)
 
-    def _log_level(self, level, msg, prefix='', uuid=None):
+    def _log_level(self, level, msg, prefix=''):
         log_routine = getattr(self.logger, level.lower())
-        log_routine(str(prefix) + str(msg), extra=self._method(uuid=uuid))
+        log_routine(str(prefix) + str(msg), extra=self._method())
 
-    def _method(self, uuid=None):
+    def _method(self):
         frame_info = inspect.stack()[self.depth]
-
-        uuid = uuid or 'UUID:not_set'
-
-        return {'file_name': frame_info[1],
+        return {'file_name': os.path.abspath(frame_info[1]).split(
+            'PDL{0}'.format(os.path.sep))[-1],
                 'linenum': frame_info[2],
                 'routine': frame_info[3],
-                'uuid': uuid}
+                'pid': os.getpid()}
 
-    def fatal(self, msg, uuid=None):
-        self._log_level(level='FATAL', msg=msg, uuid=uuid)
+    def fatal(self, msg):
+        self._log_level(level='FATAL', msg=msg)
 
-    def error(self, msg, uuid=None):
-        self._log_level(level='ERROR', msg=msg, uuid=uuid)
+    def error(self, msg):
+        self._log_level(level='ERROR', msg=msg)
 
-    def warn(self, msg, uuid=None):
-        self._log_level(level='WARN', msg=msg, uuid=uuid)
+    def warn(self, msg):
+        self._log_level(level='WARN', msg=msg)
 
-    def info(self, msg, uuid=None):
-        self._log_level(level='INFO', msg=msg, uuid=uuid)
+    def info(self, msg):
+        self._log_level(level='INFO', msg=msg)
 
-    def debug(self, msg, uuid=None):
-        self._log_level(level='DEBUG', msg=msg, uuid=uuid)
+    def debug(self, msg):
+        self._log_level(level='DEBUG', msg=msg)
 
 
 if __name__ == '__main__':
 
-    import PDL.test.utils.test_utils as test_utils
-
-    def test_routine(logger, level, msg, uuid=None):
+    def test_routine(logger, level, msg):
         testlog = getattr(logger, level.lower())
-        testlog(msg, uuid=uuid)
+        testlog(msg)
 
     def wooba():
-        test_routine(log, 'info', 'TEST', test_utils.get_truncated_uuid())
-        test_routine(log, 'debug', 'TEST2', test_utils.get_truncated_uuid())
+        test_routine(log, 'info', 'TEST')
+        test_routine(log, 'debug', 'TEST2')
 
     log = Logger(default_level=logging.DEBUG, added_depth=1)
     wooba()

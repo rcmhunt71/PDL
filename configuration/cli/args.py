@@ -1,8 +1,9 @@
 import argparse
+import pprint
 
 # Argparse docs: https://docs.python.org/3/library/argparse.html
 
-from PDL.logging.logger import Logger as PDL_log
+from PDL.logger.logger import Logger as PDL_log
 
 log = PDL_log()
 
@@ -57,7 +58,10 @@ class CLIArgs(object):
 
     @staticmethod
     def get_module_names():
-        return ArgSubmodules._get_const_values()
+        modules = ArgSubmodules._get_const_values()
+        log.debug("Request for module names: {0}".format(
+            pprint.pformat(modules)))
+        return modules
 
     def parse_args(self, test_args_list=None):
         """
@@ -65,6 +69,8 @@ class CLIArgs(object):
         :param test_args_list:
         :return:
         """
+
+        log.debug("Parsing command line args.")
         return (self.parser.parse_args() if test_args_list is None else
                 self.parser.parse_args(test_args_list))
 
@@ -152,14 +158,18 @@ class CLIArgs(object):
         image_info_args.add_argument(
             'image', metavar="<IMAGE_NAME>", help="Image Name to query")
 
-    def list_args(self):
+    def get_args_str(self):
         """
-        Prints list of configured arguments (primary purpose is debugging)
-        :return: None
+        Returns concatenated string of configured arguments
+        (primary purpose is debugging)
+        :return: String of args
         """
+        args = ''
         for arg, val in sorted(vars(self.args).items()):
-            print("{arg}: {value}".format(arg=arg, value=val))
-        print("\n\n")
+            args += "\t{arg}: {value}\n".format(arg=arg, value=val)
+
+        log.debug("Command Line Args:\n{args}".format(args=args))
+        return args
 
     def get_opt_args_states(self):
         """
@@ -177,10 +187,8 @@ class CLIArgs(object):
 # Used for visual checks like the help screen and namespaces
 # (e.g.- things not easily validated though automation)
 if __name__ == '__main__':
-    import PDL.test.utils.test_utils as test_utils
-
     parser = CLIArgs()
-    uuid = test_utils.get_truncated_uuid()
-    log.debug(parser.args, uuid=uuid)
-    log.info("Modules: {0}".format(parser.get_module_names()),
-             uuid=uuid)
+    log.debug(parser.args)
+    log.info("Modules: {0}".format(parser.get_module_names()))
+    parser.get_args_str()
+
