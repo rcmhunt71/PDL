@@ -22,7 +22,6 @@ class Logger(object):
         self.loglevel = default_level or self.DEFAULT_LOG_LEVEL
         self.depth = self.DEFAULT_DEPTH + int(added_depth)
         self.project = project or self.DEFAULT_PROJECT
-
         self.logger = None
         self._start_logger()
 
@@ -44,12 +43,19 @@ class Logger(object):
 
         if self.filename is not None:
             default_config['filename'] = self.filename
-
         logging.basicConfig(**default_config)
 
-        name = __name__ if __name__ != '__main__' else 'root'
+        name = self._get_module_name() if __name__ != '__main__' else 'root'
+
         self.logger = logging.getLogger(name)
         self.logger.setLevel(self.loglevel)
+
+    def _get_module_name(self):
+        frame_info = inspect.stack()[self.depth]
+        filename = os.path.abspath(frame_info[1]).split(
+            '{0}{1}'.format(self.project, os.path.sep))[-1]
+
+        return self._translate_to_dotted_lib_path(filename)
 
     def _log_level(self, level, msg, prefix=''):
         """
@@ -67,6 +73,10 @@ class Logger(object):
         log_routine = getattr(self.logger, level.lower())
         log_routine(str(prefix) + str(msg), extra=self._method())
 
+    @staticmethod
+    def _translate_to_dotted_lib_path(path):
+        return str(path.split('.')[0]).replace(os.path.sep, ".")
+
     def _method(self):
         """
         Get calling frame's basic info
@@ -79,8 +89,10 @@ class Logger(object):
 
         """
         frame_info = inspect.stack()[self.depth]
-        return {'file_name': os.path.abspath(frame_info[1]).split(
-            '{0}{1}'.format(self.project, os.path.sep))[-1],
+        filename = os.path.abspath(frame_info[1]).split(
+            '{0}{1}'.format(self.project, os.path.sep))[-1]
+
+        return {'file_name': self._translate_to_dotted_lib_path(path=filename),
                 'linenum': frame_info[2],
                 'routine': frame_info[3],
                 'pid': os.getpid()}
@@ -105,12 +117,12 @@ class Logger(object):
 if __name__ == '__main__':
 
     def test_routine(logger, level, msg):
-        testlog = getattr(logger, level.lower())
-        testlog(msg)
+        test_log = getattr(logger, level.lower())
+        test_log(msg)
 
     def test_logging():
         test_routine(log, 'info', 'TEST')
         test_routine(log, 'debug', 'TEST2')
 
-    log = Logger(default_level=logging.DEBUG, added_depth=1)
+    log = Logger(default_level=logging.DEBUG, added_depth=1, filename="logger_test.log")
     test_logging()
