@@ -13,6 +13,7 @@ class Logger(object):
     DATE_FORMAT = r'%m%d%y-%T'
 
     DEFAULT_DEPTH = 3
+    ROOT_LOGGER = ''
 
     def __init__(
             self, filename=None, default_level=None, added_depth=0,
@@ -45,10 +46,25 @@ class Logger(object):
             default_config['filename'] = self.filename
         logging.basicConfig(**default_config)
 
-        name = self._get_module_name() if __name__ != '__main__' else 'root'
+        name = self._get_module_name() if __name__ != '__main__' else self.ROOT_LOGGER
+
+        if self.filename is not None:
+            self._add_console()
 
         self.logger = logging.getLogger(name)
         self.logger.setLevel(self.loglevel)
+
+    def _add_console(self):
+        """
+        Enables a streamhandler for logging to the console (STDOUT).
+        This is used when a log file is specified, because all log output is directed to the file.
+
+        :return: None
+        """
+        console = logging.StreamHandler()
+        console.setLevel(self.loglevel)
+        console.setFormatter(logging.Formatter(self.LOG_FORMAT))
+        logging.getLogger(self.ROOT_LOGGER).addHandler(console)
 
     def _get_module_name(self):
         frame_info = inspect.stack()[self.depth]
