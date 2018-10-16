@@ -129,7 +129,7 @@ class Logger(object):
         self._log_level(level='DEBUG', msg=msg)
 
 
-# FOR TESTING PURPOSES
+# FOR VISUAL/MANUAL TESTING PURPOSES
 if __name__ == '__main__':
 
     def test_routine(logger, level, msg):

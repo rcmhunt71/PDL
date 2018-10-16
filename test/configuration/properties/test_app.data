@@ -1,0 +1,17 @@
+[setup]
+fixture = 'Not Defined'
+reporting = True
+exceptions = 'logged'
+testcases = 10
+
+[test]
+abort_on_fail = False
+bulk_report = True
+testcase_id = 77893-4625-7754-1123698554
+averages = 5.5
+
+[teardown]
+abort_on_fail = False
+clear_resources = True
+resources = Nova, Neutron, Cinder
+report = "results.xml"
