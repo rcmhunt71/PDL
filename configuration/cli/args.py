@@ -13,6 +13,7 @@ class ArgSubmodules(object):
     INVENTORY = 'inv'
     DUPLICATES = 'dups'
     INFO = 'info'
+    DATABASE = 'db'
 
     @classmethod
     def _get_const_values(cls):
@@ -53,6 +54,7 @@ class CLIArgs(object):
         self._duplicates()
         self._inventory()
         self._image_info()
+        self._database()
 
         self.args = self.parse_args(test_args_list)
 
@@ -109,6 +111,33 @@ class CLIArgs(object):
         dl_args.add_argument(
             '-f', '--file', metavar="<DL_FILE>",
             help="Download PLAY file from a previous execution"
+        )
+
+    def _database(self):
+        """
+        Args associated with database management
+        :param self: Automatically provided.
+        :return: None.
+        """
+
+        # TODO: Look at inventory suboption, and how to combine with this option
+
+        dl_args = self.subparsers.add_parser(
+            ArgSubmodules.DATABASE, help="Options for database management")
+
+        dl_args.add_argument(
+            '-s', '--sync', action="store_true",
+            help="Scan inventory and update DB based on findings."
+        )
+
+        dl_args.add_argument(
+            '-r', '--records', action='store_true',
+            help="Display database summary."
+        )
+
+        dl_args.add_argument(
+            '-d', '--details', action='store_true',
+            help="Display detailed summary of database contents."
         )
 
     def _duplicates(self):
