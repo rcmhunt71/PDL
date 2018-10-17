@@ -2,6 +2,7 @@ class DownloadStatus(object):
     NOT_SET = 'Not Set'
     PENDING = 'Pending'
     DOWNLOADED = 'Downloaded'
+    IN_DATABASE = "In_Database"
     EXISTS = 'Exists'
     ERROR = 'Error'
 

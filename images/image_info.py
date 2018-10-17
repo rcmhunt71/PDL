@@ -17,4 +17,3 @@ class ImageData(object):
         self.locations = list()
         self.dl_status = DownloadStatus.NOT_SET
         self.mod_status = ModStatus.NEW
-
