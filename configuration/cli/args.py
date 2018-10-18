@@ -50,9 +50,9 @@ class CLIArgs(object):
 
         self._define_standard_args()
         self._downloads()
+        self._database()
         self._duplicates()
         self._image_info()
-        self._database()
 
         self.args = self.parse_args(test_args_list)
 
@@ -118,32 +118,30 @@ class CLIArgs(object):
         :return: None.
         """
 
-        # TODO: Look at args. Need grouping: --sync, --records [<>, --filespec, --details]
-        # TODO: Update tests accordingly
-
-        dl_args = self.subparsers.add_parser(
+        db_args = self.subparsers.add_parser(
             ArgSubmodules.DATABASE, help="Options for database management")
 
-        dl_args.add_argument(
+        mutex = db_args.add_mutually_exclusive_group()
+        mutex.add_argument(
             '-s', '--sync', action="store_true",
             help="Scan inventory and update DB based on findings."
         )
 
-        dl_args.add_argument(
+        mutex.add_argument(
             '-r', '--records', action='store_true',
             help="Display database summary."
         )
 
-        dl_args.add_argument(
+        db_args.add_argument(
             '-f', '--filespec', metavar="<FILE SPEC>",
             help=("File spec to list information about images, requires "
                   "--records option and can be combined with --details.")
         )
 
-        dl_args.add_argument(
+        db_args.add_argument(
             '-d', '--details', action='store_true',
-            help=("Display detailed summary of database contents or selected "
-                  "<filespec>.")
+            help=("Display detailed summary of database contents or details of "
+                  "selected <filespec>.")
         )
 
     def _duplicates(self):
