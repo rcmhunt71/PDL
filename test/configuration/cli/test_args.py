@@ -5,6 +5,8 @@ from nose.tools import raises, assert_equals, assert_false, assert_true
 
 class TestCommandLine(object):
 
+    # TODO: Add test case descriptions
+
     def test_debug_flag(self):
         attr = 'debug'
         cli_args = ['--{0}'.format(attr), ArgSubmodules.DOWNLOAD]
@@ -29,7 +31,8 @@ class TestCommandLine(object):
         expectation = False
         self._resp_should_be_bool(attr=attr, cli_args=cli_args, bool_expectation=expectation)
 
-    def _resp_should_be_bool(self, attr, cli_args, bool_expectation):
+    @staticmethod
+    def _resp_should_be_bool(attr, cli_args, bool_expectation):
         cli = CLIArgs(test_args_list=cli_args)
         attribute = getattr(cli.args, attr)
         print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=attribute))
@@ -86,7 +89,7 @@ class TestCommandLine(object):
         assert_equals(getattr(cli.args, 'command'), designator)
         assert_equals(getattr(cli.args, attr), True)
 
-    def test_db_record_options(self):
+    def test_db_record_option(self):
         attr = 'details'
         designator = ArgSubmodules.DATABASE
         cli = CLIArgs(test_args_list=[designator, '--{0}'.format(attr)])
@@ -95,6 +98,59 @@ class TestCommandLine(object):
         assert_equals(getattr(cli.args, 'command'), designator)
         assert_equals(getattr(cli.args, attr), True)
 
+    def test_db_record_options_record_details(self):
+        attributes = ['records', 'details']
+        designator = ArgSubmodules.DATABASE
+        args = [designator]
+        args.extend(['--{0}'.format(attr) for attr in attributes])
+        cli = CLIArgs(test_args_list=args)
+
+        assert_equals(getattr(cli.args, 'command'), designator)
+        for attr in attributes:
+            value = getattr(cli.args, attr)
+            print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=value))
+            assert_equals(getattr(cli.args, attr), True)
+
+    def test_db_record_with_details_and_filespec_options(self):
+        filespec_opt = 'filespec'
+        filespec = "'./*.png'"
+        attributes = ['records', 'details', filespec_opt]
+        designator = ArgSubmodules.DATABASE
+        args = [designator]
+        args.extend(['--{0}'.format(attr) for attr in attributes if attr != filespec_opt])
+        args.extend(['--{filespec_opt}'.format(filespec_opt=filespec_opt),
+                     '{filespec}'.format(filespec=filespec)])
+
+        cli = CLIArgs(test_args_list=args)
+
+        assert_equals(getattr(cli.args, 'command'), designator)
+        for attr in attributes:
+            value = getattr(cli.args, attr)
+            print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=value))
+            if attr == filespec_opt:
+                assert_equals(getattr(cli.args, attr), filespec)
+            else:
+                assert_equals(getattr(cli.args, attr), True)
+
+    @raises(SystemExit)
+    def test_db_record_opts_with_details_filespec_opts_missing_filespecs(self):
+        file_spec_opt = 'filespec'
+        file_spec = "'./*.png'"
+        attributes = ['records', 'details', file_spec_opt]
+        designator = ArgSubmodules.DATABASE
+        args = [designator]
+        args.extend(['--{0}'.format(attr) for attr in attributes])
+
+        cli = CLIArgs(test_args_list=args)
+
+        assert_equals(getattr(cli.args, 'command'), designator)
+        for attr in attributes:
+            value = getattr(cli.args, attr)
+            print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=value))
+            if attr == file_spec_opt:
+                assert_equals(getattr(cli.args, attr), file_spec)
+            else:
+                assert_equals(getattr(cli.args, attr), True)
 
     @raises(SystemExit)
     def test_image_without_info_designator(self):
@@ -112,5 +168,3 @@ class TestCommandLine(object):
         # Actual arg list: <unknown_designator>
         designator = 'FOO'
         CLIArgs(test_args_list=[designator])
-
-

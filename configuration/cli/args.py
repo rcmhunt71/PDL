@@ -71,6 +71,9 @@ class CLIArgs(object):
         """
 
         log.debug("Parsing command line args.")
+        if test_args_list is not None:
+            log.debug(
+                "Args passed in for testing:\n\t{0}".format(test_args_list))
         return (self.parser.parse_args() if test_args_list is None else
                 self.parser.parse_args(test_args_list))
 
