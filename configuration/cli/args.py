@@ -10,7 +10,6 @@ log = PDL_log()
 
 class ArgSubmodules(object):
     DOWNLOAD = 'dl'
-    INVENTORY = 'inv'
     DUPLICATES = 'dups'
     INFO = 'info'
     DATABASE = 'db'
@@ -52,7 +51,6 @@ class CLIArgs(object):
         self._define_standard_args()
         self._downloads()
         self._duplicates()
-        self._inventory()
         self._image_info()
         self._database()
 
@@ -120,7 +118,8 @@ class CLIArgs(object):
         :return: None.
         """
 
-        # TODO: Look at inventory suboption, and how to combine with this option
+        # TODO: Look at args. Need grouping: --sync, --records [<>, --filespec, --details]
+        # TODO: Update tests accordingly
 
         dl_args = self.subparsers.add_parser(
             ArgSubmodules.DATABASE, help="Options for database management")
@@ -136,8 +135,15 @@ class CLIArgs(object):
         )
 
         dl_args.add_argument(
+            '-f', '--filespec', metavar="<FILE SPEC>",
+            help=("File spec to list information about images, requires "
+                  "--records option and can be combined with --details.")
+        )
+
+        dl_args.add_argument(
             '-d', '--details', action='store_true',
-            help="Display detailed summary of database contents."
+            help=("Display detailed summary of database contents or selected "
+                  "<filespec>.")
         )
 
     def _duplicates(self):
@@ -153,25 +159,6 @@ class CLIArgs(object):
         dup_args.add_argument(
             '-x', '--remove_dups', action='store_true',
             help="Remove duplicate for duplicate images"
-        )
-
-    def _inventory(self):
-        """
-        Args associated with querying the image inventory.
-        :param self: Automatically provided.
-        :return: None.
-        """
-        inv_args = self.subparsers.add_parser(
-            ArgSubmodules.INVENTORY,
-            help="Options for managing reporting inventory")
-
-        inv_args.add_argument(
-            'filespec', metavar="<FILE SPEC>",
-            help="File spec to list information about images")
-
-        inv_args.add_argument(
-            '-d', '--detailed', action="store_true",
-            help="Detailed summary of inventory file spec."
         )
 
     def _image_info(self):
