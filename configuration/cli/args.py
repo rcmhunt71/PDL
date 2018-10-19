@@ -25,6 +25,33 @@ class ArgSubmodules(object):
                 if not key.startswith('_')]
 
 
+class ArgOptions(object):
+    CFG = 'cfg'
+    COMMAND = 'command'
+    DRYRUN = 'dryrun'
+    DEBUG = 'debug'
+    DETAILS = 'details'
+    FILE = 'file'
+    FILESPEC = 'filespec'
+    IMAGE = 'image'
+    RECORDS = 'records'
+    SYNC = 'sync'
+    REMOVE_DUPS = 'remove_dups'
+    URLS = 'urls'
+
+    SHORTCUTS = {
+        CFG: "c",
+        DEBUG: "d",
+        DETAILS: "d",
+        DRYRUN: "r",
+        FILE: "f",
+        FILESPEC: "f",
+        RECORDS: "r",
+        REMOVE_DUPS: "x",
+        SYNC: "s",
+    }
+
+
 class CLIArgs(object):
     """
     The class parses the CLI arguments to determine what user actions are required.
@@ -46,7 +73,7 @@ class CLIArgs(object):
 
     def __init__(self, test_args_list=None):
         self.parser = argparse.ArgumentParser(description=self.PURPOSE)
-        self.subparsers = self.parser.add_subparsers(dest='command')
+        self.subparsers = self.parser.add_subparsers(dest=ArgOptions.COMMAND)
 
         self._define_standard_args()
         self._downloads()
@@ -62,6 +89,13 @@ class CLIArgs(object):
         log.debug("Request for module names: {0}".format(
             pprint.pformat(modules)))
         return modules
+
+    @staticmethod
+    def get_shortcut(option):
+        if option in ArgOptions.SHORTCUTS.keys():
+            return "-{0}".format(ArgOptions.SHORTCUTS[option])
+        log.error('No shortcut registered for "{0}".'.format(option))
+        return None
 
     def parse_args(self, test_args_list=None):
         """
@@ -84,15 +118,21 @@ class CLIArgs(object):
         :return: None.
         """
         self.parser.add_argument(
-            '-d', '--debug', help="Enable debug flag for logging and reporting",
+            self.get_shortcut(ArgOptions.DEBUG),
+            '--{0}'.format(ArgOptions.DEBUG),
+            help="Enable debug flag for logging and reporting",
             action='store_true')
 
         self.parser.add_argument(
-            '-r', '--dryrun', help="Enable flag for dry-run. See what happens without taking action",
+            self.get_shortcut(ArgOptions.DRYRUN),
+            '--{0}'.format(ArgOptions.DRYRUN),
+            help="Enable flag for dry-run. See what happens without taking action",
             action='store_true')
 
         self.parser.add_argument(
-            '-c', '--cfg', help="Specify configuration file")
+            self.get_shortcut(ArgOptions.CFG),
+            '-c', '--{0}'.format(ArgOptions.CFG),
+            help="Specify configuration file")
 
     def _downloads(self):
         """
@@ -104,14 +144,17 @@ class CLIArgs(object):
             ArgSubmodules.DOWNLOAD, help="Options for downloading images")
 
         dl_args.add_argument(
-            'urls', nargs=argparse.REMAINDER, metavar="<URLS>",
+            ArgOptions.URLS, nargs=argparse.REMAINDER,
             help=("List of URLs to parse and download, should be last argument "
-                  "on the CLI")
+                  "on the CLI"),
+            metavar="<URLS>"
         )
 
         dl_args.add_argument(
-            '-f', '--file', metavar="<DL_FILE>",
-            help="Download PLAY file from a previous execution"
+            self.get_shortcut(ArgOptions.FILE),
+            '--{0}'.format(ArgOptions.FILE),
+            help="Download PLAY file from a previous execution",
+            metavar="<DL_FILE>"
         )
 
     def _database(self):
@@ -126,25 +169,33 @@ class CLIArgs(object):
 
         mutex = db_args.add_mutually_exclusive_group()
         mutex.add_argument(
-            '-s', '--sync', action="store_true",
-            help="Scan inventory and update DB based on findings."
+            self.get_shortcut(ArgOptions.SYNC),
+            '--{0}'.format(ArgOptions.SYNC),
+            help="Scan inventory and update DB based on findings.",
+            action="store_true"
         )
 
         mutex.add_argument(
-            '-r', '--records', action='store_true',
-            help="Display database summary."
+            self.get_shortcut(ArgOptions.RECORDS),
+            '--{0}'.format(ArgOptions.RECORDS),
+            help="Display database summary.",
+            action='store_true'
         )
 
         db_args.add_argument(
-            '-f', '--filespec', metavar="<FILE SPEC>",
+            self.get_shortcut(ArgOptions.FILESPEC),
+            '--{0}'.format(ArgOptions.FILESPEC),
             help=("File spec to list information about images, requires "
-                  "--records option and can be combined with --details.")
+                  "--records option and can be combined with --details."),
+            metavar="<FILE SPEC>"
         )
 
         db_args.add_argument(
-            '-d', '--details', action='store_true',
+            self.get_shortcut(ArgOptions.DETAILS),
+            '--{0}'.format(ArgOptions.DETAILS),
             help=("Display detailed summary of database contents or details of "
-                  "selected <filespec>.")
+                  "selected <filespec>."),
+            action='store_true'
         )
 
     def _duplicates(self):
@@ -158,8 +209,10 @@ class CLIArgs(object):
             help="Options for managing duplicate images")
 
         dup_args.add_argument(
-            '-x', '--remove_dups', action='store_true',
-            help="Remove duplicate for duplicate images"
+            self.get_shortcut(ArgOptions.REMOVE_DUPS),
+            '--{0}'.format(ArgOptions.REMOVE_DUPS),
+            help="Remove duplicate for duplicate images",
+            action='store_true',
         )
 
     def _image_info(self):
@@ -173,7 +226,9 @@ class CLIArgs(object):
             help="Options for querying info about a specific image")
 
         image_info_args.add_argument(
-            'image', metavar="<IMAGE_NAME>", help="Image Name to query")
+            ArgOptions.IMAGE,
+            help="Image Name to query",
+            metavar="<IMAGE_NAME>")
 
     def get_args_str(self):
         """
