@@ -4,13 +4,9 @@ from nose.tools import raises, assert_equals, assert_false, assert_true
 
 class TestCommandLine(object):
 
-
-
-
     def test_if_debug_flag_is_set(self):
-        """
-        Validate debug flag is reported as set.
-        """
+        # Validate debug flag is reported as set.
+
         attr = ArgOptions.DEBUG
         cli_args = [self._build_longword_option(attr), ArgSubmodules.DOWNLOAD]
         expectation = True
@@ -18,9 +14,8 @@ class TestCommandLine(object):
             attr=attr, cli_args=cli_args, bool_expectation=expectation)
 
     def test_if_debug_flag_is_not_set(self):
-        """
-        Validate debug flag is reported as NOT SET.
-        """
+        # Validate debug flag is reported as NOT SET.
+
         attr = ArgOptions.DEBUG
         cli_args = [ArgSubmodules.DOWNLOAD]
         expectation = False
@@ -28,9 +23,8 @@ class TestCommandLine(object):
             attr=attr, cli_args=cli_args, bool_expectation=expectation)
 
     def test_if_dryrun_flag_is_set(self):
-        """
-        Validate dryrun flag is reported as set.
-        """
+        # Validate dryrun flag is reported as set.
+
         attr = ArgOptions.DRYRUN
         cli_args = [self._build_longword_option(attr), ArgSubmodules.DOWNLOAD]
         expectation = True
@@ -38,9 +32,8 @@ class TestCommandLine(object):
             attr=attr, cli_args=cli_args, bool_expectation=expectation)
 
     def test_if_dryrun_flag_is_not_set(self):
-        """
-        Validate debug flag is reported as NOT SET.
-        """
+        # Validate debug flag is reported as NOT SET.
+
         attr = ArgOptions.DRYRUN
         cli_args = [ArgSubmodules.DOWNLOAD]
         expectation = False
@@ -48,9 +41,8 @@ class TestCommandLine(object):
             attr=attr, cli_args=cli_args, bool_expectation=expectation)
 
     def test_if_command_attribute_is_set_to_submenu(self):
-        """
-        Test if the CLIArgs.command contains the name of the correct submenu.
-        """
+        # Test if the CLIArgs.command contains the name of the correct submenu.
+
         attr = ArgOptions.COMMAND
         designator = ArgSubmodules.DOWNLOAD
 
@@ -64,9 +56,7 @@ class TestCommandLine(object):
 
     @raises(SystemExit)
     def test_if_cfg_option_without_file_specified(self):
-        """
-        Test if cfg option throws error if file is not specified.
-        """
+        # Test if cfg option throws error if file is not specified.
         # Proper arg list: --cfg <filespec>
         # Actual arg list: --cfg
 
@@ -77,9 +67,7 @@ class TestCommandLine(object):
 
     @raises(SystemExit)
     def test_if_image_without_filespec_raises_error(self):
-        """
-        Test if image sub option throws error if no image is specified.
-        """
+        # Test if image sub option throws error if no image is specified.
         # Proper arg list: info image <filespec>
         # Actual arg list: info image
 
@@ -91,9 +79,8 @@ class TestCommandLine(object):
 
     @raises(SystemExit)
     def test_if_db_sync_and_records_are_mutually_exclusive(self):
-        """
-        Test if db --sync and --records are mutually exclusive.
-        """
+        # Test if db --sync and --records are mutually exclusive.
+
         attr = [ArgOptions.SYNC, ArgOptions.RECORDS]
         cli = CLIArgs(test_args_list=[self._build_longword_option(attr[0]),
                                       self._build_longword_option(attr[1])])
@@ -102,9 +89,8 @@ class TestCommandLine(object):
             print("{attr} ATTRIBUTE: {val}".format(attr=attribute, val=value))
 
     def test_if_db_sync_option_works_alone(self):
-        """
-        Test if db --sync option is accepted without arguments.
-        """
+        # Test if db --sync option is accepted without arguments.
+
         attr = ArgOptions.SYNC
         designator = ArgSubmodules.DATABASE
         cli = CLIArgs(
@@ -115,9 +101,8 @@ class TestCommandLine(object):
         assert_equals(getattr(cli.args, attr), True)
 
     def test_if_db_detail_option_is_stored(self):
-        """
-        Test if db --detail is stored correctly.
-        """
+        # Test if db --detail is stored correctly.
+
         attr = ArgOptions.DETAILS
         designator = ArgSubmodules.DATABASE
         cli = CLIArgs(test_args_list=[designator,
@@ -128,9 +113,7 @@ class TestCommandLine(object):
         assert_equals(getattr(cli.args, attr), True)
 
     def test_if_db_record_record_and_details_options_are_stored(self):
-        """
-        Test if db --records --details is accepted.
-        """
+        # Test if db --records --details is accepted.
         attributes = [ArgOptions.RECORDS, ArgOptions.DETAILS]
         designator = ArgSubmodules.DATABASE
 
@@ -145,9 +128,7 @@ class TestCommandLine(object):
             assert_equals(getattr(cli.args, attr), True)
 
     def test_if_db_records_with_details_and_filespec_options_is_stored(self):
-        """
-        Test if db --records --filespec_<filespec> --details is stored.
-        """
+        # Test if db --records --filespec_<filespec> --details is stored.
         filespec_opt = 'filespec'
         filespec = "'./*.png'"
         attributes = ['records', 'details', filespec_opt]
@@ -171,11 +152,9 @@ class TestCommandLine(object):
 
     @raises(SystemExit)
     def test_if_db_record_details_and_filespec_opts_wo_filespecs_errors(self):
-        """
-        Test if db --records --details --filespec raises an error if the
-        filespec does not have a specifier (e.g. *.jpg)
+        # Test if db --records --details --filespec raises an error if the
+        # filespec does not have a specifier (e.g. *.jpg)
 
-        """
         file_spec = "'./*.png'"
         attributes = [ArgOptions.RECORDS, ArgOptions.DETAILS,
                       ArgOptions.FILESPEC]
@@ -196,9 +175,7 @@ class TestCommandLine(object):
 
     @raises(SystemExit)
     def test_if_image_without_info_designator_wo_filespec_raises_error(self):
-        """
-        Test if image suboption without image filespec raises an error
-        """
+        # Test if image suboption without image filespec raises an error
         # Proper arg list: <designator> <option> <value>
         # Actual arg list: <option> <value>
 
@@ -210,9 +187,7 @@ class TestCommandLine(object):
 
     @raises(SystemExit)
     def test_if_invalid_designator_raises_error(self):
-        """
-        Verify an invalid (unrecognized) designator raises an error.
-        """
+        # Verify an invalid (unrecognized) designator raises an error.
         # Proper arg list: <known_designator>
         # Actual arg list: <unknown_designator>
 
