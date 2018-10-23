@@ -6,6 +6,7 @@ from PDL.logger.utils import datestamp_filename, DEFAULT_EXTENSION, DELIMITER
 from nose.tools import assert_equals, assert_is_not_none
 
 
+# TODO: Add inline docstrings
 class TestLogUtils(object):
 
     TIMESTAMP_FORMAT = r'[0-9]{6}T[0-9]{6}'

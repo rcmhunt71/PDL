@@ -2,6 +2,7 @@ import inspect
 import logging
 import os
 
+# TODO: Add README.md to directory
 
 class Logger(object):
 

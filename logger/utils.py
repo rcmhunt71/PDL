@@ -6,6 +6,8 @@ DELIMITER = '_'
 
 
 def datestamp_filename(prefix=None, suffix=None, extension=DEFAULT_EXTENSION):
+    # TODO: Add docstring
+
     timestamp = datetime.datetime.now().strftime(r'%y%m%dT%H%M%S')
     filename = ''
     if prefix is not None:

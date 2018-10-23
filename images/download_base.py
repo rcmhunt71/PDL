@@ -2,6 +2,7 @@
 class ParsePage(object):
     """ Generic object for tracking page parsing actions. """
 
+    # TODO: Add docstring
     def __init__(self, page_url):
         self.page_url = page_url
         self.page_contents = None
@@ -35,6 +36,8 @@ class ImageContactPage(ParsePage):
 
 
 class ImageStatus(object):
+    # TODO: Add docstrings
+
     def __init__(self, image_list):
         self.image_list = image_list
 
@@ -43,6 +46,8 @@ class ImageStatus(object):
 
 
 class DownloadImages(object):
+    # TODO: Add docstrings
+
     def __init__(self, image_list):
         self.image_list = image_list
 
