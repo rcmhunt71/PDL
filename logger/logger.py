@@ -98,6 +98,11 @@ class Logger(object):
         logging.getLogger(self.ROOT_LOGGER).addHandler(console)
 
     def _get_module_name(self):
+        """
+        Gets stack information, determines package, and creates dotted path
+
+        :return: string - dotted path lib
+        """
         frame_info = inspect.stack()[self.depth]
         filename = os.path.abspath(frame_info[1]).split(
             '{0}{1}'.format(self.project, os.path.sep))[-1]
@@ -115,20 +120,24 @@ class Logger(object):
         :param prefix: If preamble needs an additional internal prefix.
 
         :return: None
-
         """
         log_routine = getattr(self.logger, level.lower())
         log_routine(str(prefix) + str(msg), extra=self._method())
 
-    @staticmethod
-    def _list_loggers():
+    def _list_loggers(self):
         """
-        Lists all child loggers defined under the root logger
-        :param self: None
-        :return: List of all logger instances
+        Lists all child loggers defined under the root logger, and effective
+        logging levels
+        :param: None
+        :return: List of tuples (logger instance name, log_level (int))
 
         """
-        return logging.getLogger().manager.loggerDict.keys()
+        logger_info = [self._get_logger_info('root')]
+
+        for logger_name in sorted(logging.getLogger().manager.loggerDict.keys()):
+            if logger_name != 'root':
+                logger_info.append(self._get_logger_info(logger_name))
+        return logger_info
 
     def list_loggers(self):
         """
@@ -138,27 +147,34 @@ class Logger(object):
         alphabetically listing children.
 
         """
+
+        # Define table format
         border = "+{0}+{1}+\n".format('-' * 42, '-' * 12)
+        table_row = "| {0:<40} | {1:^10} |\n"
 
-        table_row = "| {logger:<40} | {log_level:^10} |\n"
+        # Create Header
         table = "\n{0}".format(border)
-        table += table_row.format(logger="CHILD LOGGER", log_level="LOG LEVEL")
+        table += table_row.format("CHILD LOGGER", "LOG LEVEL")
         table += border
 
-        info = self._get_logger_info('root')
-        table += table_row.format(logger=info[0], log_level=info[1].upper())
+        # Populate Table
+        for data in self._list_loggers():
+            table += table_row.format(*data)
 
-        for logger_name in sorted(self._list_loggers()):
-            if logger_name != 'root':
-                info = self._get_logger_info(logger_name)
-                table += table_row.format(
-                    logger=info[0], log_level=info[1].upper())
+        # Close Table
         table += border
+
         return table
 
     def _get_logger_info(self, name):
+        """
+        Gets the effective log level for the given name
+        :param name: Name of the logging facility/child
+        :return: list (logger_name, logging_level)
+
+        """
         child = logging.getLogger().getChild(name)
-        return name, self.VAL_TO_STR[child.getEffectiveLevel()]
+        return [name, self.VAL_TO_STR[child.getEffectiveLevel()].upper()]
 
     @staticmethod
     def _translate_to_dotted_lib_path(path):
