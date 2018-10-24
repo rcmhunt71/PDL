@@ -4,28 +4,52 @@ import os
 
 # TODO: Add README.md to directory
 
+
 class Logger(object):
 
     DEFAULT_PROJECT = 'PDL'
-    DEFAULT_LOG_LEVEL = logging.DEBUG
+
+    INFO = logging.INFO
+    WARN = logging.WARN
+    FATAL = logging.FATAL
+    DEBUG = logging.DEBUG
+    ERROR = logging.ERROR
+
+    DEFAULT_LOG_LEVEL = INFO
+
+    STR_TO_VAL = {'fatal': FATAL,
+                  'warn': WARN,
+                  'error': ERROR,
+                  'info': INFO,
+                  'debug': DEBUG}
+
+    VAL_TO_STR = {FATAL: 'fatal',
+                  WARN: 'warn',
+                  ERROR: 'error',
+                  INFO: 'info',
+                  DEBUG: 'debug'}
 
     LOG_FORMAT = (r'[%(asctime)-15s][%(levelname)-5s][%(pid)s]'
                   r'[%(file_name)s:%(routine)s:%(linenum)d] - %(message)s')
     DATE_FORMAT = r'%m%d%y-%T'
 
     DEFAULT_DEPTH = 3
-    ROOT_LOGGER = ''
+    ROOT_LOGGER = 'root'
 
     def __init__(
             self, filename=None, default_level=None, added_depth=0,
-            project=None):
+            project=None, set_root=False):
 
         self.filename = filename
         self.loglevel = default_level or self.DEFAULT_LOG_LEVEL
         self.depth = self.DEFAULT_DEPTH + int(added_depth)
         self.project = project or self.DEFAULT_PROJECT
         self.logger = None
+        self.name = None
+        self.root = set_root
+
         self._start_logger()
+        print("{0}: LVL: {1}".format(self.name, self.loglevel))
 
     def _start_logger(self):
         """
@@ -47,13 +71,19 @@ class Logger(object):
             default_config['filename'] = self.filename
         logging.basicConfig(**default_config)
 
-        name = self._get_module_name() if __name__ != '__main__' else self.ROOT_LOGGER
+        self.name = self._get_module_name() if __name__ != '__main__' else self.ROOT_LOGGER
+        if self.root:
+            self.name = self.ROOT_LOGGER
 
         if self.filename is not None:
             self._add_console()
 
-        self.logger = logging.getLogger(name)
-        self.logger.setLevel(self.loglevel)
+        root_log = logging.getLogger()
+        if self.name != self.ROOT_LOGGER:
+            self.logger = root_log.getChild(self.name)
+        else:
+            self.logger = root_log
+            self.logger.setLevel(self.loglevel)
 
     def _add_console(self):
         """
@@ -89,6 +119,46 @@ class Logger(object):
         """
         log_routine = getattr(self.logger, level.lower())
         log_routine(str(prefix) + str(msg), extra=self._method())
+
+    @staticmethod
+    def _list_loggers():
+        """
+        Lists all child loggers defined under the root logger
+        :param self: None
+        :return: List of all logger instances
+
+        """
+        return logging.getLogger().manager.loggerDict.keys()
+
+    def list_loggers(self):
+        """
+        Lists all loggers (root + children) and their corresponding log level
+
+        :return: str table representation of loggers, starting with root, and
+        alphabetically listing children.
+
+        """
+        border = "+{0}+{1}+\n".format('-' * 42, '-' * 12)
+
+        table_row = "| {logger:<40} | {log_level:^10} |\n"
+        table = "\n{0}".format(border)
+        table += table_row.format(logger="CHILD LOGGER", log_level="LOG LEVEL")
+        table += border
+
+        info = self._get_logger_info('root')
+        table += table_row.format(logger=info[0], log_level=info[1].upper())
+
+        for logger_name in sorted(self._list_loggers()):
+            if logger_name != 'root':
+                info = self._get_logger_info(logger_name)
+                table += table_row.format(
+                    logger=info[0], log_level=info[1].upper())
+        table += border
+        return table
+
+    def _get_logger_info(self, name):
+        child = logging.getLogger().getChild(name)
+        return name, self.VAL_TO_STR[child.getEffectiveLevel()]
 
     @staticmethod
     def _translate_to_dotted_lib_path(path):
