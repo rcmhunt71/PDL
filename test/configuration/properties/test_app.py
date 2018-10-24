@@ -4,7 +4,7 @@ import os
 
 from PDL.configuration.properties.app_cfg import (
     AppConfig, ConfigSectionDoesNotExist, OptionDoesNotExist,
-    CannotCastValueToType)
+    CannotCastValueToType, CfgFileDoesNotExist)
 
 from nose.tools import assert_equals, assert_true, raises
 
@@ -26,19 +26,22 @@ class TestPropertiesConfig(object):
         INVALID_SECTION, 'resources', ['Nova', 'Neutron', 'Cinder'])
     VALID_SECTION_AND_INVALID_OPTION_LIST = (
         'teardown', INVALID_OPTION, ['Nova', 'Neutron', 'Cinder'])
+    INVALID_CFG_FILE = 'DNE.txt'
 
-
-    @classmethod
-    def setup_class(cls):
+    def setup(self):
         filename = inspect.getframeinfo(inspect.currentframe()).filename
-        cls.cfg_file = '{0}.data'.format(os.path.splitext(filename)[0])
-        cls.config = AppConfig(cfg_file=cls.cfg_file)
+        self.cfg_file = '{0}.data'.format(os.path.splitext(filename)[0])
+        self.config = AppConfig(cfg_file=self.cfg_file, test=True)
 
     def _print_config_file(self):
         with open(self.cfg_file) as CFG:
             lines = CFG.readlines()
         print("CFG FILE ({location}):\n\t{contents}".format(
             location=self.cfg_file, contents='\t'.join(lines)))
+
+    @raises(CfgFileDoesNotExist)
+    def test_if_missing_cfg_file_raises_error(self):
+        AppConfig(cfg_file=self.INVALID_CFG_FILE, test=False)
 
     def test_get_sections(self):
         expected_sections = ['setup', 'test', 'teardown']

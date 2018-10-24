@@ -1,3 +1,5 @@
+import os
+
 from ConfigParser import ConfigParser, NoSectionError, NoOptionError
 
 from PDL.logger.logger import Logger
@@ -32,11 +34,31 @@ class CannotCastValueToType(Exception):
             section=section, option=option, cfg_file=cfg_file, type_=type_)
 
 
-class AppConfig(ConfigParser):
+class CfgFileDoesNotExist(Exception):
+    msg_fmt = "Config file '{cfg_file}' was not found or does not exist."
+
     def __init__(self, cfg_file):
+        self.message = self.msg_fmt.format(cfg_file=cfg_file)
+
+
+class AppConfig(ConfigParser):
+    def __init__(self, cfg_file, test=False):
         ConfigParser.__init__(self)
         self.cfg_file = cfg_file
-        self.config = self.read(self.cfg_file)
+
+        if not test:
+            if os.path.exists(self.cfg_file):
+                log.debug('Reading: {cfg}'.format(cfg=self.cfg_file))
+                self.config = self.read(self.cfg_file)
+            else:
+                log.error('Unable to read cfg file: {cfg}'.format(
+                    cfg=self.cfg_file))
+                raise CfgFileDoesNotExist(cfg_file=self.cfg_file)
+
+        # For testing, read specified file, without checking for existence
+        else:
+            log.debug('Reading: {cfg}'.format(cfg=self.cfg_file))
+            self.config = self.read(self.cfg_file)
 
     def get_options(self, section):
         if self.has_section(section=section):
