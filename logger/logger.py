@@ -49,7 +49,6 @@ class Logger(object):
         self.root = set_root
 
         self._start_logger()
-        print("{0}: LVL: {1}".format(self.name, self.loglevel))
 
     def _start_logger(self):
         """
