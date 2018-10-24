@@ -23,17 +23,13 @@ class Logger(object):
                   'info': INFO,
                   'debug': DEBUG}
 
-    VAL_TO_STR = {FATAL: 'fatal',
-                  WARN: 'warn',
-                  ERROR: 'error',
-                  INFO: 'info',
-                  DEBUG: 'debug'}
+    VAL_TO_STR = dict([(value, text) for text, value in STR_TO_VAL.items()])
 
     LOG_FORMAT = (r'[%(asctime)-15s][%(levelname)-5s][%(pid)s]'
                   r'[%(file_name)s:%(routine)s:%(linenum)d] - %(message)s')
     DATE_FORMAT = r'%m%d%y-%T'
 
-    DEFAULT_DEPTH = 3
+    DEFAULT_STACK_DEPTH = 3
     ROOT_LOGGER = 'root'
 
     def __init__(
@@ -42,7 +38,7 @@ class Logger(object):
 
         self.filename = filename
         self.loglevel = default_level or self.DEFAULT_LOG_LEVEL
-        self.depth = self.DEFAULT_DEPTH + int(added_depth)
+        self.depth = self.DEFAULT_STACK_DEPTH + int(added_depth)
         self.project = project or self.DEFAULT_PROJECT
         self.logger = None
         self.name = None
@@ -226,5 +222,8 @@ if __name__ == '__main__':
         test_routine(log, 'info', 'TEST')
         test_routine(log, 'debug', 'TEST2')
 
-    log = Logger(default_level=logging.DEBUG, added_depth=1, filename="logger_test.log")
+    log = Logger(default_level=logging.DEBUG,
+                 filename="logger_test.log",
+                 set_root=True,
+                 added_depth=1)
     test_logging()
