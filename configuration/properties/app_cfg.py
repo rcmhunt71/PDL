@@ -9,6 +9,20 @@ log = Logger()
 # TODO: Add Docstrings and inlines as needed
 
 
+class CfgFileSections(object):
+    LOGGING = 'logging'
+    STORAGE = 'storage'
+    PROJECT = 'project'
+
+
+class CfgFileSectionKeys(object):
+    EXTENSION = 'extension'
+    LOG_LEVEL = 'log_level'
+    NAME = 'name'
+    PREFIX = 'prefix'
+    SUFFIX = 'suffix'
+
+
 class ConfigSectionDoesNotExist(Exception):
     msg_fmt = "Section '{section}' is not defined in '{cfg_file}'"
 
