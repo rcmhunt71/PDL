@@ -9,6 +9,9 @@ log = PDL_log()
 
 
 class ArgSubmodules(object):
+    """
+    Defined submodules for the application
+    """
     DOWNLOAD = 'dl'
     DUPLICATES = 'dups'
     INFO = 'info'
@@ -26,13 +29,18 @@ class ArgSubmodules(object):
 
 
 class ArgOptions(object):
+    """
+    Defined constants for sub-options available via the CLI across all
+    sub-modules.
+    """
+
     CFG = 'cfg'
     COMMAND = 'command'
-    DRYRUN = 'dryrun'
+    DRY_RUN = 'dryrun'
     DEBUG = 'debug'
     DETAILS = 'details'
     FILE = 'file'
-    FILESPEC = 'filespec'
+    FILE_SPEC = 'filespec'
     IMAGE = 'image'
     RECORDS = 'records'
     SYNC = 'sync'
@@ -43,9 +51,9 @@ class ArgOptions(object):
         CFG: "c",
         DEBUG: "d",
         DETAILS: "d",
-        DRYRUN: "r",
+        DRY_RUN: "r",
         FILE: "f",
-        FILESPEC: "f",
+        FILE_SPEC: "f",
         RECORDS: "r",
         REMOVE_DUPS: "x",
         SYNC: "s",
@@ -85,6 +93,11 @@ class CLIArgs(object):
 
     @staticmethod
     def get_module_names():
+        """
+        Lists all of the submodules available as part of the application
+        :return: List of strings (names of the submodules)
+
+        """
         modules = ArgSubmodules._get_const_values()
         log.debug("Request for module names: {0}".format(
             pprint.pformat(modules)))
@@ -92,6 +105,12 @@ class CLIArgs(object):
 
     @staticmethod
     def get_shortcut(option):
+        """
+        Gets the single letter representation of the option
+        :param option: Name of the option
+        :return: character used on the CLI to represent the option.
+
+        """
         if option in ArgOptions.SHORTCUTS.keys():
             return "-{0}".format(ArgOptions.SHORTCUTS[option])
         log.error('No shortcut registered for "{0}".'.format(option))
@@ -102,8 +121,8 @@ class CLIArgs(object):
         Parses CLI, but allows injection of arguments for testing purposes
         :param test_args_list:
         :return:
-        """
 
+        """
         log.debug("Parsing command line args.")
         if test_args_list is not None:
             log.debug(
@@ -117,18 +136,22 @@ class CLIArgs(object):
         :param self: Automatically provided.
         :return: None.
         """
+
+        # GLOBAL DEBUG FLAG
         self.parser.add_argument(
             self.get_shortcut(ArgOptions.DEBUG),
             '--{0}'.format(ArgOptions.DEBUG),
             help="Enable debug flag for logging and reporting",
             action='store_true')
 
+        # DRY RUN
         self.parser.add_argument(
-            self.get_shortcut(ArgOptions.DRYRUN),
-            '--{0}'.format(ArgOptions.DRYRUN),
+            self.get_shortcut(ArgOptions.DRY_RUN),
+            '--{0}'.format(ArgOptions.DRY_RUN),
             help="Enable flag for dry-run. See what happens without taking action",
             action='store_true')
 
+        # CFG FILE
         self.parser.add_argument(
             self.get_shortcut(ArgOptions.CFG),
             '-c', '--{0}'.format(ArgOptions.CFG),
@@ -143,6 +166,7 @@ class CLIArgs(object):
         dl_args = self.subparsers.add_parser(
             ArgSubmodules.DOWNLOAD, help="Options for downloading images")
 
+        # URLS TO PARSE AND DOWNLOAD
         dl_args.add_argument(
             ArgOptions.URLS, nargs=argparse.REMAINDER,
             help=("List of URLs to parse and download, should be last argument "
@@ -150,6 +174,7 @@ class CLIArgs(object):
             metavar="<URLS>"
         )
 
+        # FILE TO READ URLS
         dl_args.add_argument(
             self.get_shortcut(ArgOptions.FILE),
             '--{0}'.format(ArgOptions.FILE),
@@ -167,7 +192,10 @@ class CLIArgs(object):
         db_args = self.subparsers.add_parser(
             ArgSubmodules.DATABASE, help="Options for database management")
 
+        # Either SYNC or QUERY, not both (at the same time).
         mutex = db_args.add_mutually_exclusive_group()
+
+        # DATABASE SYNC
         mutex.add_argument(
             self.get_shortcut(ArgOptions.SYNC),
             '--{0}'.format(ArgOptions.SYNC),
@@ -175,6 +203,7 @@ class CLIArgs(object):
             action="store_true"
         )
 
+        # RECORDS
         mutex.add_argument(
             self.get_shortcut(ArgOptions.RECORDS),
             '--{0}'.format(ArgOptions.RECORDS),
@@ -182,14 +211,16 @@ class CLIArgs(object):
             action='store_true'
         )
 
+        # FILESPEC
         db_args.add_argument(
-            self.get_shortcut(ArgOptions.FILESPEC),
-            '--{0}'.format(ArgOptions.FILESPEC),
+            self.get_shortcut(ArgOptions.FILE_SPEC),
+            '--{0}'.format(ArgOptions.FILE_SPEC),
             help=("File spec to list information about images, requires "
                   "--records option and can be combined with --details."),
             metavar="<FILE SPEC>"
         )
 
+        # DETAILS
         db_args.add_argument(
             self.get_shortcut(ArgOptions.DETAILS),
             '--{0}'.format(ArgOptions.DETAILS),
@@ -208,6 +239,7 @@ class CLIArgs(object):
             ArgSubmodules.DUPLICATES,
             help="Options for managing duplicate images")
 
+        # REMOVE DUPLICATES
         dup_args.add_argument(
             self.get_shortcut(ArgOptions.REMOVE_DUPS),
             '--{0}'.format(ArgOptions.REMOVE_DUPS),
@@ -225,6 +257,7 @@ class CLIArgs(object):
             ArgSubmodules.INFO,
             help="Options for querying info about a specific image")
 
+        # IMAGE QUERY
         image_info_args.add_argument(
             ArgOptions.IMAGE,
             help="Image Name to query",
