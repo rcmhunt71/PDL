@@ -1,11 +1,13 @@
 import datetime
-
+import os
 
 DEFAULT_EXTENSION = 'log'
 DELIMITER = '_'
 
 
-def datestamp_filename(prefix=None, suffix=None, extension=DEFAULT_EXTENSION):
+def datestamp_filename(prefix=None, suffix=None, extension=DEFAULT_EXTENSION,
+                       base_dir='.'):
+
     # TODO: Add docstring
 
     timestamp = datetime.datetime.now().strftime(r'%y%m%dT%H%M%S')
@@ -17,8 +19,7 @@ def datestamp_filename(prefix=None, suffix=None, extension=DEFAULT_EXTENSION):
         filename = "{filename}{delim}{suffix}".format(
             filename=filename, suffix=suffix, delim=DELIMITER)
     filename += ".{ext}".format(ext=extension)
+
+    filename = os.path.sep.join([base_dir, filename])
+
     return filename
-
-
-if __name__ == '__main__':
-    datestamp_filename(suffix="image_download")
