@@ -16,7 +16,10 @@ class CfgFileSections(object):
 
 
 class CfgFileSectionKeys(object):
+    DIRECTORY = 'directory'
     EXTENSION = 'extension'
+    LOCAL_DIR = 'local_dir'
+    LOCAL_DRIVE = 'local_drive'
     LOG_LEVEL = 'log_level'
     NAME = 'name'
     PREFIX = 'prefix'
