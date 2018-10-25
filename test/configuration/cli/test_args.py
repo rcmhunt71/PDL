@@ -25,7 +25,7 @@ class TestCommandLine(object):
     def test_if_dryrun_flag_is_set(self):
         # Validate dryrun flag is reported as set.
 
-        attr = ArgOptions.DRYRUN
+        attr = ArgOptions.DRY_RUN
         cli_args = [self._build_longword_option(attr), ArgSubmodules.DOWNLOAD]
         expectation = True
         self._verify_boolean_response(
@@ -34,7 +34,7 @@ class TestCommandLine(object):
     def test_if_dryrun_flag_is_not_set(self):
         # Validate debug flag is reported as NOT SET.
 
-        attr = ArgOptions.DRYRUN
+        attr = ArgOptions.DRY_RUN
         cli_args = [ArgSubmodules.DOWNLOAD]
         expectation = False
         self._verify_boolean_response(
@@ -157,7 +157,7 @@ class TestCommandLine(object):
 
         file_spec = "'./*.png'"
         attributes = [ArgOptions.RECORDS, ArgOptions.DETAILS,
-                      ArgOptions.FILESPEC]
+                      ArgOptions.FILE_SPEC]
         designator = ArgSubmodules.DATABASE
         args = [designator]
         args.extend([self._build_longword_option(attr) for attr in attributes])
@@ -169,7 +169,7 @@ class TestCommandLine(object):
             value = getattr(cli.args, attr)
             print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=value))
             expected = True
-            if attr == ArgOptions.FILESPEC:
+            if attr == ArgOptions.FILE_SPEC:
                 expected = file_spec
             assert_equals(getattr(cli.args, attr), expected)
 

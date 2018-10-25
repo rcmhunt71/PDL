@@ -159,3 +159,13 @@ class TestUrlProcessing(object):
         updated_list = CliArgProcessing.split_urls(valid_split_url_list)
         assert_not_equals(len(valid_split_url_list), len(updated_list))
         assert_equals(len(updated_list), list_size)
+
+    def test_list_urls_combines_urls_correctly(self):
+        list_size = 100
+        url_list = [self.VALID_URL_FORMAT.format(id_) for id_ in range(0, list_size)]
+
+        url_str = CliArgProcessing.list_urls(url_list=url_list)
+        assert isinstance(url_str, str)
+
+        url_count = len([line for line in url_str.split('\n') if line != ''])
+        assert_equals(list_size, url_count)
