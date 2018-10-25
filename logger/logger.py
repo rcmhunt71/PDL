@@ -34,14 +34,14 @@ class Logger(object):
 
     def __init__(
             self, filename=None, default_level=None, added_depth=0,
-            project=None, set_root=False):
+            project=None, set_root=False, test_name=None):
 
         self.filename = filename
         self.loglevel = default_level or self.DEFAULT_LOG_LEVEL
         self.depth = self.DEFAULT_STACK_DEPTH + int(added_depth)
         self.project = project or self.DEFAULT_PROJECT
         self.logger = None
-        self.name = None
+        self.name = test_name
         self.root = set_root
 
         self._start_logger()
@@ -66,7 +66,11 @@ class Logger(object):
             default_config['filename'] = self.filename
         logging.basicConfig(**default_config)
 
-        self.name = self._get_module_name() if __name__ != '__main__' else self.ROOT_LOGGER
+        if self.name is None:
+            self.name = (
+                self._get_module_name() if __name__ != '__main__' else
+                self.ROOT_LOGGER)
+
         if self.root:
             self.name = self.ROOT_LOGGER
 
@@ -82,8 +86,9 @@ class Logger(object):
 
     def _add_console(self):
         """
-        Enables a streamhandler for logging to the console (STDOUT).
-        This is used when a log file is specified, because all log output is directed to the file.
+        Enables a stream handler for logging to the console (STDOUT).
+        This is used when a log file is specified, because all log output is
+        directed to the file.
 
         :return: None
         """
