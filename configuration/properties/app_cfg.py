@@ -9,13 +9,13 @@ log = Logger()
 # TODO: Add Docstrings and inlines as needed
 
 
-class CfgFileSections(object):
+class AppCfgFileSections(object):
     LOGGING = 'logging'
     STORAGE = 'storage'
     PROJECT = 'project'
 
 
-class CfgFileSectionKeys(object):
+class AppCfgFileSectionKeys(object):
     DIRECTORY = 'directory'
     EXTENSION = 'extension'
     LOCAL_DIR = 'local_dir'
@@ -24,6 +24,14 @@ class CfgFileSectionKeys(object):
     NAME = 'name'
     PREFIX = 'prefix'
     SUFFIX = 'suffix'
+
+
+class ProjectCfgFileSections(object):
+    PYTHON_PROJECT = 'python_project'
+
+
+class ProjectCfgFileSectionKeys(object):
+    NAME = 'name'
 
 
 class ConfigSectionDoesNotExist(Exception):
