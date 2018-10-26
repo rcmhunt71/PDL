@@ -9,6 +9,8 @@ class CliArgProcessing(object):
     TOTAL_DUP_LIST = 'total_dup_list'
     UNIQUE_DUP_LIST = 'unique_dup_list'
     DELIMITER = 'https://'
+    VALID = True
+    INVALID = False
 
     @classmethod
     def process_url_list(cls, url_list):
@@ -20,25 +22,13 @@ class CliArgProcessing(object):
         :return: List of valid, unique URLs
 
         """
-        # Split URLS that were concatenated
-        split_urls = CliArgProcessing.split_urls(url_list)
+        log.info("Number of entries (URLs) on CLI: {0}".format(len(url_list)))
 
-        valid_urls = list()
-        invalid_urls = list()
-
-        # Make sure each url is valid
-        for url in split_urls:
-            if CliArgProcessing.validate_url(url):
-                valid_urls.append(url)
-            else:
-                invalid_urls.append(url)
-        log.debug("Number of VALID URLs on CLI: {0}".format(len(valid_urls)))
-        log.debug("Number of INVALID URLs on CLI: {0}".format(len(invalid_urls)))
-        for url in invalid_urls:
-            log.debug("Invalid URL: {0}".format(url))
+        # Split and validate URLs (concatenated and/or invalid URLs)
+        urls = CliArgProcessing.split_urls(url_list)
 
         # Remove duplicates
-        url_dict = CliArgProcessing.reduce_url_list(valid_urls)
+        url_dict = CliArgProcessing.reduce_url_list(urls)
 
         return url_dict[cls.REDUCED_LIST]
 
@@ -59,10 +49,10 @@ class CliArgProcessing(object):
         total_dups = [url for n, url in enumerate(url_list) if url in url_list[:n]]
         unique_dups = list(set(total_dups))
 
-        log.debug("Number of URLs on CLI: {0}".format(len(url_list)))
-        log.debug("Number of Unique URLs: {0}".format(len(reduced_list)))
-        log.debug("Number of Duplicates:  {0}".format(len(total_dups)))
-        log.debug("Number of Unique Duplicates:  {0}".format(len(unique_dups)))
+        log.info("Number of URLs on CLI: {0}".format(len(url_list)))
+        log.info("Number of Unique URLs: {0}".format(len(reduced_list)))
+        log.info("Number of Duplicates:  {0}".format(len(total_dups)))
+        log.info("Number of Unique Duplicates:  {0}".format(len(unique_dups)))
 
         return {cls.REDUCED_LIST: reduced_list,
                 cls.TOTAL_DUP_LIST: total_dups,
@@ -80,6 +70,7 @@ class CliArgProcessing(object):
 
         """
         # Concatenate all entries into a space-delimited string
+        num_urls_init = len(url_list)
         url_concat = ' '.join(url_list)
 
         # Split on delimiter (Catches concatenated http entries)
@@ -91,9 +82,23 @@ class CliArgProcessing(object):
 
         # Ignore '' urls, they are not valid, and the splitting generates a ''
         # at the front of each element in a split list.
+        url_temp_list = [url for url in url_temp.split(' ') if url != '']
 
-        return [url for url in url_temp.split(' ') if url is not '' and
-                CliArgProcessing.validate_url(url)]
+        log.info("Number of concatenations: {0}".format(len(url_temp_list) - num_urls_init))
+
+        # Check the validity of all existing URLs and classify based on validity.
+        urls = {cls.VALID: list(),
+                cls.INVALID: list()}
+
+        for url in url_temp_list:
+            urls[CliArgProcessing.validate_url(url)].append(url)
+
+        log.info("Number of VALID URLs on CLI: {0}".format(
+            len(urls[cls.VALID])))
+        log.info("Number of INVALID URLs on CLI: {0}".format(
+            len(urls[cls.INVALID])))
+
+        return urls[cls.VALID]
 
     @classmethod
     def validate_url(cls, url, delimiter=DELIMITER):
@@ -111,7 +116,7 @@ class CliArgProcessing(object):
         valid = (url.lower().startswith(delimiter.lower()) and
                  url.lower() != delimiter.lower())
 
-        log.debug("{status}: URL: {url}".format(
+        log.debug("{status}: URL= '{url}'".format(
             status="VALID" if valid else "INVALID", url=url))
 
         return valid
