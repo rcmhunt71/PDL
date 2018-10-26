@@ -55,12 +55,23 @@ class TestCommandLine(object):
 # --------- Improper CLI Argument Sets -------------
 
     @raises(SystemExit)
-    def test_if_cfg_option_without_file_specified(self):
+    def test_if_app_cfg_option_without_file_specified(self):
         # Test if cfg option throws error if file is not specified.
         # Proper arg list: --cfg <filespec>
         # Actual arg list: --cfg
 
         attr = ArgOptions.CFG
+        cli = CLIArgs(test_args_list=[self._build_longword_option(attr)])
+        attribute = getattr(cli.args, attr)
+        print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=attribute))
+
+    @raises(SystemExit)
+    def test_if_engine_cfg_option_without_file_specified(self):
+        # Test if cfg option throws error if file is not specified.
+        # Proper arg list: --engine <filespec>
+        # Actual arg list: --engine
+
+        attr = ArgOptions.ENGINE
         cli = CLIArgs(test_args_list=[self._build_longword_option(attr)])
         attribute = getattr(cli.args, attr)
         print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=attribute))

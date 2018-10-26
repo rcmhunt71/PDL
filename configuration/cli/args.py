@@ -39,6 +39,7 @@ class ArgOptions(object):
     DRY_RUN = 'dryrun'
     DEBUG = 'debug'
     DETAILS = 'details'
+    ENGINE = 'engine'
     FILE = 'file'
     FILE_SPEC = 'filespec'
     IMAGE = 'image'
@@ -52,6 +53,7 @@ class ArgOptions(object):
         DEBUG: "d",
         DETAILS: "d",
         DRY_RUN: "r",
+        ENGINE: "e",
         FILE: "f",
         FILE_SPEC: "f",
         RECORDS: "r",
@@ -151,11 +153,17 @@ class CLIArgs(object):
             help="Enable flag for dry-run. See what happens without taking action",
             action='store_true')
 
-        # CFG FILE
+        # USER/APP CFG FILE
         self.parser.add_argument(
             self.get_shortcut(ArgOptions.CFG),
-            '-c', '--{0}'.format(ArgOptions.CFG),
-            help="Specify configuration file")
+            '--{0}'.format(ArgOptions.CFG),
+            help="Specify application configuration file")
+
+        # ENGINE CFG FILE
+        self.parser.add_argument(
+            self.get_shortcut(ArgOptions.ENGINE),
+            '--{0}'.format(ArgOptions.ENGINE),
+            help="Specify engine configuration file")
 
     def _downloads(self):
         """
