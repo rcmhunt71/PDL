@@ -25,8 +25,8 @@ class Logger(object):
 
     VAL_TO_STR = dict([(value, text) for text, value in STR_TO_VAL.items()])
 
-    LOG_FORMAT = (r'[%(asctime)-15s][%(levelname)-5s][%(pid)s]'
-                  r'[%(file_name)s:%(routine)s:%(linenum)d] - %(message)s')
+    LOG_FORMAT = (r'[%(asctime)-15s][%(pid)s][%(levelname)-5s]'
+                  r'[%(file_name)s:%(routine)s|%(linenum)d] - %(message)s')
     DATE_FORMAT = r'%m%d%y-%T'
 
     DEFAULT_STACK_DEPTH = 3
