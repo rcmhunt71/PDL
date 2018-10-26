@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 
 from PDL.configuration.cli import args, urls
-from PDL.configuration.properties.app_cfg import AppConfig, CfgFileSections, CfgFileSectionKeys
+from PDL.configuration.properties.app_cfg import AppConfig, AppCfgFileSections, AppCfgFileSectionKeys
 from PDL.logger.logger import Logger as Logger
 import PDL.logger.utils as log_utils
 from PDL.images import image_info, download_base, consts as image_consts
 
-
-DEFAULT_CONFIG = 'pdl.cfg'
+DEFAULT_ENGINE_CONFIG = 'pdl.cfg'
+DEFAULT_APP_CONFIG = None
 
 
 def build_logfile_name(cfg_info):
     logfile_info = {
-        'prefix': cfg_info.get(CfgFileSections.LOGGING,
-                               CfgFileSectionKeys.PREFIX, None),
-        'suffix': cfg_info.get(CfgFileSections.LOGGING,
-                               CfgFileSectionKeys.SUFFIX, None),
-        'extension': cfg_info.get(CfgFileSections.LOGGING,
-                                  CfgFileSectionKeys.EXTENSION, None)
+        'prefix': cfg_info.get(AppCfgFileSections.LOGGING,
+                               AppCfgFileSectionKeys.PREFIX, None),
+        'suffix': cfg_info.get(AppCfgFileSections.LOGGING,
+                               AppCfgFileSectionKeys.SUFFIX, None),
+        'extension': cfg_info.get(AppCfgFileSections.LOGGING,
+                                  AppCfgFileSectionKeys.EXTENSION, None)
     }
 
     for key, value in logfile_info.items():
@@ -28,14 +28,15 @@ def build_logfile_name(cfg_info):
 
 
 cli = args.CLIArgs()
-app_cfg = AppConfig(cli.args.cfg or DEFAULT_CONFIG)
+app_cfg = AppConfig(cli.args.cfg or DEFAULT_APP_CONFIG)
+engine_cfg = AppConfig(cli.args.engine or DEFAULT_ENGINE_CONFIG)
 
 if cli.args.debug:
     log_level = 'debug'
 else:
     log_level = app_cfg.get(
-        CfgFileSections.LOGGING,
-        CfgFileSectionKeys.LOG_LEVEL.lower(),
+        AppCfgFileSections.LOGGING,
+        AppCfgFileSectionKeys.LOG_LEVEL.lower(),
         Logger.INFO)
 
 
@@ -43,8 +44,8 @@ logfile_name = build_logfile_name(cfg_info=app_cfg)
 log = Logger(filename=build_logfile_name(cfg_info=app_cfg),
              default_level=Logger.STR_TO_VAL[log_level],
              project=app_cfg.get(
-                 CfgFileSections.PROJECT,
-                 CfgFileSectionKeys.NAME, None),
+                 AppCfgFileSections.PYTHON_PROJECT,
+                 AppCfgFileSectionKeys.NAME, None),
              set_root=True)
 log.debug(log.list_loggers())
 
