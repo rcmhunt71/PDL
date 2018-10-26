@@ -8,6 +8,13 @@ from PDL.logger.logger import Logger as PDL_log
 log = PDL_log()
 
 
+class UnrecognizedModule(Exception):
+    msg_fmt = "Unrecognized module: '{module}'"
+
+    def __init__(self, module):
+        self.message = self.msg_fmt.format(module=module)
+
+
 class ArgSubmodules(object):
     """
     Defined submodules for the application
