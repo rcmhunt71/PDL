@@ -16,8 +16,10 @@ class AppCfgFileSections(object):
 
 
 class AppCfgFileSectionKeys(object):
+    CATALOG_PARSE = 'catalog_parse'
     DIRECTORY = 'directory'
     EXTENSION = 'extension'
+    IMAGE_CONTACT_PARSE = 'image_contact_parse'
     LOCAL_DIR = 'local_dir'
     LOCAL_DRIVE = 'local_drive'
     LOG_LEVEL = 'log_level'
