@@ -11,6 +11,38 @@ class CliArgProcessing(object):
     DELIMITER = 'https://'
 
     @classmethod
+    def process_url_list(cls, url_list):
+        """
+        Split any combined URLs, verify all URLs are valid, and remove any duplicates
+
+        :param url_list: List of URLs to process
+
+        :return: List of valid, unique URLs
+
+        """
+        # Split URLS that were concatenated
+        split_urls = CliArgProcessing.split_urls(url_list)
+
+        valid_urls = list()
+        invalid_urls = list()
+
+        # Make sure each url is valid
+        for url in split_urls:
+            if CliArgProcessing.validate_url(url):
+                valid_urls.append(url)
+            else:
+                invalid_urls.append(url)
+        log.debug("Number of VALID URLs on CLI: {0}".format(len(valid_urls)))
+        log.debug("Number of INVALID URLs on CLI: {0}".format(len(invalid_urls)))
+        for url in invalid_urls:
+            log.debug("Invalid URL: {0}".format(url))
+
+        # Remove duplicates
+        url_dict = CliArgProcessing.reduce_url_list(valid_urls)
+
+        return url_dict[cls.REDUCED_LIST]
+
+    @classmethod
     def reduce_url_list(cls, url_list):
         """
         Remove any duplicates from the list.
@@ -28,9 +60,9 @@ class CliArgProcessing(object):
         unique_dups = list(set(total_dups))
 
         log.debug("Number of URLs on CLI: {0}".format(len(url_list)))
-        log.debug("Number of Unique URLs: {0}".format(reduced_list))
-        log.debug("Number of Duplicates:  {0}".format(total_dups))
-        log.debug("Number of Unique Duplicates:  {0}".format(unique_dups))
+        log.debug("Number of Unique URLs: {0}".format(len(reduced_list)))
+        log.debug("Number of Duplicates:  {0}".format(len(total_dups)))
+        log.debug("Number of Unique Duplicates:  {0}".format(len(unique_dups)))
 
         return {cls.REDUCED_LIST: reduced_list,
                 cls.TOTAL_DUP_LIST: total_dups,
@@ -41,8 +73,8 @@ class CliArgProcessing(object):
         """
         Check for URLs that are not space delimited from the CLI. If found,
         split the URL into two URLs and add to the list.
-        :param url_list:
-        :param delimiter:
+        :param url_list: List of URLs to process
+        :param delimiter: Delimiter that indicates unique URLs, e.g. - space or comma
 
         :return: List of valid URLs
 
@@ -54,10 +86,8 @@ class CliArgProcessing(object):
         # Rejoin with space delimiter (concatenated entries are now separate)
         url_temp = ' {0}'.format(delimiter).join(url_concat.split(delimiter))
         if url_concat != url_temp:
-            log.debug("Concatenated URL Found (Delimiter: {delim})".format(
+            log.debug("Concatenated URL Found (Delimiter: {delim}) - Fixed".format(
                 delim=delimiter))
-            log.debug("\tOriginal URL: {0}".format(url_concat))
-            log.debug("\tUpdated URLs: {0}".format(url_temp))
 
         # Ignore '' urls, they are not valid, and the splitting generates a ''
         # at the front of each element in a split list.

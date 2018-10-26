@@ -68,6 +68,7 @@ class TestUrlProcessing(object):
     VALID_DELIMITER = 'https://'
     VALID_URL_FORMAT = 'https://test.domain.dom/resource_1/resource_2/endpoint_{0}.jpg'
     VALID_URL = VALID_URL_FORMAT.format('')
+    INVALID_URL = ".idea/not/valid"
 
     def test_validate_url_with_valid_url_lowercase(self):
         url = self.VALID_URL
@@ -106,7 +107,7 @@ class TestUrlProcessing(object):
             url=url, delim=delimiter))
 
     def test_validate_url_with_invalid_url(self):
-        url = '.idea'
+        url = self.INVALID_URL
         valid = CliArgProcessing.validate_url(url=url)
         assert_false(valid, "Invalid URL ({url}) was marked as valid.".format(url=url))
 
@@ -169,3 +170,49 @@ class TestUrlProcessing(object):
 
         url_count = len([line for line in url_str.split('\n') if line != ''])
         assert_equals(list_size, url_count)
+
+    # ===============================================================
+    # -------   CliArgProcessing::process_url_list(url_list)   -------
+    # ===============================================================
+    def test_all_valid_and_unique_urls_are_returned(self):
+        num_urls = 10
+        url_list = [self.VALID_URL_FORMAT.format(index) for index in range(0, num_urls)]
+        processed_list = CliArgProcessing.process_url_list(url_list)
+        assert_equals(num_urls, len(processed_list))
+
+    def test_concat_urls_only_valid_and_unique_urls_are_returned(self):
+        num_urls = 10
+        concat_urls = 3
+        url_list = [self.VALID_URL_FORMAT.format(index) for index in range(0, num_urls)]
+        concat = [self.VALID_URL_FORMAT.format(index) for index in range(100, 100 + concat_urls)]
+        url_list.append(''.join(concat))
+
+        processed_list = CliArgProcessing.process_url_list(url_list)
+        assert_equals(num_urls + concat_urls, len(processed_list))
+
+    def test_duplicate_urls_only_valid_and_unique_urls_are_returned(self):
+        num_urls = 10
+        url_list = [self.VALID_URL_FORMAT.format(index) for index in range(0, num_urls)]
+        url_list.extend(url_list)
+        processed_list = CliArgProcessing.process_url_list(url_list)
+        assert_equals(num_urls, len(processed_list))
+
+    def test_concat_and_dup_urls_only_valid_and_unique_urls_are_returned(self):
+        num_urls = 10
+        concat_urls = 3
+        url_list = [self.VALID_URL_FORMAT.format(index) for index in range(0, num_urls)]
+        url_list.extend(url_list)
+
+        concat = [self.VALID_URL_FORMAT.format(index) for index in range(100, 100 + concat_urls)]
+
+        url_list.append(''.join(concat))
+        processed_list = CliArgProcessing.process_url_list(url_list)
+        assert_equals(num_urls + concat_urls, len(processed_list))
+
+    def test_invalid_urls_are_removed(self):
+        num_urls = 5
+        url_list = [self.VALID_URL_FORMAT.format(index) for index in range(0, num_urls)]
+        url_list.append(self.INVALID_URL)
+        url_list.extend([self.VALID_URL_FORMAT.format(index) for index in range(10, 10 + num_urls)])
+        processed_list = CliArgProcessing.process_url_list(url_list)
+        assert_equals(num_urls * 2, len(processed_list))
