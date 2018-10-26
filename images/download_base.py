@@ -31,7 +31,8 @@ class ImageContactPage(ParsePage):
     """
 
     def __init__(self, page_url):
-        super(ParsePage).__init__(page_url=page_url)
+        # Using python2.x super() call.
+        super(ImageContactPage, self).__init__(page_url)
         self.image_urls = list()
 
 

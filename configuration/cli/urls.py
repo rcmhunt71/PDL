@@ -116,7 +116,7 @@ class UrlArgProcessing(object):
         valid = (url.lower().startswith(delimiter.lower()) and
                  url.lower() != delimiter.lower())
 
-        log.debug("{status}: URL= '{url}'".format(
+        log.debug("{status}: URL='{url}'".format(
             status="VALID" if valid else "INVALID", url=url))
 
         return valid

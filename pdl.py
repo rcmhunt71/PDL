@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 
-from PDL.configuration.cli import args, urls
+import os
+from pprint import pformat
+
+import PDL.configuration.cli.args as args
+from PDL.configuration.cli.urls import UrlArgProcessing as ArgProcessing
 from PDL.configuration.properties.app_cfg import AppConfig, AppCfgFileSections, AppCfgFileSectionKeys
+import PDL.engine.engine as engine
 from PDL.logger.logger import Logger as Logger
 import PDL.logger.utils as log_utils
 from PDL.images import image_info, download_base, consts as image_consts
@@ -44,13 +49,46 @@ logfile_name = build_logfile_name(cfg_info=app_cfg)
 log = Logger(filename=build_logfile_name(cfg_info=app_cfg),
              default_level=Logger.STR_TO_VAL[log_level],
              project=app_cfg.get(
-                 AppCfgFileSections.PYTHON_PROJECT,
+                 AppCfgFileSections.PROJECT,
                  AppCfgFileSectionKeys.NAME, None),
              set_root=True)
 log.debug(log.list_loggers())
 
 if cli.args.command == args.ArgSubmodules.DOWNLOAD:
     log.debug("Selected args.ArgSubmodules.DOWNLOAD")
+
+    # Check for URLs
+    raw_url_list = getattr(cli.args, args.ArgOptions.URLS)
+    if not raw_url_list:
+        log.debug("URL list from CLI is empty.")
+
+        # Check for URL file
+        url_file = getattr(cli.args, args.ArgOptions.FILE, None)
+        if url_file is None:
+            log.debug("No URL file was specified on the CLI.")
+        else:
+            url_file = os.path.abspath(url_file)
+            if os.path.exists(url_file):
+                with open(url_file, "r") as FILE:
+                    contents = FILE.readlines()
+                raw_url_list = [url.strip() for url in contents if url != '']
+            else:
+                log.error("Unable to find URL file: '{0}'".format(url_file))
+
+    url_list = ArgProcessing.process_url_list(raw_url_list)
+    Catalog = engine.import_module_class(app_cfg.get(AppCfgFileSections.PROJECT,
+                                                     AppCfgFileSectionKeys.CATALOG_PARSE))
+    Contact = engine.import_module_class(app_cfg.get(AppCfgFileSections.PROJECT,
+                                                     AppCfgFileSectionKeys.IMAGE_CONTACT_PARSE))
+
+    catalog = Catalog(page_url="foo.com")
+    contact = Contact(page_url="foo.com/index.html")
+    log.debug("CATALOG URL: %s" % catalog.page_url)
+    log.debug("CONTACT URL: %s" % contact.page_url)
+    log.debug("CONTACT URLS: %s" % contact.image_urls)
+
+    log.info("URL LIST:\n{0}".format(pformat(url_list)))
+
 elif cli.args.command == args.ArgSubmodules.DUPLICATES:
     log.debug("Selected args.ArgSubmodules.DUPLICATES")
 elif cli.args.command == args.ArgSubmodules.DATABASE:
@@ -58,4 +96,4 @@ elif cli.args.command == args.ArgSubmodules.DATABASE:
 elif cli.args.command == args.ArgSubmodules.INFO:
     log.debug("Selected args.ArgSubmodules.INFO")
 else:
-    log.error("Unrecognized submodule!!")
+    raise args.UnrecognizedModule(cli.args.command)

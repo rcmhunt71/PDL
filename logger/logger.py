@@ -215,6 +215,9 @@ class Logger(object):
     def debug(self, msg):
         self._log_level(level='DEBUG', msg=msg)
 
+    def exception(self, msg):
+        self._log_level(level='EXCEPTION', msg=msg)
+
 
 # FOR VISUAL/MANUAL TESTING PURPOSES
 if __name__ == '__main__':
