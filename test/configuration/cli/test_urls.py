@@ -1,4 +1,4 @@
-from PDL.configuration.cli.urls import CliArgProcessing
+from PDL.configuration.cli.urls import UrlArgProcessing
 
 from nose.tools import assert_equals, assert_not_equals, assert_true, assert_false
 
@@ -13,16 +13,16 @@ class TestUrlProcessing(object):
 
     def test_unique_list_with_no_dups(self):
         expected_unique_dups = 0
-        results = CliArgProcessing.reduce_url_list(url_list=self.UNIQUE_URL_LIST)
+        results = UrlArgProcessing.reduce_url_list(url_list=self.UNIQUE_URL_LIST)
 
         # Unique List
-        assert_equals(len(self.UNIQUE_URL_LIST), len(results[CliArgProcessing.REDUCED_LIST]))
+        assert_equals(len(self.UNIQUE_URL_LIST), len(results[UrlArgProcessing.REDUCED_LIST]))
 
         # Total Duplicates
-        assert_equals(len(results[CliArgProcessing.TOTAL_DUP_LIST]), expected_unique_dups)
+        assert_equals(len(results[UrlArgProcessing.TOTAL_DUP_LIST]), expected_unique_dups)
 
         # Unique Duplicates
-        assert_equals(len(results[CliArgProcessing.UNIQUE_DUP_LIST]), expected_unique_dups)
+        assert_equals(len(results[UrlArgProcessing.UNIQUE_DUP_LIST]), expected_unique_dups)
 
     def test_unique_list_with_single_dups(self):
         # Create a list of duplicate elements (unique * 2)
@@ -31,16 +31,16 @@ class TestUrlProcessing(object):
 
         # Expected number of duplicates
         expected_unique_dups = len(self.UNIQUE_URL_LIST)
-        results = CliArgProcessing.reduce_url_list(url_list=dup_list)
+        results = UrlArgProcessing.reduce_url_list(url_list=dup_list)
 
         # Unique List
-        assert_equals(len(results[CliArgProcessing.REDUCED_LIST]), len(self.UNIQUE_URL_LIST))
+        assert_equals(len(results[UrlArgProcessing.REDUCED_LIST]), len(self.UNIQUE_URL_LIST))
 
         # Total Duplicates
-        assert_equals(len(results[CliArgProcessing.TOTAL_DUP_LIST]), expected_unique_dups)
+        assert_equals(len(results[UrlArgProcessing.TOTAL_DUP_LIST]), expected_unique_dups)
 
         # Unique Duplicates
-        assert_equals(len(results[CliArgProcessing.UNIQUE_DUP_LIST]), expected_unique_dups)
+        assert_equals(len(results[UrlArgProcessing.UNIQUE_DUP_LIST]), expected_unique_dups)
 
     def test_unique_list_with_multiple_dups(self):
         # Create a list of duplicate elements (unique * 3)
@@ -50,16 +50,16 @@ class TestUrlProcessing(object):
 
         # Expected number of duplicates
         expected_unique_dups = len(self.UNIQUE_URL_LIST)
-        results = CliArgProcessing.reduce_url_list(url_list=dup_list)
+        results = UrlArgProcessing.reduce_url_list(url_list=dup_list)
 
         # Unique List
-        assert_equals(len(results[CliArgProcessing.REDUCED_LIST]), len(self.UNIQUE_URL_LIST))
+        assert_equals(len(results[UrlArgProcessing.REDUCED_LIST]), len(self.UNIQUE_URL_LIST))
 
         # Total Duplicates (two of each unique value)
-        assert_equals(len(results[CliArgProcessing.TOTAL_DUP_LIST]), expected_unique_dups * 2)
+        assert_equals(len(results[UrlArgProcessing.TOTAL_DUP_LIST]), expected_unique_dups * 2)
 
         # Unique Duplicates
-        assert_equals(len(results[CliArgProcessing.UNIQUE_DUP_LIST]), expected_unique_dups)
+        assert_equals(len(results[UrlArgProcessing.UNIQUE_DUP_LIST]), expected_unique_dups)
 
     # ================================================================
     # ------- CliArgProcessing::validate_url(url, [delimiter]) -------
@@ -72,56 +72,56 @@ class TestUrlProcessing(object):
 
     def test_validate_url_with_valid_url_lowercase(self):
         url = self.VALID_URL
-        valid = CliArgProcessing.validate_url(url=url)
+        valid = UrlArgProcessing.validate_url(url=url)
         assert_true(valid, "Valid URL ({url}) was marked as invalid.".format(url=url))
 
     def test_validate_url_with_valid_url_uppercase(self):
         url = self.VALID_URL.upper()
-        valid = CliArgProcessing.validate_url(url=url)
+        valid = UrlArgProcessing.validate_url(url=url)
         assert_true(valid, "Valid URL ({url}) was marked as invalid.".format(url=url))
 
     def test_validate_url_with_valid_url_mixed_case(self):
         url = self.VALID_URL.capitalize()
-        valid = CliArgProcessing.validate_url(url=url)
+        valid = UrlArgProcessing.validate_url(url=url)
         assert_true(valid, "Valid URL ({url}) was marked as invalid.".format(url=url))
 
     def test_validate_url_with_delimiter_lowercase(self):
         url = self.VALID_URL
         delimiter = self.VALID_DELIMITER.lower()
-        valid = CliArgProcessing.validate_url(url=url, delimiter=delimiter)
+        valid = UrlArgProcessing.validate_url(url=url, delimiter=delimiter)
         assert_true(valid, "Valid URL ({url}) was marked as invalid with a valid delimiter ({delim}).".format(
             url=url, delim=delimiter))
 
     def test_validate_url_with_delimiter_uppercase(self):
         url = self.VALID_URL
         delimiter = self.VALID_DELIMITER.upper()
-        valid = CliArgProcessing.validate_url(url=url, delimiter=delimiter)
+        valid = UrlArgProcessing.validate_url(url=url, delimiter=delimiter)
         assert_true(valid, "Valid URL ({url}) was marked as invalid with valid delimiter ({delim}).".format(
             url=url, delim=delimiter))
 
     def test_validate_url_with_delimiter_mixed_case(self):
         url = self.VALID_URL
         delimiter = self.VALID_DELIMITER.capitalize()
-        valid = CliArgProcessing.validate_url(url=url, delimiter=delimiter)
+        valid = UrlArgProcessing.validate_url(url=url, delimiter=delimiter)
         assert_true(valid, "Valid URL ({url}) was marked as invalid with valid delimiter ({delim}).".format(
             url=url, delim=delimiter))
 
     def test_validate_url_with_invalid_url(self):
         url = self.INVALID_URL
-        valid = CliArgProcessing.validate_url(url=url)
+        valid = UrlArgProcessing.validate_url(url=url)
         assert_false(valid, "Invalid URL ({url}) was marked as valid.".format(url=url))
 
     def test_validate_url_with_invalid_delimiter(self):
         url = self.VALID_URL
         delimiter = "\r\ninvalid"
-        valid = CliArgProcessing.validate_url(url=url, delimiter=delimiter)
+        valid = UrlArgProcessing.validate_url(url=url, delimiter=delimiter)
         assert_false(valid, "Valid URL ({url}) was marked as valid with invalid delimiter ({delim}).".format(
             url=url, delim=delimiter))
 
     def test_validate_url_with_delimiter_as_url(self):
         url = self.VALID_DELIMITER
         delimiter = self.VALID_DELIMITER
-        valid = CliArgProcessing.validate_url(url=url, delimiter=delimiter)
+        valid = UrlArgProcessing.validate_url(url=url, delimiter=delimiter)
         assert_false(valid, "Invalid URL ({url}) was marked as valid with valid delimiter ({delim}).".format(
             url=url, delim=delimiter))
 
@@ -131,13 +131,13 @@ class TestUrlProcessing(object):
 
     def test_split_urls_all_elems_valid_urls(self):
         valid_split_url_list = [self.VALID_URL_FORMAT.format(id_) for id_ in range(1, 10)]
-        updated_list = CliArgProcessing.split_urls(valid_split_url_list)
+        updated_list = UrlArgProcessing.split_urls(valid_split_url_list)
         assert_equals(len(valid_split_url_list), len(updated_list))
 
     def test_split_urls_list_concatenated_into_single_element(self):
         list_size = 10
         valid_split_url_list = [''.join([self.VALID_URL_FORMAT.format(id_) for id_ in range(0, list_size)])]
-        updated_list = CliArgProcessing.split_urls(valid_split_url_list)
+        updated_list = UrlArgProcessing.split_urls(valid_split_url_list)
         assert_not_equals(len(valid_split_url_list), len(updated_list))
         assert_equals(len(updated_list), list_size)
 
@@ -146,7 +146,7 @@ class TestUrlProcessing(object):
         valid_split_url_list = [''.join([self.VALID_URL_FORMAT.format(id_) for id_ in range(0, list_size)])]
         valid_split_url_list.extend(
             [''.join([self.VALID_URL_FORMAT.format(id_) for id_ in range(list_size, list_size * 2)])])
-        updated_list = CliArgProcessing.split_urls(valid_split_url_list)
+        updated_list = UrlArgProcessing.split_urls(valid_split_url_list)
         assert_not_equals(len(valid_split_url_list), len(updated_list))
         assert_equals(len(updated_list), list_size * 2)
 
@@ -157,7 +157,7 @@ class TestUrlProcessing(object):
         valid_split_url_list.append(valid_split_url_list[-1] + valid_split_url_list[-2] + valid_split_url_list[-3])
         list_size += 2
 
-        updated_list = CliArgProcessing.split_urls(valid_split_url_list)
+        updated_list = UrlArgProcessing.split_urls(valid_split_url_list)
         assert_not_equals(len(valid_split_url_list), len(updated_list))
         assert_equals(len(updated_list), list_size)
 
@@ -165,7 +165,7 @@ class TestUrlProcessing(object):
         list_size = 100
         url_list = [self.VALID_URL_FORMAT.format(id_) for id_ in range(0, list_size)]
 
-        url_str = CliArgProcessing.list_urls(url_list=url_list)
+        url_str = UrlArgProcessing.list_urls(url_list=url_list)
         assert isinstance(url_str, str)
 
         url_count = len([line for line in url_str.split('\n') if line != ''])
@@ -177,7 +177,7 @@ class TestUrlProcessing(object):
     def test_all_valid_and_unique_urls_are_returned(self):
         num_urls = 10
         url_list = [self.VALID_URL_FORMAT.format(index) for index in range(0, num_urls)]
-        processed_list = CliArgProcessing.process_url_list(url_list)
+        processed_list = UrlArgProcessing.process_url_list(url_list)
         assert_equals(num_urls, len(processed_list))
 
     def test_concat_urls_only_valid_and_unique_urls_are_returned(self):
@@ -187,14 +187,14 @@ class TestUrlProcessing(object):
         concat = [self.VALID_URL_FORMAT.format(index) for index in range(100, 100 + concat_urls)]
         url_list.append(''.join(concat))
 
-        processed_list = CliArgProcessing.process_url_list(url_list)
+        processed_list = UrlArgProcessing.process_url_list(url_list)
         assert_equals(num_urls + concat_urls, len(processed_list))
 
     def test_duplicate_urls_only_valid_and_unique_urls_are_returned(self):
         num_urls = 10
         url_list = [self.VALID_URL_FORMAT.format(index) for index in range(0, num_urls)]
         url_list.extend(url_list)
-        processed_list = CliArgProcessing.process_url_list(url_list)
+        processed_list = UrlArgProcessing.process_url_list(url_list)
         assert_equals(num_urls, len(processed_list))
 
     def test_concat_and_dup_urls_only_valid_and_unique_urls_are_returned(self):
@@ -206,7 +206,7 @@ class TestUrlProcessing(object):
         concat = [self.VALID_URL_FORMAT.format(index) for index in range(100, 100 + concat_urls)]
 
         url_list.append(''.join(concat))
-        processed_list = CliArgProcessing.process_url_list(url_list)
+        processed_list = UrlArgProcessing.process_url_list(url_list)
         assert_equals(num_urls + concat_urls, len(processed_list))
 
     def test_invalid_urls_are_removed(self):
@@ -214,5 +214,5 @@ class TestUrlProcessing(object):
         url_list = [self.VALID_URL_FORMAT.format(index) for index in range(0, num_urls)]
         url_list.append(self.INVALID_URL)
         url_list.extend([self.VALID_URL_FORMAT.format(index) for index in range(10, 10 + num_urls)])
-        processed_list = CliArgProcessing.process_url_list(url_list)
+        processed_list = UrlArgProcessing.process_url_list(url_list)
         assert_equals(num_urls * 2, len(processed_list))

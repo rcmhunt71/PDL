@@ -3,7 +3,7 @@ import PDL.logger.logger as pdl_log
 log = pdl_log.Logger()
 
 
-class CliArgProcessing(object):
+class UrlArgProcessing(object):
 
     REDUCED_LIST = 'reduced_list'
     TOTAL_DUP_LIST = 'total_dup_list'
@@ -22,13 +22,13 @@ class CliArgProcessing(object):
         :return: List of valid, unique URLs
 
         """
-        log.info("Number of entries (URLs) on CLI: {0}".format(len(url_list)))
+        log.info("Number of entries (URLs) in list: {0}".format(len(url_list)))
 
         # Split and validate URLs (concatenated and/or invalid URLs)
-        urls = CliArgProcessing.split_urls(url_list)
+        urls = UrlArgProcessing.split_urls(url_list)
 
         # Remove duplicates
-        url_dict = CliArgProcessing.reduce_url_list(urls)
+        url_dict = UrlArgProcessing.reduce_url_list(urls)
 
         return url_dict[cls.REDUCED_LIST]
 
@@ -49,9 +49,9 @@ class CliArgProcessing(object):
         total_dups = [url for n, url in enumerate(url_list) if url in url_list[:n]]
         unique_dups = list(set(total_dups))
 
-        log.info("Number of URLs on CLI: {0}".format(len(url_list)))
-        log.info("Number of Unique URLs: {0}".format(len(reduced_list)))
-        log.info("Number of Duplicates:  {0}".format(len(total_dups)))
+        log.info("Number of URLs in list: {0}".format(len(url_list)))
+        log.info("Number of Unique URLs:  {0}".format(len(reduced_list)))
+        log.info("Number of Duplicates:   {0}".format(len(total_dups)))
         log.info("Number of Unique Duplicates:  {0}".format(len(unique_dups)))
 
         return {cls.REDUCED_LIST: reduced_list,
@@ -91,11 +91,11 @@ class CliArgProcessing(object):
                 cls.INVALID: list()}
 
         for url in url_temp_list:
-            urls[CliArgProcessing.validate_url(url)].append(url)
+            urls[UrlArgProcessing.validate_url(url)].append(url)
 
-        log.info("Number of VALID URLs on CLI: {0}".format(
+        log.info("Number of VALID URLs in list: {0}".format(
             len(urls[cls.VALID])))
-        log.info("Number of INVALID URLs on CLI: {0}".format(
+        log.info("Number of INVALID URLs in list: {0}".format(
             len(urls[cls.INVALID])))
 
         return urls[cls.VALID]
