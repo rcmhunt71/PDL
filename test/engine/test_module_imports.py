@@ -9,11 +9,11 @@ class TestModuleImports(object):
 
     def test_does_existing_module_loads(self):
         module_to_load = "PDL.test.engine.class_test"
-        module_not_loaded = "json"
-
         imports.import_module(module_to_load)
+
         for x in sorted(sys.modules.keys()):
             print(x)
+
         assert module_to_load in sys.modules
 
     def test_does_existing_class_loads(self):
