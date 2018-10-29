@@ -13,6 +13,7 @@ class AppCfgFileSections(object):
     LOGGING = 'logging'
     STORAGE = 'storage'
     PROJECT = 'project'
+    DATABASE = 'database'
 
 
 class AppCfgFileSectionKeys(object):
@@ -24,8 +25,12 @@ class AppCfgFileSectionKeys(object):
     LOCAL_DRIVE = 'local_drive'
     LOG_LEVEL = 'log_level'
     NAME = 'name'
+    PORT = 'port'
     PREFIX = 'prefix'
+    STORAGE_DRIVE = 'storage_drive'
+    STORAGE_DIR = 'storage_dir'
     SUFFIX = 'suffix'
+    URL = 'url'
 
 
 class ProjectCfgFileSections(object):
