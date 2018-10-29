@@ -17,7 +17,7 @@ class TestModuleImports(object):
         assert module_to_load in sys.modules
 
     def test_does_existing_class_loads(self):
-        test_value = "test"
+        test_value = "test123"
         module_to_load = "PDL.test.engine.class_test.ClassFoo"
 
         test_class = imports.import_module_class(module_to_load)

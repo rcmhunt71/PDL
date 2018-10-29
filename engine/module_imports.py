@@ -37,8 +37,8 @@ def import_module_class(dotted_path_class):
     log.debug("Attempting to import class '{0}' into memory.".format(dotted_path_class))
 
     parts = dotted_path_class.split('.')
-    klass = parts.pop(-1)
-    path = '.'.join(parts)
+    klass = parts[-1]
+    path = '.'.join(parts[:-1])
 
     module = import_module(dotted_path_module=path)
     return getattr(module, klass, None)
