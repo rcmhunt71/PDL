@@ -62,13 +62,27 @@ class TestUrlProcessing(object):
         assert_equals(len(results[UrlArgProcessing.UNIQUE_DUP_LIST]), expected_unique_dups)
 
     # ================================================================
-    # ------- CliArgProcessing::validate_url(url, [delimiter]) -------
+    # ------- CliArgProcessing::validate_url(url, [protocol]) -------
     # ================================================================
 
-    VALID_DELIMITER = 'https://'
-    VALID_URL_FORMAT = 'https://test.domain.dom/resource_1/resource_2/endpoint_{0}.jpg'
-    VALID_URL = VALID_URL_FORMAT.format('')
+    VALID_PROTOCOL = 'https://'
+    VALID_DOMAIN = 'test.domain.com'
+    INVALID_DOMAIN = 'wooba.boom.python'
+    VALID_URL_STR_FORMAT = ('{protocol}{domain}/resource_1/resource_2/'
+                            'endpoint_{{0}}.jpg')
+
+    VALID_URL_FORMAT = VALID_URL_STR_FORMAT.format(
+        protocol=VALID_PROTOCOL, domain=VALID_DOMAIN)
+
+    VALID_NON_DOMAIN_FORMAT = VALID_URL_STR_FORMAT.format(
+        protocol=VALID_PROTOCOL, domain=INVALID_DOMAIN)
+
+    VALID_URL = VALID_URL_FORMAT.format('1')
+    VALID_URL_WITH_INVALID_DOMAIN = VALID_NON_DOMAIN_FORMAT.format('1')
+
     INVALID_URL = ".idea/not/valid"
+
+
 
     def test_validate_url_with_valid_url_lowercase(self):
         url = self.VALID_URL
@@ -85,48 +99,125 @@ class TestUrlProcessing(object):
         valid = UrlArgProcessing.validate_url(url=url)
         assert_true(valid, "Valid URL ({url}) was marked as invalid.".format(url=url))
 
-    def test_validate_url_with_delimiter_lowercase(self):
+    def test_validate_url_with_protocol_lowercase(self):
         url = self.VALID_URL
-        delimiter = self.VALID_DELIMITER.lower()
-        valid = UrlArgProcessing.validate_url(url=url, delimiter=delimiter)
-        assert_true(valid, "Valid URL ({url}) was marked as invalid with a valid delimiter ({delim}).".format(
-            url=url, delim=delimiter))
+        protocol = self.VALID_PROTOCOL.lower()
+        valid = UrlArgProcessing.validate_url(url=url, protocol=protocol)
+        assert_true(valid, "Valid URL ({url}) was marked as invalid with a valid protocol ({delim}).".format(
+            url=url, delim=protocol))
 
-    def test_validate_url_with_delimiter_uppercase(self):
+    def test_validate_url_with_protocol_uppercase(self):
         url = self.VALID_URL
-        delimiter = self.VALID_DELIMITER.upper()
-        valid = UrlArgProcessing.validate_url(url=url, delimiter=delimiter)
-        assert_true(valid, "Valid URL ({url}) was marked as invalid with valid delimiter ({delim}).".format(
-            url=url, delim=delimiter))
+        protocol = self.VALID_PROTOCOL.upper()
+        valid = UrlArgProcessing.validate_url(url=url, protocol=protocol)
+        assert_true(valid, "Valid URL ({url}) was marked as invalid with valid protocol ({delim}).".format(
+            url=url, delim=protocol))
 
-    def test_validate_url_with_delimiter_mixed_case(self):
+    def test_validate_url_with_protocol_mixed_case(self):
         url = self.VALID_URL
-        delimiter = self.VALID_DELIMITER.capitalize()
-        valid = UrlArgProcessing.validate_url(url=url, delimiter=delimiter)
-        assert_true(valid, "Valid URL ({url}) was marked as invalid with valid delimiter ({delim}).".format(
-            url=url, delim=delimiter))
+        protocol = self.VALID_PROTOCOL.capitalize()
+        valid = UrlArgProcessing.validate_url(url=url, protocol=protocol)
+        assert_true(valid, "Valid URL ({url}) was marked as invalid with valid protocol ({delim}).".format(
+            url=url, delim=protocol))
 
     def test_validate_url_with_invalid_url(self):
         url = self.INVALID_URL
         valid = UrlArgProcessing.validate_url(url=url)
         assert_false(valid, "Invalid URL ({url}) was marked as valid.".format(url=url))
 
-    def test_validate_url_with_invalid_delimiter(self):
+    def test_validate_url_with_invalid_protocol(self):
         url = self.VALID_URL
-        delimiter = "\r\ninvalid"
-        valid = UrlArgProcessing.validate_url(url=url, delimiter=delimiter)
-        assert_false(valid, "Valid URL ({url}) was marked as valid with invalid delimiter ({delim}).".format(
-            url=url, delim=delimiter))
+        protocol = "\r\ninvalid"
+        valid = UrlArgProcessing.validate_url(url=url, protocol=protocol)
+        assert_false(valid, "Valid URL ({url}) was marked as valid with invalid protocol ({delim}).".format(
+            url=url, delim=protocol))
 
-    def test_validate_url_with_delimiter_as_url(self):
-        url = self.VALID_DELIMITER
-        delimiter = self.VALID_DELIMITER
-        valid = UrlArgProcessing.validate_url(url=url, delimiter=delimiter)
-        assert_false(valid, "Invalid URL ({url}) was marked as valid with valid delimiter ({delim}).".format(
-            url=url, delim=delimiter))
+    def test_validate_url_with_protocol_as_url(self):
+        url = self.VALID_PROTOCOL
+        protocol = self.VALID_PROTOCOL
+        valid = UrlArgProcessing.validate_url(url=url, protocol=protocol)
+        assert_false(valid, "Invalid URL ({url}) was marked as valid with valid protocol ({delim}).".format(
+            url=url, delim=protocol))
+
+    def test_validate_url_with_valid_domain(self):
+        url = self.VALID_URL
+        domain = self.VALID_DOMAIN
+        protocol = self.VALID_PROTOCOL
+        valid = UrlArgProcessing.validate_url(
+            url=url, protocol=protocol, domain=domain)
+        assert_true(
+            valid, ("Valid URL ({url}) was marked as invalid with valid "
+                    "protocol ({delim}) and domain ({domain}).".format(
+                url=url, delim=protocol, domain=domain)))
+
+    def test_validate_url_with_valid_url_and_uppercase_domain(self):
+        url = self.VALID_URL
+        domain = self.VALID_DOMAIN.upper()
+        protocol = self.VALID_PROTOCOL
+        valid = UrlArgProcessing.validate_url(
+            url=url, protocol=protocol, domain=domain)
+        assert_true(
+            valid, ("Valid URL ({url}) was marked as invalid with valid "
+                    "protocol ({delim}) and domain ({domain}).".format(
+                url=url, delim=protocol, domain=domain)))
+
+    def test_validate_url_with_valid_url_and_capitalized_domain(self):
+        url = self.VALID_URL
+        domain = self.VALID_DOMAIN.capitalize()
+        protocol = self.VALID_PROTOCOL
+        valid = UrlArgProcessing.validate_url(
+            url=url, protocol=protocol, domain=domain)
+        assert_true(
+            valid, ("Valid URL ({url}) was marked as invalid with valid "
+                    "protocol ({delim}) and domain ({domain}).".format(
+                url=url, delim=protocol, domain=domain)))
+
+    def test_validate_url_with_valid_url_and_none_domain(self):
+        url = self.VALID_URL
+        domain = None
+        protocol = self.VALID_PROTOCOL
+        valid = UrlArgProcessing.validate_url(
+            url=url, protocol=protocol, domain=domain)
+        assert_true(
+            valid, ("Valid URL ({url}) was marked as invalid with valid "
+                    "protocol ({delim}) and domain ({domain}).".format(
+                url=url, delim=protocol, domain=domain)))
+
+    def test_validate_url_with_valid_url_and_invalid_domain(self):
+        url = self.VALID_URL_WITH_INVALID_DOMAIN
+        domain = self.VALID_DOMAIN
+        protocol = self.VALID_PROTOCOL
+        valid = UrlArgProcessing.validate_url(
+            url=url, protocol=protocol, domain=domain)
+        assert_false(
+            valid, ("Valid URL ({url}) was marked as invalid with valid "
+                    "protocol ({delim}) and invalid domain ({domain}).".format(
+                url=url, delim=protocol, domain=domain)))
+
+    def test_validate_invalid_url_with_invalid_protocol_and_valid_domain(self):
+        url = self.VALID_URL_WITH_INVALID_DOMAIN
+        domain = self.VALID_DOMAIN
+        protocol = self.VALID_PROTOCOL
+        valid = UrlArgProcessing.validate_url(
+            url=url, protocol=protocol, domain=domain)
+        assert_false(
+            valid, ("Invalid URL ({url}) was marked as valid with invalid "
+                    "protocol ({delim}) and valid domain ({domain}).".format(
+                url=url, delim=protocol, domain=domain)))
+
+    def test_validate_invalid_url_with_valid_protocol_and_valid_domain(self):
+        url = self.INVALID_URL
+        domain = self.VALID_DOMAIN
+        protocol = self.VALID_PROTOCOL
+        valid = UrlArgProcessing.validate_url(
+            url=url, protocol=protocol, domain=domain)
+        assert_false(
+            valid, ("Invalid URL ({url}) was marked as valid with valid "
+                    "protocol ({delim}) and valid domain ({domain}).".format(
+                url=url, delim=protocol, domain=domain)))
 
     # ===================================================================
-    # ------- CliArgProcessing::split_urls(url_list, [delimiter]) -------
+    # ------- CliArgProcessing::split_urls(url_list, [protocol]) -------
     # ===================================================================
 
     def test_split_urls_all_elems_valid_urls(self):

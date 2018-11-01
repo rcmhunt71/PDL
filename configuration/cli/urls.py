@@ -8,24 +8,26 @@ class UrlArgProcessing(object):
     REDUCED_LIST = 'reduced_list'
     TOTAL_DUP_LIST = 'total_dup_list'
     UNIQUE_DUP_LIST = 'unique_dup_list'
-    DELIMITER = 'https://'
+    PROTOCOL = 'https://'
     VALID = True
     INVALID = False
 
     @classmethod
-    def process_url_list(cls, url_list):
+    def process_url_list(cls, url_list, domain=None):
         """
         Split any combined URLs, verify all URLs are valid, and remove any duplicates
 
         :param url_list: List of URLs to process
+        :param domain: Domain URLs should contain (www.abc.com)
 
         :return: List of valid, unique URLs
 
         """
         log.info("Number of entries (URLs) in list: {0}".format(len(url_list)))
 
-        # Split and validate URLs (concatenated and/or invalid URLs)
-        urls = UrlArgProcessing.split_urls(url_list)
+        # Split and validate URLs (concatenated and/or invalid URLs), and check
+        # for the correct domain in the host portion of the URL
+        urls = UrlArgProcessing.split_urls(url_list, domain=domain)
 
         # Remove duplicates
         url_dict = UrlArgProcessing.reduce_url_list(urls)
@@ -59,11 +61,12 @@ class UrlArgProcessing(object):
                 cls.UNIQUE_DUP_LIST: unique_dups}
 
     @classmethod
-    def split_urls(cls, url_list, delimiter=DELIMITER):
+    def split_urls(cls, url_list, domain=None, delimiter=PROTOCOL):
         """
         Check for URLs that are not space delimited from the CLI. If found,
         split the URL into two URLs and add to the list.
         :param url_list: List of URLs to process
+        :param domain: Domain expected within host portion of URL
         :param delimiter: Delimiter that indicates unique URLs, e.g. - space or comma
 
         :return: List of valid URLs
@@ -91,7 +94,7 @@ class UrlArgProcessing(object):
                 cls.INVALID: list()}
 
         for url in url_temp_list:
-            urls[UrlArgProcessing.validate_url(url)].append(url)
+            urls[UrlArgProcessing.validate_url(url, domain=domain)].append(url)
 
         log.info("Number of VALID URLs in list: {0}".format(
             len(urls[cls.VALID])))
@@ -101,20 +104,22 @@ class UrlArgProcessing(object):
         return urls[cls.VALID]
 
     @classmethod
-    def validate_url(cls, url, delimiter=DELIMITER):
+    def validate_url(cls, url, domain=None, protocol=PROTOCOL):
         """
         Verify URL starts with delimited, and has additional URL info.
 
-        TODO: Check for domain. <protocol>://<domain>/[[resources]..]
-
         :param url: URL
-        :param delimiter: protocol prefix for URL
+        :param domain: Expected/Required Domain
+        :param protocol: protocol prefix for URL
 
         :return: Boolean; True = Valid URL
 
         """
-        valid = (url.lower().startswith(delimiter.lower()) and
-                 url.lower() != delimiter.lower())
+        valid = (url.lower().startswith(protocol.lower()) and
+                 url.lower() != protocol.lower())
+
+        if domain is not None:
+            valid = valid and domain.lower() in url.lower()
 
         log.debug("{status}: URL='{url}'".format(
             status="VALID" if valid else "INVALID", url=url))
