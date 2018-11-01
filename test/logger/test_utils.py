@@ -62,26 +62,28 @@ class TestLogUtils(object):
     def test_if_filename_path_is_attached_correctly_with_drive(self):
             drive_letter = "c"
             log_path = r"\this\is\a\test"
-            windows = True
 
+            # The drive letter validation is a windows-only test
             filename = datestamp_filename(prefix=self.EXPECTED_PREFIX,
                                           suffix=self.EXPECTED_SUFFIX,
                                           drive_letter=drive_letter,
                                           directory=log_path)
 
+            print("FILENAME: %s" % filename)
+
             self._validate_filename(filename=filename,
                                     prefix=self.EXPECTED_PREFIX,
                                     suffix=self.EXPECTED_SUFFIX,
                                     extension=DEFAULT_EXTENSION,
-                                    log_dir="{0}:\{1}".format(
+                                    log_dir="{0}:{1}".format(
                                         drive_letter, log_path),
-                                    for_windows=windows)
+                                    is_windows=True)
 
     def _validate_filename(self,
                            filename, prefix=None, suffix=None,
                            extension=DEFAULT_EXTENSION,
                            log_dir=DEFAULT_LOG_DIR,
-                           for_windows=False):
+                           is_windows=False):
 
         debug_statement_format = ("FILENAME PARTS (split on {path_delim}, "
                                   "{delim} and fileext): {parts}")
@@ -99,10 +101,13 @@ class TestLogUtils(object):
             delim=DELIMITER, parts=filename_parts, path_delim=os.path.sep))
 
         # PATH
-        if not for_windows:
-            print("LOG DIR STRING:  %s" % os.path.abspath(log_dir))
-            print("PARSED PATH STR: %s" % os.path.abspath(path_str))
-            assert_equals(os.path.abspath(log_dir), os.path.abspath(path_str))
+        if not is_windows:
+            log_dir = os.path.abspath(log_dir)
+            path_str = os.path.abspath(path_str)
+
+        print("LOG DIR STRING:  %s" % log_dir)
+        print("PARSED PATH STR: %s" % path_str)
+        assert_equals(log_dir, path_str)
 
         # VALIDATE PREFIX
         if filename_parts > 2 and prefix is not None:

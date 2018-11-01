@@ -14,9 +14,9 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
-# Get the long description from the relevant file
-with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as descript_file:
-    long_description = descript_file.read()
+# # Get the long description from the relevant file
+# with open(path.join(".", 'DESCRIPTION.rst'), encoding='utf-8') as desc_file:
+#     long_description = desc_file.read()
 
 setup(
     name='PDL',
@@ -27,7 +27,7 @@ setup(
     version='0.0.1',
 
     description='Image Downloading Application',
-    long_description=long_description,
+    # long_description=long_description,
 
     # The project's main homepage.
     url='https://github.com/pypa/sampleproject',
@@ -70,7 +70,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['requests'],
+    install_requires=['requests', 'tox'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,

@@ -6,7 +6,7 @@ from pprint import pformat
 import PDL.configuration.cli.args as args
 from PDL.configuration.cli.urls import UrlArgProcessing as ArgProcessing
 from PDL.configuration.properties.app_cfg import AppConfig, AppCfgFileSections, AppCfgFileSectionKeys
-import PDL.engine.engine as engine
+import PDL.engine.module_imports as engine
 from PDL.logger.logger import Logger as Logger
 import PDL.logger.utils as log_utils
 from PDL.images import image_info, download_base, consts as image_consts
@@ -16,13 +16,27 @@ DEFAULT_APP_CONFIG = None
 
 
 def build_logfile_name(cfg_info):
+    """
+    Builds the logfile name and path for each invocation of the application.
+    The name is built based on information within the application configuration
+    file. (cfg file, not the engine.cfg file)
+
+    :param cfg_info: Absolute path to the configuration file
+
+    :return: (str) name of the log file.
+
+    """
     logfile_info = {
         'prefix': cfg_info.get(AppCfgFileSections.LOGGING,
                                AppCfgFileSectionKeys.PREFIX, None),
         'suffix': cfg_info.get(AppCfgFileSections.LOGGING,
                                AppCfgFileSectionKeys.SUFFIX, None),
         'extension': cfg_info.get(AppCfgFileSections.LOGGING,
-                                  AppCfgFileSectionKeys.EXTENSION, None)
+                                  AppCfgFileSectionKeys.EXTENSION, None),
+        'drive': cfg_info.get(AppCfgFileSections.LOGGING,
+                              AppCfgFileSectionKeys.LOG_DRIVE_LETTER, None),
+        'directory': cfg_info.get(AppCfgFileSections.LOGGING,
+                                  AppCfgFileSectionKeys.LOG_DIRECTORY, None)
     }
 
     for key, value in logfile_info.items():
@@ -31,8 +45,12 @@ def build_logfile_name(cfg_info):
     log_name = log_utils.datestamp_filename(**logfile_info)
     return log_name
 
+# --------------------------------------------------------------------
 
+# Instantiate the CLI Args parser
 cli = args.CLIArgs()
+
+# Get the configuration files (either via CLI or default value)
 app_cfg = AppConfig(cli.args.cfg or DEFAULT_APP_CONFIG)
 engine_cfg = AppConfig(cli.args.engine or DEFAULT_ENGINE_CONFIG)
 
@@ -45,7 +63,6 @@ else:
         Logger.INFO)
 
 
-logfile_name = build_logfile_name(cfg_info=app_cfg)
 log = Logger(filename=build_logfile_name(cfg_info=app_cfg),
              default_level=Logger.STR_TO_VAL[log_level],
              project=app_cfg.get(
