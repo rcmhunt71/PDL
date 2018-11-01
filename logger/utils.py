@@ -6,7 +6,7 @@ DELIMITER = '_'
 
 
 def datestamp_filename(prefix=None, suffix=None, extension=DEFAULT_EXTENSION,
-                       base_dir='.'):
+                       drive_letter=None, directory='.'):
 
     # TODO: Add docstring
 
@@ -20,6 +20,9 @@ def datestamp_filename(prefix=None, suffix=None, extension=DEFAULT_EXTENSION,
             filename=filename, suffix=suffix, delim=DELIMITER)
     filename += ".{ext}".format(ext=extension)
 
-    filename = os.path.sep.join([base_dir, filename])
+    if drive_letter is not None:
+        directory += "{drive}:{sep}{directory}".format(
+            drive=drive_letter, directory=directory, sep=os.path.sep)
 
+    filename = os.path.abspath(os.path.sep.join([directory, filename]))
     return filename
