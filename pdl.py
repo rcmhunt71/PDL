@@ -47,6 +47,7 @@ def build_logfile_name(cfg_info):
 
 # --------------------------------------------------------------------
 
+
 # Instantiate the CLI Args parser
 cli = args.CLIArgs()
 
@@ -54,6 +55,7 @@ cli = args.CLIArgs()
 app_cfg = AppConfig(cli.args.cfg or DEFAULT_APP_CONFIG)
 engine_cfg = AppConfig(cli.args.engine or DEFAULT_ENGINE_CONFIG)
 
+# Set log level (CLI overrides the config file)
 if cli.args.debug:
     log_level = 'debug'
 else:
@@ -62,7 +64,7 @@ else:
         AppCfgFileSectionKeys.LOG_LEVEL.lower(),
         Logger.INFO)
 
-
+# Setup the root logger for the app
 log = Logger(filename=build_logfile_name(cfg_info=app_cfg),
              default_level=Logger.STR_TO_VAL[log_level],
              project=app_cfg.get(
@@ -71,6 +73,11 @@ log = Logger(filename=build_logfile_name(cfg_info=app_cfg),
              set_root=True)
 log.debug(log.list_loggers())
 
+# Actions for each specific sub-command
+
+# -----------------------------------------------------------------
+#                      DOWNLOAD
+# -----------------------------------------------------------------
 if cli.args.command == args.ArgSubmodules.DOWNLOAD:
     log.debug("Selected args.ArgSubmodules.DOWNLOAD")
 
@@ -92,25 +99,55 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
             else:
                 log.error("Unable to find URL file: '{0}'".format(url_file))
 
-    url_list = ArgProcessing.process_url_list(raw_url_list)
-    Catalog = engine.import_module_class(app_cfg.get(AppCfgFileSections.PROJECT,
-                                                     AppCfgFileSectionKeys.CATALOG_PARSE))
-    Contact = engine.import_module_class(app_cfg.get(AppCfgFileSections.PROJECT,
-                                                     AppCfgFileSectionKeys.IMAGE_CONTACT_PARSE))
+    # Sanitize the URL list (missing spaces, duplicates, valid URLs)
+    url_domain = app_cfg.get(
+        AppCfgFileSections.PROJECT,
+        AppCfgFileSectionKeys.URL_DOMAIN)
 
+    url_list = ArgProcessing.process_url_list(raw_url_list)
+
+    # Import the specified routines for processing the URLs
+    Catalog = engine.import_module_class(
+        app_cfg.get(AppCfgFileSections.PROJECT,
+                    AppCfgFileSectionKeys.CATALOG_PARSE))
+
+    Contact = engine.import_module_class(
+        app_cfg.get(AppCfgFileSections.PROJECT,
+                    AppCfgFileSectionKeys.IMAGE_CONTACT_PARSE))
+
+    # -----------------------------------------------
+    # TESTING <<------ DELETE ME
+    # -----------------------------------------------
     catalog = Catalog(page_url="foo.com")
     contact = Contact(page_url="foo.com/index.html")
     log.debug("CATALOG URL: %s" % catalog.page_url)
     log.debug("CONTACT URL: %s" % contact.page_url)
     log.debug("CONTACT URLS: %s" % contact.image_urls)
+    # -----------------------------------------------
 
     log.info("URL LIST:\n{0}".format(pformat(url_list)))
 
+# -----------------------------------------------------------------
+#                DUPLICATE MANAGEMENT
+# -----------------------------------------------------------------
 elif cli.args.command == args.ArgSubmodules.DUPLICATES:
     log.debug("Selected args.ArgSubmodules.DUPLICATES")
+
+# -----------------------------------------------------------------
+#                      DATABASE
+# -----------------------------------------------------------------
 elif cli.args.command == args.ArgSubmodules.DATABASE:
     log.debug("Selected args.ArgSubmodules.DATABASE")
+
+# -----------------------------------------------------------------
+#                      IMAGE INFO
+# -----------------------------------------------------------------
 elif cli.args.command == args.ArgSubmodules.INFO:
     log.debug("Selected args.ArgSubmodules.INFO")
+
+# -----------------------------------------------------------------
+#                UNRECOGNIZED SUB-COMMAND
+# -----------------------------------------------------------------
 else:
+    # Should never get here, argparse should prevent it...
     raise args.UnrecognizedModule(cli.args.command)
