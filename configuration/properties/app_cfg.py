@@ -1,15 +1,18 @@
-import os
-
 from ConfigParser import ConfigParser, NoSectionError, NoOptionError
+import os
 
 from PDL.logger.logger import Logger
 
 log = Logger()
 
-# TODO: Add Docstrings and inlines as needed
-
 
 class AppCfgFileSections(object):
+    """
+    Sections available within the application configuration. Defined as
+    constants to reduce typos, and if a value needs to change, it only needs to
+    be changed here.
+
+    """
     LOGGING = 'logging'
     STORAGE = 'storage'
     PROJECT = 'project'
@@ -17,6 +20,15 @@ class AppCfgFileSections(object):
 
 
 class AppCfgFileSectionKeys(object):
+    """
+    Options available within the various sections. Defined as constants to
+    reduce typos, and if a value needs to change, it only needs to be changed
+    here.
+
+    Chose not to map the options to the section, since there could duplicate
+    option names across sections. (Unnecessary complication at this point.)
+
+    """
     CATALOG_PARSE = 'catalog_parse'
     EXTENSION = 'extension'
     IMAGE_CONTACT_PARSE = 'image_contact_parse'
@@ -36,14 +48,28 @@ class AppCfgFileSectionKeys(object):
 
 
 class ProjectCfgFileSections(object):
+    """
+    Sections available within the project configuration. Defined as
+    constants to reduce typos, and if a value needs to change, it only needs to
+    be changed here.
+
+    """
     PYTHON_PROJECT = 'python_project'
 
 
 class ProjectCfgFileSectionKeys(object):
+    """
+    Options available within the various sections. Defined as constants to
+    reduce typos, and if a value needs to change, it only needs to be changed
+    here.
+
+    """
     NAME = 'name'
 
 
 class ConfigSectionDoesNotExist(Exception):
+    """ Exception for non-existent config sections. """
+
     msg_fmt = "Section '{section}' is not defined in '{cfg_file}'"
 
     def __init__(self, section, cfg_file):
@@ -51,6 +77,8 @@ class ConfigSectionDoesNotExist(Exception):
 
 
 class OptionDoesNotExist(Exception):
+    """ Exception for non-existent option within a sections. """
+
     msg_fmt = ("Option '{option}' in section '{section}' "
                "is not defined in '{cfg_file}'")
 
@@ -60,6 +88,10 @@ class OptionDoesNotExist(Exception):
 
 
 class CannotCastValueToType(Exception):
+    """
+    Exception for trying to cast a value to type that cannot support the value.
+    """
+
     msg_fmt = ("Option '{option}' in section '{section}' "
                "cannot be cast to '{type_}'in '{cfg_file}'")
 
@@ -69,6 +101,8 @@ class CannotCastValueToType(Exception):
 
 
 class CfgFileDoesNotExist(Exception):
+    """ Exception for non-existent config file. """
+
     msg_fmt = "Config file '{cfg_file}' was not found or does not exist."
 
     def __init__(self, cfg_file):
@@ -76,14 +110,25 @@ class CfgFileDoesNotExist(Exception):
 
 
 class AppConfig(ConfigParser):
+    """
+    Config Parser for the application, plus a few helper routines
+    (primarily for debugging)
+    """
+
     def __init__(self, cfg_file, test=False):
         ConfigParser.__init__(self)
         self.cfg_file = cfg_file
 
+        # This is not a test... this is for a live-fire exercise. The config
+        # file needs to exist.
         if not test:
+
+            # Check to see if config file exists. If so, read it, otherwise
+            # throw an exception
             if os.path.exists(self.cfg_file):
                 log.debug('Reading: {cfg}'.format(cfg=self.cfg_file))
                 self.config = self.read(self.cfg_file)
+
             else:
                 log.error('Unable to read cfg file: {cfg}'.format(
                     cfg=self.cfg_file))
@@ -95,15 +140,35 @@ class AppConfig(ConfigParser):
             self.config = self.read(self.cfg_file)
 
     def get_options(self, section):
+        """
+        Get the list of options within a section, and log as debug (if log level
+        enabled). If the section does not exist, throw an exception.
+
+        :param section: (str) Config file section
+
+        :return: (list) - List options for the specified section
+
+        """
         if self.has_section(section=section):
             options = self.options(section)
             log.debug("Options for {section}:\n{option_list}".format(
                 section=section, option_list=["\t{opt}\n".format(opt=opt)
                                               for opt in options]))
             return options
+
         raise ConfigSectionDoesNotExist(section=section, cfg_file=self.cfg_file)
 
     def _get_raw_option(self, section, option, api_name):
+        """
+        Designed to get raw option data and return it to the calling function,
+        but will check if the section exists.
+
+        :param section: (str) Section name
+        :param option: (str) Option name under section
+        :param api_name: (str) Parser API (get, set, etc.)
+
+        :return: (str) Raw returned value from API
+        """
         if self.has_section(section=section):
             if self.has_option(section=section, option=option):
                 api = getattr(self, api_name)
@@ -111,8 +176,20 @@ class AppConfig(ConfigParser):
             raise NoOptionError(section, option)
         raise NoSectionError(section)
 
-    def getlist(self, section, option):
+    def getlist(self, section, option, delimiter=','):
+        """
+        Gets delimited option value, splits into list, and returns list.
+
+        e.g. option = 1,2,3,4 ==> [1, 2, 3, 4]
+
+        :param section: (str) Section Name
+        :param option: (str) Option Name
+        :param delimiter: (str) Character(s) to split value
+
+        :return: List of values based on splitting delimiter
+
+        """
         api_name = 'get'
         list_str = self._get_raw_option(
             section=section, option=option, api_name=api_name)
-        return [x.strip() for x in list_str.split(',')]
+        return [x.strip() for x in list_str.split(delimiter)]
