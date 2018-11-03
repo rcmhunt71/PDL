@@ -6,7 +6,6 @@ from PDL.logger.utils import datestamp_filename, DEFAULT_EXTENSION, DELIMITER
 from nose.tools import assert_equals, assert_is_not_none
 
 
-# TODO: Add inline docstrings
 class TestLogUtils(object):
 
     TIMESTAMP_FORMAT = r'[0-9]{6}T[0-9]{6}'
@@ -84,7 +83,21 @@ class TestLogUtils(object):
                            extension=DEFAULT_EXTENSION,
                            log_dir=DEFAULT_LOG_DIR,
                            is_windows=False):
+        """
+        General routine to validate the entire filespec, based on the provided
+        parameters.
 
+        :param filename: (str) - filename
+        :param prefix: (str) - custom prefix expected in filename
+        :param suffix: (str) - custom suffix expected in filename
+        :param extension: (str) - expected file extension
+        :param log_dir: (str) - path of the filename
+        :param is_windows: (bool) - Is this for windows (verify drive letter on
+                               log_dir)
+
+        :return: None. asserts interrupt routine, or return none
+
+        """
         debug_statement_format = ("FILENAME PARTS (split on {path_delim}, "
                                   "{delim} and fileext): {parts}")
 
@@ -100,7 +113,7 @@ class TestLogUtils(object):
         print(debug_statement_format.format(
             delim=DELIMITER, parts=filename_parts, path_delim=os.path.sep))
 
-        # PATH
+        # Path
         if not is_windows:
             log_dir = os.path.abspath(log_dir)
             path_str = os.path.abspath(path_str)
@@ -109,12 +122,12 @@ class TestLogUtils(object):
         print("PARSED PATH STR: %s" % path_str)
         assert_equals(log_dir, path_str)
 
-        # VALIDATE PREFIX
+        # Validate prefix
         if filename_parts > 2 and prefix is not None:
             assert_equals(filename_parts[0], self.EXPECTED_PREFIX)
             filename_parts = filename_parts[1:]
 
-        # VALIDATE SUFFIX
+        # Validate suffix
         if filename_parts > 2 and suffix is not None:
             assert_equals(filename_parts[-2], self.EXPECTED_SUFFIX)
             del filename_parts[-2]

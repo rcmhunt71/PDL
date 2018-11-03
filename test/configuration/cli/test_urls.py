@@ -61,6 +61,17 @@ class TestUrlProcessing(object):
         # Unique Duplicates
         assert_equals(len(results[UrlArgProcessing.UNIQUE_DUP_LIST]), expected_unique_dups)
 
+    def test_duplicate_counts_per_url(self):
+        dup_list = self.UNIQUE_URL_LIST[:]
+        dup_list.extend(self.UNIQUE_URL_LIST)
+        dup_list.extend(self.UNIQUE_URL_LIST)
+
+        expected_count_per_url = 3
+        results = UrlArgProcessing.counts_of_each_dup(dup_list)
+        for url, count in results.items():
+            print("URL: {url} --> Count {count}".format(url=url, count=count))
+            assert_equals(count, expected_count_per_url)
+
     # ================================================================
     # ------- CliArgProcessing::validate_url(url, [protocol]) -------
     # ================================================================
@@ -307,3 +318,4 @@ class TestUrlProcessing(object):
         url_list.extend([self.VALID_URL_FORMAT.format(index) for index in range(10, 10 + num_urls)])
         processed_list = UrlArgProcessing.process_url_list(url_list)
         assert_equals(num_urls * 2, len(processed_list))
+

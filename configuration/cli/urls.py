@@ -37,9 +37,7 @@ class UrlArgProcessing(object):
     @classmethod
     def reduce_url_list(cls, url_list):
         """
-        Remove any duplicates from the list.
-
-        TODO: Log all duplicates found; currently only counts are reported.
+        Remove any duplicates from the list. Log all duplicates (debug).
 
         :return: dictionary of:
             * reduced_list: List of unique elements
@@ -49,16 +47,26 @@ class UrlArgProcessing(object):
         """
         reduced_list = list(set(url_list))
         total_dups = [url for n, url in enumerate(url_list) if url in url_list[:n]]
-        unique_dups = list(set(total_dups))
+        unique_counts = UrlArgProcessing.counts_of_each_dup(total_dups)
+        unique_dups = unique_counts.keys()
 
         log.info("Number of URLs in list: {0}".format(len(url_list)))
         log.info("Number of Unique URLs:  {0}".format(len(reduced_list)))
         log.info("Number of Duplicates:   {0}".format(len(total_dups)))
         log.info("Number of Unique Duplicates:  {0}".format(len(unique_dups)))
 
+        # Log counts of duplicates per duplicate URL
+        log.debug("Count of Each Unique Duplicate:")
+        for url, count in unique_counts.items():
+            log.debug("DUP: {url}: Count:  {count}".format(url=url, count=count))
+
         return {cls.REDUCED_LIST: reduced_list,
                 cls.TOTAL_DUP_LIST: total_dups,
                 cls.UNIQUE_DUP_LIST: unique_dups}
+
+    @classmethod
+    def counts_of_each_dup(cls, duplicates):
+        return dict([(url, duplicates.count(url)) for url in list(set(duplicates))])
 
     @classmethod
     def split_urls(cls, url_list, domain=None, delimiter=PROTOCOL):
