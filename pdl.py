@@ -9,7 +9,7 @@ from PDL.configuration.properties.app_cfg import AppConfig, AppCfgFileSections, 
 import PDL.engine.module_imports as engine
 from PDL.logger.logger import Logger as Logger
 import PDL.logger.utils as log_utils
-from PDL.images import image_info, download_base, consts as image_consts
+from PDL.engine.images import consts as image_consts
 
 DEFAULT_ENGINE_CONFIG = 'pdl.cfg'
 DEFAULT_APP_CONFIG = None
