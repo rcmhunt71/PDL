@@ -20,7 +20,7 @@ class ParsePage(object):
         """
         raise NotImplemented
 
-    def parse_page(self):
+    def parse_page_for_link(self):
         """
         Routine for parsing page for sub-pages.
 

@@ -6,19 +6,22 @@ import time
 import requests
 import wget
 
-import PDL.logger.logger as logger
-from PDL.engine.images.status import DownloadStatus as Status
 
-log = logger.Logger()
+from PDL.engine.download.download_base import DownloadImage
+from PDL.engine.images.image_info import ImageData
+from PDL.engine.images.status import DownloadStatus as Status
+from PDL.logger.logger import Logger
+
+
+log = Logger()
 
 # TODO: Create tests
-# TODO: Needs to inherit from Dl_Base
 # TODO: Need to remove specifics to 500 in this file, and create 500 specific file
 #       that passes in the necessary info (or does the URL processing externally
-# TODO: Add doctring for __init__, explaining parameters
+# TODO: Add docstring for __init__, explaining parameters
 
 
-class Download(object):
+class Download500px(DownloadImage):
 
     EXTENSION = 'jpg'  # Default Extension
 
@@ -29,15 +32,23 @@ class Download(object):
     RETRY_DELAY = 5    # in seconds
     MAX_ATTEMPTS = 5   # Number of attempts to download
 
-    def __init__(self, image_url, dl_dir, url_split_token):
-        self.image_url = image_url
-        self.dl_dir = dl_dir
-        self.status = Status.NOT_SET
+    def __init__(self, image_url, dl_dir, url_split_token, image_info=None):
+        super().__init__(image_url=image_url, dl_dir=dl_dir)
+        self.url_split_token = url_split_token or self.URL_KEY
         self.image_name = None
         self.dl_file_spec = None
-        self.url_split_token = url_split_token or self.URL_KEY
-
+        self.image_info = image_info or ImageData()
+        self.status = Status.NOT_SET
         self.parse_image_info()
+
+    @property
+    def status(self):
+        return self.status
+
+    @status.setter
+    def status(self, status):
+        self.status = status
+        self.image_info.dl_status = status
 
     def parse_image_info(self):
         """
@@ -51,7 +62,7 @@ class Download(object):
             image_name=self.image_name, dl_dir=self.dl_dir)
         self.status = Status.PENDING
 
-    def download(self):
+    def download_image(self):
         """
         Download the image. If unsuccessful, wait a few seconds and try again,
         up to the maximum number of attempts.
@@ -201,7 +212,6 @@ class Download(object):
                         "Trying again in {delay} seconds")
 
         if working:
-
             attempts = 0
 
             # Download image via wget.download()
