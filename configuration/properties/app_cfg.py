@@ -12,11 +12,14 @@ class AppCfgFileSections(object):
     constants to reduce typos, and if a value needs to change, it only needs to
     be changed here.
 
+    Listed in alphabetical order.
+
     """
-    LOGGING = 'logging'
-    STORAGE = 'storage'
-    PROJECT = 'project'
     DATABASE = 'database'
+    LOGGING = 'logging'
+    IMAGES = 'images'
+    PROJECT = 'project'
+    STORAGE = 'storage'
 
 
 class AppCfgFileSectionKeys(object):
@@ -28,8 +31,11 @@ class AppCfgFileSectionKeys(object):
     Chose not to map the options to the section, since there could duplicate
     option names across sections. (Unnecessary complication at this point.)
 
+    Listed in alphabetical order.
+
     """
     CATALOG_PARSE = 'catalog_parse'
+    SIMULTANEOUS_DLS = 'simultaneous_dls'
     EXTENSION = 'extension'
     IMAGE_CONTACT_PARSE = 'image_contact_parse'
     LOCAL_DIR = 'local_dir'
