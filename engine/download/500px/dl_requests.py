@@ -15,37 +15,39 @@ log = logger.Logger()
 # TODO: Needs to inherit from Dl_Base
 # TODO: Need to remove specifics to 500 in this file, and create 500 specific file
 #       that passes in the necessary info (or does the URL processing externally
+# TODO: Add doctring for __init__, explaining parameters
 
 
 class Download(object):
 
-    EXTENSION = 'jpg' # Default Extension
+    EXTENSION = 'jpg'  # Default Extension
 
-    URL_KEY = 'sig='  # Key to identify where image name starts
-    KILOBYTES = 1024  # in bytes
-    MIN_KB = 10       # min file size to not qualify as an image
+    URL_KEY = 'sig='   # Key to identify where image name starts
+    KILOBYTES = 1024   # in bytes
+    MIN_KB = 10        # min file size to not qualify as an image
 
-    RETRY_DELAY = 5   # in seconds
-    MAX_ATTEMPTS = 5  # Number of attempts to download
+    RETRY_DELAY = 5    # in seconds
+    MAX_ATTEMPTS = 5   # Number of attempts to download
 
-    def __init__(self, image_url, dl_dir):
+    def __init__(self, image_url, dl_dir, url_split_token):
         self.image_url = image_url
         self.dl_dir = dl_dir
         self.status = Status.NOT_SET
         self.image_name = None
-        self.dl_filespec = None
+        self.dl_file_spec = None
+        self.url_split_token = url_split_token or self.URL_KEY
 
         self.parse_image_info()
 
     def parse_image_info(self):
         """
-        Gte and build all relevant information required for the download.
+        Get and build all relevant information required for the download.
 
         :return: None
 
         """
         self.image_name = self.get_image_name()
-        self.dl_filespec = self.get_file_location(
+        self.dl_file_spec = self.get_file_location(
             image_name=self.image_name, dl_dir=self.dl_dir)
         self.status = Status.PENDING
 
@@ -86,7 +88,7 @@ class Download(object):
 
         """
         image_url = image_url or self.image_url
-        delimiter_key = delimiter_key or self.URL_KEY
+        delimiter_key = delimiter_key or self.url_split_token
         image_name = None
 
         log.debug("Image URL: {0}".format(image_url))
@@ -160,20 +162,20 @@ class Download(object):
         """
         exists = False
 
-        if self.dl_filespec is None or self.dl_filespec == '':
+        if self.dl_file_spec is None or self.dl_file_spec == '':
             self.status = Status.ERROR
             log.error("No File Location set. Status set to '{0}'.".format(
                 self.status))
 
-        elif os.path.exists(self.dl_filespec):
+        elif os.path.exists(self.dl_file_spec):
             self.status = Status.EXISTS
             log.debug("File '{0}' already exists. Set status to '{1}'".format(
-                self.dl_filespec, self.status))
+                self.dl_file_spec, self.status))
             exists = True
 
         else:
             log.debug("File does not exist. {0}\nStatus set to '{1}'".format(
-                self.dl_filespec, self.status))
+                self.dl_file_spec, self.status))
 
         return exists
 
@@ -209,7 +211,7 @@ class Download(object):
                 attempts += 1
                 try:
                     filename = wget.download(
-                        url=self.image_url, out=self.dl_filespec)
+                        url=self.image_url, out=self.dl_file_spec)
                     self.status = Status.DOWNLOADED
 
                 # Connection failed, wait and try again
@@ -258,14 +260,14 @@ class Download(object):
         image = requests.get(self.image_url, stream=True)
 
         status_msg = "File: {0}\n\tDL STATUS CODE: {1}".format(
-                self.dl_filespec, image.status_code)
+                self.dl_file_spec, image.status_code)
 
         # If the return code was SUCCESSFUL (200):
         if image.status_code == 200:
             log.debug(status_msg)
 
             # Transfer binary contents to a file (dl_filespec)
-            with open(self.dl_filespec, 'wb') as OUTPUT:
+            with open(self.dl_file_spec, 'wb') as OUTPUT:
                 image.raw.decode_content = True
                 shutil.copyfileobj(image.raw, OUTPUT)
                 self.status = Status.DOWNLOADED
