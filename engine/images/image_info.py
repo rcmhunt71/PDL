@@ -1,4 +1,4 @@
-from PDL.engine.images.consts import (
+from PDL.engine.images.status import (
     DownloadStatus,
     ImageDataModificationStatus as ModStatus
 )

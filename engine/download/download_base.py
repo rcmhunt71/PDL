@@ -25,3 +25,5 @@ class DownloadImages(object):
 
         """
         raise NotImplemented
+
+# TODO: Add ability to create a queue, and perform multiple, simultaneous DLs
