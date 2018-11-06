@@ -56,21 +56,18 @@ class TestPropertiesConfig(object):
     def test_get_options_non_existent_section(self):
         expected_options = list()
         actual_options = self.config.get_options(section=self.INVALID_SECTION)
-        assert_equals(sorted(actual_options), sorted(expected_options))
 
     @raises(NoSectionError)
     def test_get_option_non_existent_section(self):
         expected_option = None
         actual_option = self.config.get(
             section=self.INVALID_SECTION, option=self.INVALID_OPTION)
-        assert_equals(actual_option, expected_option)
 
     @raises(NoOptionError)
     def test_get_option_non_existent_option(self):
         expected_option = None
         actual_option = self.config.get(
             section=self.VALID_SECTIONS[-1], option=self.INVALID_OPTION)
-        assert_equals(actual_option, expected_option)
 
     def test_get_option_valid_section_valid_option(self):
         data = self.VALID_SECTION_AND_ITEM_STR
@@ -110,8 +107,6 @@ class TestPropertiesConfig(object):
         expected_value = data[2]
         actual_value = self.config.getfloat(
             section=data[0], option=data[1])
-        assert_true(isinstance(actual_value, float))
-        assert_equals(actual_value, expected_value)
 
     def test_get_option_valid_section_valid_list(self):
         data = self.VALID_SECTION_AND_ITEM_LIST
@@ -127,8 +122,6 @@ class TestPropertiesConfig(object):
         expected_value = data[2]
         actual_value = self.config.getlist(
             section=data[0], option=data[1])
-        assert_true(isinstance(actual_value, list))
-        assert_equals(actual_value, expected_value)
 
     @raises(NoOptionError)
     def test_get_option_valid_section_invalid_option_valid_list(self):
@@ -136,5 +129,3 @@ class TestPropertiesConfig(object):
         expected_value = data[2]
         actual_value = self.config.getlist(
             section=data[0], option=data[1])
-        assert_true(isinstance(actual_value, list))
-        assert_equals(actual_value, expected_value)

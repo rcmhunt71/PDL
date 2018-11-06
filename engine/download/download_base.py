@@ -1,3 +1,17 @@
+class NotImplementedMethod(Exception):
+    """
+    Needed to implement a "dumb" class so that nose could test DownloadImage
+    The 'NotImplemented' exception does not seem to have a __name__ element,
+    so nose throws an AttributeError when the exception is raised. By defining
+    a specific exception, the __name__ attribute is present. Go figure.
+    """
+
+    msg = "Method: {0} not implemented."
+
+    def __init__(self, routine):
+        self.message = self.msg.format(routine)
+
+
 class DownloadImage(object):
     """
     Provided a list of images (or ImageObjects), provide logic for determining
@@ -16,7 +30,7 @@ class DownloadImage(object):
         :return: None
 
         """
-        raise NotImplemented
+        raise NotImplementedMethod('parse_image_info')
 
     def get_image_status(self):
         """
@@ -26,7 +40,7 @@ class DownloadImage(object):
         :return: image status
 
         """
-        raise NotImplemented
+        raise NotImplementedMethod('get_image_status')
 
     def download_image(self):
         """
@@ -35,6 +49,6 @@ class DownloadImage(object):
         :return: status of download.
 
         """
-        raise NotImplemented
+        raise NotImplementedMethod('download_image')
 
 # TODO: Add ability to create a queue, and perform multiple, simultaneous DLs
