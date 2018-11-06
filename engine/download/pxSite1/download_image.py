@@ -21,7 +21,7 @@ log = Logger()
 # TODO: Add docstring for __init__, explaining parameters
 
 
-class Download500px(DownloadImage):
+class DownloadPX(DownloadImage):
 
     EXTENSION = 'jpg'  # Default Extension
 
@@ -33,21 +33,21 @@ class Download500px(DownloadImage):
     MAX_ATTEMPTS = 5   # Number of attempts to download
 
     def __init__(self, image_url, dl_dir, url_split_token, image_info=None):
-        super().__init__(image_url=image_url, dl_dir=dl_dir)
+        super(DownloadPX, self).__init__(image_url=image_url, dl_dir=dl_dir)
         self.url_split_token = url_split_token or self.URL_KEY
         self.image_name = None
         self.dl_file_spec = None
         self.image_info = image_info or ImageData()
-        self.status = Status.NOT_SET
+        self._status = Status.NOT_SET
         self.parse_image_info()
 
     @property
     def status(self):
-        return self.status
+        return self._status
 
     @status.setter
     def status(self, status):
-        self.status = status
+        self._status = status
         self.image_info.dl_status = status
 
     def parse_image_info(self):
