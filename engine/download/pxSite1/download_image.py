@@ -32,13 +32,15 @@ class DownloadPX(DownloadImage):
     RETRY_DELAY = 5    # in seconds
     MAX_ATTEMPTS = 5   # Number of attempts to download
 
-    def __init__(self, image_url, dl_dir, url_split_token, image_info=None):
+    def __init__(self, image_url, dl_dir, url_split_token, image_info=None,
+                 use_wget=False):
         super(DownloadPX, self).__init__(image_url=image_url, dl_dir=dl_dir)
         self.url_split_token = url_split_token or self.URL_KEY
         self.image_name = None
         self.dl_file_spec = None
         self.image_info = image_info or ImageData()
         self._status = Status.NOT_SET
+        self.use_wget = use_wget
         self.parse_image_info()
 
     @property
@@ -80,20 +82,26 @@ class DownloadPX(DownloadImage):
                    self.status != Status.DOWNLOADED):
 
                 attempts += 1
-                self.dl_via_requests()
+                if self.use_wget:
+                    self.dl_via_wget()
+                else:
+                    self.dl_via_requests()
 
                 if self.status != Status.DOWNLOADED:
                     time.sleep(self.RETRY_DELAY)
 
         return self.status
 
-    def get_image_name(self, image_url=None, delimiter_key=None):
+    def get_image_name(self, image_url=None, delimiter_key=None,
+                       use_wget=False):
         """
         Builds image name from URL
 
         :param image_url: (str) Image URL
         :param delimiter_key: (str) - Token used to determine start of image
                                       name in url
+        :param use_wget: (boolean) - For testing purposes or specific need,
+                                     force use of wget.
 
         :return: (str) Name of URL
 
@@ -105,36 +113,33 @@ class DownloadPX(DownloadImage):
         log.debug("Image URL: {0}".format(image_url))
         if image_url is None:
             log.error('Image Url is None.')
+            self.status = Status.ERROR
             return None
 
         # Build regexp from key
         sig_comp = re.compile(delimiter_key)
 
         # Check if url has key (try two different ways)
-        try:
-            match = sig_comp.search(image_url)
-            if match is not None:
-                log.debug("Image name found via regex")
-                image_name = image_url.split(delimiter_key)[1]
-            else:
-                log.debug("Image name found via wget")
-                image_name = wget.filename_from_url(image_url)
+
+        match = sig_comp.search(image_url)
+        if match is not None and not use_wget:
+            log.debug("Image name found via regex")
+            image_name = image_url.split(delimiter_key)[1]
+        else:
+            log.debug("Image name found via wget")
+            image_name = wget.filename_from_url(image_url)
+            if image_name is not None:
+                image_name = image_name.strip(delimiter_key)
 
         # Didn't find the url or something bad happened
-        except TypeError:
+        if image_name is None:
+            self.status = Status.ERROR
             log.error("Unable to get image_name from url: {url}".format(
                 url=image_url))
-            self.status = Status.ERROR
 
+        # Append the extension
         else:
-            # Uh-oh, didn't find the key, so no name found.
-            if image_name is None:
-                log.error("No Image Name Found.")
-                self.status = Status.ERROR
-
-            # Append the extension
-            else:
-                image_name += '.{0}'.format(self.EXTENSION)
+            image_name += '.{0}'.format(self.EXTENSION)
 
         log.debug("Image Name: {image_name}".format(image_name=image_name))
 

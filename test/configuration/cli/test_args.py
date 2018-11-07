@@ -62,8 +62,6 @@ class TestCommandLine(object):
 
         attr = ArgOptions.CFG
         cli = CLIArgs(test_args_list=[self._build_longword_option(attr)])
-        attribute = getattr(cli.args, attr)
-        print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=attribute))
 
     @raises(SystemExit)
     def test_if_engine_cfg_option_without_file_specified(self):
@@ -73,8 +71,6 @@ class TestCommandLine(object):
 
         attr = ArgOptions.ENGINE
         cli = CLIArgs(test_args_list=[self._build_longword_option(attr)])
-        attribute = getattr(cli.args, attr)
-        print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=attribute))
 
     @raises(SystemExit)
     def test_if_image_without_filespec_raises_error(self):
@@ -85,8 +81,6 @@ class TestCommandLine(object):
         attr = ArgOptions.IMAGE
         cli = CLIArgs(test_args_list=[ArgSubmodules.INFO,
                                       self._build_longword_option(attr)])
-        attribute = getattr(cli.args, attr)
-        print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=attribute))
 
     @raises(SystemExit)
     def test_if_db_sync_and_records_are_mutually_exclusive(self):
@@ -95,9 +89,6 @@ class TestCommandLine(object):
         attr = [ArgOptions.SYNC, ArgOptions.RECORDS]
         cli = CLIArgs(test_args_list=[self._build_longword_option(attr[0]),
                                       self._build_longword_option(attr[1])])
-        for attribute in attr:
-            value = getattr(cli.args, attribute)
-            print("{attr} ATTRIBUTE: {val}".format(attr=attribute, val=value))
 
     def test_if_db_sync_option_works_alone(self):
         # Test if db --sync option is accepted without arguments.
@@ -194,7 +185,6 @@ class TestCommandLine(object):
         cli = CLIArgs(test_args_list=[self._build_longword_option(attr),
                                       'foo.tmp'])
         attribute = getattr(cli.args, attr)
-        print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=attribute))
 
     @raises(SystemExit)
     def test_if_invalid_designator_raises_error(self):
@@ -204,6 +194,28 @@ class TestCommandLine(object):
 
         designator = 'FOO'
         CLIArgs(test_args_list=[designator])
+
+    def test__get_module_names(self):
+        modules = ['DOWNLOAD', 'DUPLICATES', 'INFO', 'DATABASE']
+        names = dict([(mod, getattr(ArgSubmodules, mod)) for mod in modules])
+        name_list = ArgSubmodules._get_const_names()
+        assert_equals(set(name_list), set(names.keys()))
+
+    def test__get_module_values(self):
+        modules = ['DOWNLOAD', 'DUPLICATES', 'INFO', 'DATABASE']
+        names = dict([(mod, getattr(ArgSubmodules, mod)) for mod in modules])
+        value_list = ArgSubmodules._get_const_values()
+        assert_equals(set(value_list), set(names.values()))
+
+    def test_get_module_names(self):
+        modules = ['DOWNLOAD', 'DUPLICATES', 'INFO', 'DATABASE']
+        names = dict([(mod, getattr(ArgSubmodules, mod)) for mod in modules])
+        name_list = CLIArgs.get_module_names()
+        assert_equals(set(name_list), set(names.values()))
+
+    def test_get_invalid_shortcut(self):
+        option = CLIArgs.get_shortcut(option='8')
+        assert option is None
 
     @staticmethod
     def _verify_boolean_response(attr, cli_args, bool_expectation):

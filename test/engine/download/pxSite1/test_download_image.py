@@ -7,7 +7,10 @@ from nose.tools import assert_equals, assert_not_equals, assert_true, assert_fal
 
 class TestDownloadPX(object):
 
-    DUMMY_URL = "https://wooba.com/help/sig=this_is_my_name"
+    DELIM = "sig="
+    IMAGE_NAME = 'this_is_my_name'
+    DUMMY_URL_FMT = "https://wooba.com/help/{delim}{image}"
+    DUMMY_URL = DUMMY_URL_FMT.format(delim=DELIM, image=IMAGE_NAME)
 
     def test_set_status_updates_all_statuses(self):
 
@@ -37,3 +40,29 @@ class TestDownloadPX(object):
 
         assert_equals(image_dl.status, test_status)
         assert_equals(image_dl.image_info.dl_status, test_status)
+
+    def test_get_image_name_without_url_returns_none(self):
+        image_dl = dl.DownloadPX(image_url=None,
+                                 url_split_token=None,
+                                 dl_dir='/tmp')
+        name = image_dl.get_image_name()
+        assert_equals(name, None)
+        assert_equals(image_dl.status, status.DownloadStatus.ERROR)
+
+    def test_get_image_name_with_wget(self):
+        image_dl = dl.DownloadPX(image_url=self.DUMMY_URL,
+                                 url_split_token=None,
+                                 dl_dir='/tmp')
+        name = image_dl.get_image_name(use_wget=True)
+        assert_equals(name, '{0}.{1}'.format(
+            self.IMAGE_NAME, dl.DownloadPX.EXTENSION))
+        assert_equals(image_dl.status, status.DownloadStatus.PENDING)
+
+    def test_get_image_name_with_no_image(self):
+        image_dl = dl.DownloadPX(image_url='https://abc.com/',
+                                 url_split_token=None,
+                                 dl_dir='/tmp')
+        name = image_dl.get_image_name()
+        assert_equals(image_dl.status, status.DownloadStatus.ERROR)
+
+    # TODO: Test dl capability via mock

@@ -21,7 +21,7 @@ def import_module(dotted_path_module):
     except ImportError as exc:
         msg = "Unable to import: '{module}' --> {exc}".format(module=dotted_path_module, exc=exc.message)
         log.error(msg)
-        print(build_stack_trace(inspect.stack()))
+        log.error(build_stack_trace(inspect.stack()))
 
     return module
 
