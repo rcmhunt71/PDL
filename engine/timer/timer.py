@@ -8,11 +8,15 @@ MULTIPLIER = pow(10.0, PRECISION)
 log = logger.Logger()
 
 
-def measure_elapsed_time(event):
+def measure_elapsed_time(event, test=False):
     """
     Decorator for measuring the execution time of a specific call
 
-    :param event: Name or keyword identifier of event being measured
+    :param event: (str) Name or keyword identifier of event being measured
+    :param test:  (bool) If True, returns the time elapsed as part of output.
+                    This assumes f() does not return anything, otherwise the
+                    output needs to be reworked, or the msg will overwrite the
+                    return value of f().
 
     :return: executed function return
 
@@ -21,8 +25,11 @@ def measure_elapsed_time(event):
         def wrapped_f(*args, **kwargs):
             start = time.time()
             f(*args, **kwargs)
-            elapsed = str(int((time.time() - start) * MULTIPLIER) / MULTIPLIER)
-            log.info("[{event}]: Elapsed Time: {elapsed} s".format(
+            elapsed = int((time.time() - start) * MULTIPLIER) / MULTIPLIER
+            msg = ("[{event}]: Elapsed Time: {elapsed} s".format(
                 elapsed=elapsed, event=event.upper()))
+            log.info(msg)
+            if test:
+                return elapsed
         return wrapped_f
     return wrap

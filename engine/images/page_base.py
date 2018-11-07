@@ -1,3 +1,17 @@
+class NotImplementedMethod(Exception):
+    """
+    Needed to implement a "dumb" class so that nose could test DownloadImage
+    The 'NotImplemented' exception does not seem to have a __name__ element,
+    so nose throws an AttributeError when the exception is raised. By defining
+    a specific exception, the __name__ attribute is present. Go figure.
+    """
+
+    msg = "Method: {0} not implemented."
+
+    def __init__(self, routine):
+        self.message = self.msg.format(routine)
+
+
 class ParsePage(object):
     """ Generic object for tracking page parsing actions. """
 
@@ -18,7 +32,7 @@ class ParsePage(object):
 
         :return: (bool) Status (Success/Failure/Error)
         """
-        raise NotImplemented
+        raise NotImplementedMethod('get_page')
 
     def parse_page_for_link(self):
         """
@@ -26,7 +40,7 @@ class ParsePage(object):
 
         :return: List of sub-pages found in the primary page
         """
-        raise NotImplemented
+        raise NotImplementedMethod('parse_page_for_link')
 
 
 class CatalogPage(ParsePage):
@@ -44,7 +58,7 @@ class ImageContactPage(ParsePage):
     Return: List of ImageData objects
     """
 
-    def __init__(self, page_url):
+    def __init__(self, page_url, image_urls=None):
         # Using python2.x super() call.
         super(ImageContactPage, self).__init__(page_url)
-        self.image_urls = list()
+        self.image_urls = image_urls or list()
