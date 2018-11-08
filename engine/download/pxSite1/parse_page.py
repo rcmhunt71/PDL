@@ -1,7 +1,8 @@
+import pprint
 import re
 import requests
 import time
-from urllib.parse import quote
+from six.moves.urllib.parse import quote
 
 from PDL.engine.images.image_info import ImageData
 from PDL.engine.images.page_base import CatalogPage
@@ -24,12 +25,12 @@ class ParseDisplayPage(CatalogPage):
     RETRY_INTERVAL = 5
     MAX_ATTEMPTS = 3
     KEY = 'jpeg'
+    NOT_FOUND = 'Not Found'
 
     def __init__(self, page_url):
-        super().__init__(page_url=page_url)
-        self.source = self.get_page()
+        super(CatalogPage, self).__init__(page_url=page_url)
         self.image_info = ImageData()
-        self.get_image_info()
+        self.source = None
 
     def get_image_info(self):
         """
@@ -38,6 +39,9 @@ class ParseDisplayPage(CatalogPage):
         :return: None
 
         """
+        if self.source is None:
+            self.source = self.get_page()
+
         self.image_info.page_url = self.page_url
         self.image_info.image_url = self.parse_page_for_link()
         self.image_info.author = self.get_author_name()
@@ -57,7 +61,7 @@ class ParseDisplayPage(CatalogPage):
         source = None
 
         # Attempt to retrieve primary page via requests.GET()
-        while attempt <= self.MAX_ATTEMPTS:
+        while attempt < self.MAX_ATTEMPTS and source is None:
             attempt += 1
             log.debug("(attempt: {attempt}: Requesting page: '{url}'".format(
                 url=self.page_url, attempt=attempt))
@@ -70,7 +74,8 @@ class ParseDisplayPage(CatalogPage):
                 log.warn(conn_err.format(attempt=attempt))
                 time.sleep(self.RETRY_INTERVAL)
 
-        log.debug("Primary page '{url}' DL'd!".format(url=self.page_url))
+        if attempt < self.MAX_ATTEMPTS:
+            log.info("Primary page '{url}' DL'd!".format(url=self.page_url))
 
         # Split and strip the page into a list (elem per line), based on CR/LF.
         if source is not None:
@@ -83,15 +88,16 @@ class ParseDisplayPage(CatalogPage):
         Retrieve the originating page, and get the desired image link out of
         the page.
 
-        :param source: Raw string od source from html page
         :return: Image URL that was embedded in the original page
 
         """
         url_regexp = (r'size\"\s*:\s*2048\s*,\s*\"url\"\s*:\s*\"'
-                      r'(?P<url>https:.*)\",\"https_url\"')
+                      r'(?P<url>https:.*)\"\s*,\s*\"https_url\"')
 
         # Reduce data to only check lines with the KEY (jpg) is found
         lines = [line for line in self.source if self.KEY in line]
+        log.debug('Number of lines found with key: {key}: {num}'.format(
+            key=self.KEY, num=len(lines)))
         patt = re.compile(url_regexp)
 
         # Try to find largest resolution image link (there are multiple links,
@@ -99,14 +105,16 @@ class ParseDisplayPage(CatalogPage):
         for line in lines:
             result = patt.search(line)
             if result is not None:
+                log.debug("Found match: {line}".format(line=line))
                 link = result.group('url').replace('\/', '/')
                 return self.translate_unicode_in_link(link=link)
 
         # If you get here, you parsed the whole page and found nada...
-        log.error('Unable to find url in source page.')
-        log.error('SOURCE:\n{source}'.format(source=self.source))
         self.image_info.dl_status = DownloadStatus.ERROR
-
+        log.error('Unable to find url in source page.')
+        log.error('IMAGE LINES:\n{lines}'.format(lines=lines))
+        log.debug('COMPLETE SOURCE:\n{source}'.format(source=pprint.pformat(
+            self.source)))
         return None
 
     def get_author_name(self):
@@ -117,18 +125,20 @@ class ParseDisplayPage(CatalogPage):
 
         """
         key = 'fullname'
-        regexp_pattern = r'"fullname"\:"(?P<author>.*?)","'
+        regexp_pattern = r'\s*\"fullname\"\s*:\s*\"(?P<author>.*?)\"\s*,\s*"'
 
         # Find all lines with the 'key' word
         lines = [line for line in self.source if key in line]
 
+        log.debug("Matching Lines:\n{lines}".format(lines=lines))
+
         # Check each link for the regexp, which will contain the author's name
         for line in lines:
             result = re.search(pattern=regexp_pattern, string=line)
-            if result is not None:
+            if result is not None and result.group('author') != '':
                 return result.group('author')
 
-        return 'Not Found'
+        return self.NOT_FOUND
 
     @staticmethod
     def translate_unicode_in_link(link):

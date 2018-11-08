@@ -2,7 +2,7 @@ import PDL.engine.download.pxSite1.download_image as dl
 import PDL.engine.images.image_info as imageinfo
 import PDL.engine.images.status as status
 
-from nose.tools import assert_equals, assert_not_equals, assert_true, assert_false
+from nose.tools import assert_equals
 
 
 class TestDownloadPX(object):
