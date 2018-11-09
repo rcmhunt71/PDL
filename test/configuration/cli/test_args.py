@@ -1,8 +1,12 @@
+import copy
+
 from PDL.configuration.cli.args import CLIArgs, ArgSubmodules, ArgOptions
 from nose.tools import raises, assert_equals, assert_false, assert_true
 
 
 class TestCommandLine(object):
+
+    MODULES = ['DOWNLOAD', 'DUPLICATES', 'INFO', 'DATABASE', 'GENERAL']
 
     def test_if_debug_flag_is_set(self):
         # Validate debug flag is reported as set.
@@ -131,7 +135,7 @@ class TestCommandLine(object):
 
     def test_if_db_records_with_details_and_filespec_options_is_stored(self):
         # Test if db --records --filespec_<filespec> --details is stored.
-        filespec_opt = 'filespec'
+        filespec_opt = ArgOptions.FILE_SPEC
         filespec = "'./*.png'"
         attributes = ['records', 'details', filespec_opt]
         designator = ArgSubmodules.DATABASE
@@ -196,20 +200,17 @@ class TestCommandLine(object):
         CLIArgs(test_args_list=[designator])
 
     def test__get_module_names(self):
-        modules = ['DOWNLOAD', 'DUPLICATES', 'INFO', 'DATABASE']
-        names = dict([(mod, getattr(ArgSubmodules, mod)) for mod in modules])
+        names = dict([(mod, getattr(ArgSubmodules, mod)) for mod in self.MODULES])
         name_list = ArgSubmodules._get_const_names()
         assert_equals(set(name_list), set(names.keys()))
 
     def test__get_module_values(self):
-        modules = ['DOWNLOAD', 'DUPLICATES', 'INFO', 'DATABASE']
-        names = dict([(mod, getattr(ArgSubmodules, mod)) for mod in modules])
+        names = dict([(mod, getattr(ArgSubmodules, mod)) for mod in self.MODULES])
         value_list = ArgSubmodules._get_const_values()
         assert_equals(set(value_list), set(names.values()))
 
     def test_get_module_names(self):
-        modules = ['DOWNLOAD', 'DUPLICATES', 'INFO', 'DATABASE']
-        names = dict([(mod, getattr(ArgSubmodules, mod)) for mod in modules])
+        names = dict([(mod, getattr(ArgSubmodules, mod)) for mod in self.MODULES])
         name_list = CLIArgs.get_module_names()
         assert_equals(set(name_list), set(names.values()))
 
@@ -240,3 +241,41 @@ class TestCommandLine(object):
     @staticmethod
     def _build_longword_option(option):
         return '--{option}'.format(option=option)
+
+    def test_get_args_str(self):
+        args, options, flags = self._build_args_for_args_output_tests()
+        cli = CLIArgs(test_args_list=args)
+
+        output = cli.get_args_str()
+        print("Output: {0}".format(output))
+
+        for option in options:
+            assert option in output
+
+    def test_get_opt_args_states(self):
+        args, options, flags = self._build_args_for_args_output_tests()
+        cli = CLIArgs(test_args_list=args)
+        output = cli.get_opt_args_states()
+        print("Output: {0}".format(output))
+
+        for option in flags:
+            bool_val = "ENABLED" if getattr(cli.args, option) else "DISABLED"
+            assert "{0} {1}".format(option, bool_val) in output
+
+    def _build_args_for_args_output_tests(self):
+        filespec_opt = ArgOptions.FILE_SPEC
+        filespec = "'./*.png'"
+        attributes = ['records', 'details', filespec_opt]
+        designator = ArgSubmodules.DATABASE
+
+        flags = copy.copy(CLIArgs.FLAGS[ArgSubmodules.GENERAL])
+        flags.extend(CLIArgs.FLAGS[designator])
+
+        options = [filespec_opt, filespec, designator]
+        options.extend(attributes)
+        options.extend(flags)
+        args = [designator]
+        args.extend([self._build_longword_option(filespec_opt), filespec])
+        args.extend([self._build_longword_option(attr) for attr in attributes if
+                     attr != filespec_opt])
+        return args, options, flags

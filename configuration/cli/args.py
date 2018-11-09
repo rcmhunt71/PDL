@@ -19,10 +19,12 @@ class ArgSubmodules(object):
     """
     Defined submodules for the application
     """
+    DATABASE = 'db'
     DOWNLOAD = 'dl'
     DUPLICATES = 'dups'
+    GENERAL = 'general'
     INFO = 'info'
-    DATABASE = 'db'
+
 
     @classmethod
     def _get_const_values(cls):
@@ -49,6 +51,7 @@ class ArgOptions(object):
     ENGINE = 'engine'
     FILE = 'file'
     FILE_SPEC = 'filespec'
+    GENERAL = 'general'
     IMAGE = 'image'
     RECORDS = 'records'
     SYNC = 'sync'
@@ -86,7 +89,14 @@ class CLIArgs(object):
     """
 
     PURPOSE = "Image Download Utility"
-    FLAGS = ['debug']
+    FLAGS = {
+        ArgSubmodules.GENERAL: [ArgOptions.DEBUG, ArgOptions.DRY_RUN],
+        ArgSubmodules.DATABASE: [ArgOptions.RECORDS, ArgOptions.SYNC,
+                                 ArgOptions.DETAILS],
+        ArgSubmodules.DOWNLOAD: [],
+        ArgSubmodules.DUPLICATES: [ArgOptions.REMOVE_DUPS],
+        ArgSubmodules.INFO: [],
+    }
 
     def __init__(self, test_args_list=None):
         self.parser = argparse.ArgumentParser(description=self.PURPOSE)
@@ -297,10 +307,18 @@ class CLIArgs(object):
         :return: Multi-line string of flag states
 
         """
-        msg = '\n'
-        for flag in self.FLAGS:
-            if getattr(self.args, flag):
-                msg += "--> {0} ENABLED <<--\n".format(flag)
+        msg = '\nGLOBAL FLAGS:\n'
+        option_keys = [ArgSubmodules.GENERAL, self.args.command]
+        for key in option_keys:
+            log.debug("OPTION KEY: {0}".format(key))
+            log.debug("OPTIONS: {0}".format(self.FLAGS[key]))
+            if key != ArgSubmodules.GENERAL:
+                msg += "\nMODULE: {0}\n".format(key)
+            for flag in self.FLAGS[key]:
+                if hasattr(self.args, flag):
+                    setting = "ENABLED" if getattr(self.args, flag) else "DISABLED"
+                    log.debug("Flag: {0} --> {1}".format(flag, setting))
+                    msg += "--> {0} {1} <<--\n".format(flag, setting)
         return msg
 
 
