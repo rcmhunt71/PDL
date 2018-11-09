@@ -220,7 +220,7 @@ class Logger(object):
 
 
 # FOR VISUAL/MANUAL TESTING PURPOSES
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
 
     def test_routine(logger, level, msg):
         test_log = getattr(logger, level.lower())

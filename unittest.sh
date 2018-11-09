@@ -1,3 +1,2 @@
-python -m nose ./test/ --with-coverage -vv --cover-package=PDL
-coverage html -i
+python -m nose ./test/ --with-coverage -vv --cover-package=PDL --cover-html --cover-html-dir=./htmlcov
 

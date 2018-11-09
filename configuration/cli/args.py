@@ -306,7 +306,7 @@ class CLIArgs(object):
 
 # Used for visual checks like the help screen and namespaces
 # (e.g.- things not easily validated though automation)
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     filename = 'args.test.log'
     # log = PDL_log(filename=filename)
     parser = CLIArgs()
