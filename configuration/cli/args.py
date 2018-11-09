@@ -25,7 +25,6 @@ class ArgSubmodules(object):
     GENERAL = 'general'
     INFO = 'info'
 
-
     @classmethod
     def _get_const_values(cls):
         return [val for key, val in cls.__dict__.items()
