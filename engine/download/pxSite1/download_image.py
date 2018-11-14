@@ -32,7 +32,7 @@ class DownloadPX(DownloadImage):
     RETRY_DELAY = 5    # in seconds
     MAX_ATTEMPTS = 5   # Number of attempts to download
 
-    def __init__(self, image_url, dl_dir, url_split_token, image_info=None,
+    def __init__(self, image_url, dl_dir, url_split_token=None, image_info=None,
                  use_wget=False):
         super(DownloadPX, self).__init__(image_url=image_url, dl_dir=dl_dir)
         self.url_split_token = url_split_token or self.URL_KEY
@@ -208,7 +208,6 @@ class DownloadPX(DownloadImage):
         :return: status (refer to PDL.engine.images.status)
 
         """
-        working = False
 
         # Messages
         retry_msg = "Issue Retrieving File. Retrying in {0} seconds".format(
@@ -216,7 +215,7 @@ class DownloadPX(DownloadImage):
         conn_err_fmt = ("Attempt {attempts} of {max}: Connection Error --> "
                         "Trying again in {delay} seconds")
 
-        if working:
+        if self.use_wget:
             attempts = 0
 
             # Download image via wget.download()
