@@ -39,8 +39,16 @@ class TestPropertiesConfig(object):
         print("CFG FILE ({location}):\n\t{contents}".format(
             location=self.cfg_file, contents='\t'.join(lines)))
 
+    def test_app_config_init(self):
+        filename = inspect.getframeinfo(inspect.currentframe()).filename
+        self.cfg_file = '{0}.data'.format(os.path.splitext(filename)[0])
+        self.config = AppConfig(cfg_file=self.cfg_file, test=False)
+
+        assert self.config is not None
+        assert sorted(self.config.sections()) == sorted(self.VALID_SECTIONS)
+
     @raises(CfgFileDoesNotExist)
-    def test_if_missing_cfg_file_raises_error(self):
+    def test_if_missing_cfg_file_for_init_raises_error(self):
         AppConfig(cfg_file=self.INVALID_CFG_FILE, test=False)
 
     def test_get_sections(self):
