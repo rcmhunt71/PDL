@@ -169,6 +169,8 @@ class TestDownloadPX(object):
     wget_tmp_file_obj_5k = create_temp_file(size=(5 * dl.DownloadPX.KILOBYTES))
     wget_tmp_file_obj_conn_error = create_temp_file(
         size=(dl.DownloadPX.MIN_KB + 1) * dl.DownloadPX.KILOBYTES)
+    wget_tmp_file_wget_disabled = create_temp_file(
+        size=(dl.DownloadPX.MIN_KB + 1) * dl.DownloadPX.KILOBYTES)
 
     @patch('PDL.engine.download.pxSite1.download_image.wget.download',
            return_value=wget_tmp_file_obj_min_size.name)
@@ -249,6 +251,25 @@ class TestDownloadPX(object):
         print("Mock WGET call count: {0}".format(wget_mock.call_count))
 
         assert wget_mock.call_count == dl.DownloadPX.MAX_ATTEMPTS
+        assert dl_status == status.DownloadStatus.ERROR
+        assert image_obj.status == status.DownloadStatus.ERROR
+        assert image_obj.image_info.dl_status == status.DownloadStatus.ERROR
+
+    @patch('PDL.engine.download.pxSite1.download_image.wget.download',
+           return_value=wget_tmp_file_wget_disabled)
+    def test_dl_via_wget_but_wget_is_disabled(self, wget_mock):
+
+        image_obj = dl.DownloadPX(
+            image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=False)
+        image_obj.RETRY_DELAY = 0
+        image_obj.MAX_ATTEMPTS = 0
+        assert image_obj.status == status.DownloadStatus.PENDING
+
+        dl_status = image_obj.dl_via_wget()
+
+        print("Mock WGET call count: {0}".format(wget_mock.call_count))
+
+        assert wget_mock.call_count == image_obj.MAX_ATTEMPTS
         assert dl_status == status.DownloadStatus.ERROR
         assert image_obj.status == status.DownloadStatus.ERROR
         assert image_obj.image_info.dl_status == status.DownloadStatus.ERROR
