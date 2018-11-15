@@ -100,11 +100,11 @@ class TestDownloadPX(object):
     mocked_get_response_proper.status_code = 200
     mocked_get_response_proper.raw = MockedContent()
 
-    def mocked_shutils_copyfileobj(self, image, OUTPUT):
+    def mocked_shutils_copyfileobj(self, arg1, arg2):
         """
         Don't copy anything, just act as a pass-though
-        :param image: copyfileobj has 2 args. This is the first.
-        :param OUTPUT: copyfileobj has 2 args. This is the second.
+        :param arg1: copyfileobj has 2 args. This is the first.
+        :param arg2: copyfileobj has 2 args. This is the second.
 
         :return: None. This function is a no-op
 
@@ -300,4 +300,38 @@ class TestDownloadPX(object):
         assert result is False
         assert image_obj.status == curr_status
 
-    # TODO: Add tests for DownloadPX.download_image()
+# -----------------------------------------------------------------------
+# --------------------------- download_image ----------------------------
+# -----------------------------------------------------------------------
+
+    @patch('PDL.engine.download.pxSite1.download_image.DownloadPX.dl_via_requests',
+           return_value=status.DownloadStatus.PENDING)
+    def test_download_image_unable_to_dl(self, dl_pending_mock):
+        dl_image = dl.DownloadPX(image_url=self.DUMMY_URL, dl_dir='/tmp')
+        dl_image.RETRY_DELAY = 0
+        dl_status = dl_image.download_image()
+
+        assert dl_status == status.DownloadStatus.PENDING
+        assert dl_image.status == status.DownloadStatus.PENDING
+        assert dl_pending_mock.call_count == dl.DownloadPX.MAX_ATTEMPTS
+
+    @patch('PDL.engine.download.pxSite1.download_image.DownloadPX.dl_via_requests',
+           return_value=status.DownloadStatus.DOWNLOADED)
+    def test_download_image_successful_dl(self, dl_pending_mock):
+        dl_image = dl.DownloadPX(image_url=self.DUMMY_URL, dl_dir='/tmp')
+        dl_image.RETRY_DELAY = 0
+        dl_status = dl_image.download_image()
+
+        assert dl_status == status.DownloadStatus.DOWNLOADED
+        assert dl_pending_mock.call_count == 1
+
+    @patch('PDL.engine.download.pxSite1.download_image.DownloadPX.dl_via_wget',
+           return_value=status.DownloadStatus.DOWNLOADED)
+    def test_download_image_successful_dl_wget(self, dl_pending_mock):
+        dl_image = dl.DownloadPX(
+            image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=True)
+        dl_image.RETRY_DELAY = 0
+        dl_status = dl_image.download_image()
+
+        assert dl_status == status.DownloadStatus.DOWNLOADED
+        assert dl_pending_mock.call_count == 1

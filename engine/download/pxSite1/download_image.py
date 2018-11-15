@@ -15,11 +15,8 @@ from PDL.logger.logger import Logger
 
 log = Logger()
 
-# TODO: Create tests
 # TODO: Need to remove specifics to 500 in this file, and create 500 specific file
 #       that passes in the necessary info (or does the URL processing externally
-# TODO: Add docstring for __init__, explaining parameters
-
 
 class DownloadPX(DownloadImage):
 
@@ -34,6 +31,16 @@ class DownloadPX(DownloadImage):
 
     def __init__(self, image_url, dl_dir, url_split_token=None, image_info=None,
                  use_wget=False):
+        """
+        Instantiate an instance of DownloadPX Class
+
+        :param image_url: (str) URL of image to download
+        :param dl_dir: (str) Local location where to store downloaded image
+        :param url_split_token: (str) Key to determining name of image in URL
+        :param image_info: (ImageData) Object used to track image metadata
+        :param use_wget: (bool) Use wget instead of requests. Default = False
+
+        """
         super(DownloadPX, self).__init__(image_url=image_url, dl_dir=dl_dir)
         self.url_split_token = url_split_token or self.URL_KEY
         self.image_name = None
@@ -69,7 +76,7 @@ class DownloadPX(DownloadImage):
         Download the image. If unsuccessful, wait a few seconds and try again,
         up to the maximum number of attempts.
 
-        :return: dl_status (see PDL.engine.images)
+        :return: dl_status (see PDL.engine.images.status)
 
         """
         log.debug("Image URL: {url}".format(url=self.image_url))
@@ -77,20 +84,23 @@ class DownloadPX(DownloadImage):
 
         # Try to download image
         attempts = 0
-        if not self.file_exists() and self.status == Status.PENDING:
+        status = self.status
+        if not self.file_exists() and status == Status.PENDING:
             while (attempts < self.MAX_ATTEMPTS and
-                   self.status != Status.DOWNLOADED):
+                   status != Status.DOWNLOADED):
 
                 attempts += 1
                 if self.use_wget:
-                    self.dl_via_wget()
+                    status = self.dl_via_wget()
                 else:
-                    self.dl_via_requests()
+                    status = self.dl_via_requests()
 
                 if self.status != Status.DOWNLOADED:
                     time.sleep(self.RETRY_DELAY)
 
-        return self.status
+        log.info("Image download status for {0}: {1}".format(
+            self.image_url, status))
+        return status
 
     def get_image_name(self, image_url=None, delimiter_key=None,
                        use_wget=False):
