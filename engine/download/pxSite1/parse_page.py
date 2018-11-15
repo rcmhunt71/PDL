@@ -11,8 +11,8 @@ from PDL.logger.logger import Logger
 
 log = Logger()
 
-# TODO: Write tests
 # TODO: Add code documentation explaining approach
+# TODO: Add page parsing for new URL domain (need to check each domain, and act accordingly)
 
 
 class ParseDisplayPage(CatalogPage):
