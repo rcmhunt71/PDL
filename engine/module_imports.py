@@ -6,6 +6,12 @@ from PDL.logger.logger import Logger
 log = Logger()
 
 
+class ClassNotFoundInImportedModule(Exception):
+    def __init__(self, module, klass):
+        self.message = "Class '{klass}' not found in module {module}".format(
+            klass=klass, module=module)
+
+
 def import_module(dotted_path_module):
     """
     Imports a module into memory.
@@ -41,6 +47,18 @@ def import_module_class(dotted_path_class):
     path = '.'.join(parts[:-1])
 
     module = import_module(dotted_path_module=path)
+
+    # TODO: Add tests for class not found in module
+    if klass not in dir(module):
+        log.error("Class ({klass}) not found in module: {module}".format(
+            klass=klass, module=path))
+        msg = ("Available classes, routines, and variables available in "
+               "{module}:\n{avail}")
+        log.debug(msg.format(module=path, avail=', '.join(
+            [x for x in dir(module) if not x.startswith('_')])))
+
+        raise ClassNotFoundInImportedModule(klass=klass, module=path)
+
     log.debug("Returning requested imported class '{0}'.".format(klass))
     return getattr(module, klass, None)
 

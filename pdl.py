@@ -109,8 +109,7 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
     url_file.write_file(urls=url_list, create_dir=True,
                         location=app_cfg.get(
                             AppCfgFileSections.LOGGING,
-                            AppCfgFileSectionKeys.URL_FILE_DIR, None)
-                        )
+                            AppCfgFileSectionKeys.URL_FILE_DIR, None))
 
     # Import the specified routines for processing the URLs
     Catalog = import_module_class(
@@ -120,6 +119,8 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
     Contact = import_module_class(
         app_cfg.get(AppCfgFileSections.PROJECT,
                     AppCfgFileSectionKeys.IMAGE_CONTACT_PARSE))
+
+    catalog = Catalog(page_url=url_list[0])
 
     log.info("URL LIST:\n{0}".format(
         ArgProcessing.list_urls(url_list=url_list)))
