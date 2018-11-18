@@ -133,6 +133,9 @@ class UrlArgProcessing(object):
         :return: Boolean; True = Valid URL
 
         """
+
+        # TODO: Write additional tests for this routine (more logic added)
+
         domains = domains or list()
 
         log.debug('Checking for domains: {0}'.format(domains))

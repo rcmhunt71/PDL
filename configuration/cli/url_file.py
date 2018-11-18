@@ -100,6 +100,8 @@ class UrlFile(object):
 
         """
 
+        # TODO: Write tests for this routine.
+
         result = None
         if not os.path.exists(location):
             if create_dir:
