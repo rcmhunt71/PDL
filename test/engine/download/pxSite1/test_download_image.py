@@ -122,7 +122,7 @@ class TestDownloadPX(object):
 
         image_obj = dl.DownloadPX(image_url=self.DUMMY_URL, dl_dir='/tmp')
         image_obj.dl_file_spec = temp_file.name
-        dl_status = image_obj.dl_via_requests()
+        dl_status = image_obj._dl_via_requests()
 
         temp_file.close()
         print("Closed/Removed temp file: {0}".format(image_obj.dl_file_spec))
@@ -150,7 +150,7 @@ class TestDownloadPX(object):
 
         assert image_obj.status == status.DownloadStatus.PENDING
 
-        dl_status = image_obj.dl_via_requests()
+        dl_status = image_obj._dl_via_requests()
 
         temp_file.close()
         print("Closed/removed temp file: {0}".format(image_obj.dl_file_spec))
@@ -186,7 +186,7 @@ class TestDownloadPX(object):
         image_obj.RETRY_DELAY = 0
         assert image_obj.status == status.DownloadStatus.PENDING
 
-        dl_status = image_obj.dl_via_wget()
+        dl_status = image_obj._dl_via_wget()
         os.remove(wget_mock.return_value)
 
         print("Deleted temp file: {0}".format(image_file))
@@ -214,7 +214,7 @@ class TestDownloadPX(object):
         image_obj.RETRY_DELAY = 0
         assert image_obj.status == status.DownloadStatus.PENDING
 
-        dl_status = image_obj.dl_via_wget()
+        dl_status = image_obj._dl_via_wget()
         os.remove(wget_mock.return_value)
 
         print("Deleted temp file: {0}".format(image_file))
@@ -245,7 +245,7 @@ class TestDownloadPX(object):
         image_obj.RETRY_DELAY = 0
         assert image_obj.status == status.DownloadStatus.PENDING
 
-        dl_status = image_obj.dl_via_wget()
+        dl_status = image_obj._dl_via_wget()
 
         print("Deleted temp file: {0}".format(image_file))
         print("Mock WGET call count: {0}".format(wget_mock.call_count))
@@ -265,7 +265,7 @@ class TestDownloadPX(object):
         image_obj.MAX_ATTEMPTS = 0
         assert image_obj.status == status.DownloadStatus.PENDING
 
-        dl_status = image_obj.dl_via_wget()
+        dl_status = image_obj._dl_via_wget()
 
         print("Mock WGET call count: {0}".format(wget_mock.call_count))
 
@@ -283,7 +283,7 @@ class TestDownloadPX(object):
             image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=True)
         image_obj.dl_file_spec = None
 
-        result = image_obj.file_exists()
+        result = image_obj._file_exists()
         assert result is False
         assert image_obj.status == status.DownloadStatus.ERROR
 
@@ -292,7 +292,7 @@ class TestDownloadPX(object):
             image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=True)
         image_obj.dl_file_spec = ''
 
-        result = image_obj.file_exists()
+        result = image_obj._file_exists()
         assert result is False
         assert image_obj.status == status.DownloadStatus.ERROR
 
@@ -304,7 +304,7 @@ class TestDownloadPX(object):
             image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=True)
         image_obj.dl_file_spec = temp_file.name
 
-        result = image_obj.file_exists()
+        result = image_obj._file_exists()
         os.remove(temp_file.name)
 
         assert result is True
@@ -317,7 +317,7 @@ class TestDownloadPX(object):
         image_obj.dl_file_spec = '/tmp/does_not_exist.wooba'
         curr_status = image_obj.status
 
-        result = image_obj.file_exists()
+        result = image_obj._file_exists()
         assert result is False
         assert image_obj.status == curr_status
 
@@ -325,7 +325,8 @@ class TestDownloadPX(object):
 # --------------------------- download_image ----------------------------
 # -----------------------------------------------------------------------
 
-    @patch('PDL.engine.download.pxSite1.download_image.DownloadPX.dl_via_requests',
+    @patch('PDL.engine.download.pxSite1.download_image.DownloadPX.'
+           '_dl_via_requests',
            return_value=status.DownloadStatus.PENDING)
     def test_download_image_unable_to_dl(self, dl_pending_mock):
         dl_image = dl.DownloadPX(image_url=self.DUMMY_URL, dl_dir='/tmp')
@@ -336,7 +337,8 @@ class TestDownloadPX(object):
         assert dl_image.status == status.DownloadStatus.PENDING
         assert dl_pending_mock.call_count == dl.DownloadPX.MAX_ATTEMPTS
 
-    @patch('PDL.engine.download.pxSite1.download_image.DownloadPX.dl_via_requests',
+    @patch('PDL.engine.download.pxSite1.download_image.DownloadPX.'
+           '_dl_via_requests',
            return_value=status.DownloadStatus.DOWNLOADED)
     def test_download_image_successful_dl(self, dl_pending_mock):
         dl_image = dl.DownloadPX(image_url=self.DUMMY_URL, dl_dir='/tmp')
@@ -346,7 +348,7 @@ class TestDownloadPX(object):
         assert dl_status == status.DownloadStatus.DOWNLOADED
         assert dl_pending_mock.call_count == 1
 
-    @patch('PDL.engine.download.pxSite1.download_image.DownloadPX.dl_via_wget',
+    @patch('PDL.engine.download.pxSite1.download_image.DownloadPX._dl_via_wget',
            return_value=status.DownloadStatus.DOWNLOADED)
     def test_download_image_successful_dl_wget(self, dl_pending_mock):
         dl_image = dl.DownloadPX(

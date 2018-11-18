@@ -68,7 +68,7 @@ class DownloadPX(DownloadImage):
 
         """
         self.image_name = self.get_image_name()
-        self.dl_file_spec = self.get_file_location(
+        self.dl_file_spec = self._get_file_location(
             image_name=self.image_name, dl_dir=self.dl_dir)
         self.status = Status.PENDING
 
@@ -86,15 +86,15 @@ class DownloadPX(DownloadImage):
         # Try to download image
         attempts = 0
         status = self.status
-        if not self.file_exists() and status == Status.PENDING:
+        if not self._file_exists() and status == Status.PENDING:
             while (attempts < self.MAX_ATTEMPTS and
                    status != Status.DOWNLOADED):
 
                 attempts += 1
                 if self.use_wget:
-                    status = self.dl_via_wget()
+                    status = self._dl_via_wget()
                 else:
-                    status = self.dl_via_requests()
+                    status = self._dl_via_requests()
 
                 if self.status != Status.DOWNLOADED:
                     time.sleep(self.RETRY_DELAY)
@@ -156,7 +156,7 @@ class DownloadPX(DownloadImage):
 
         return image_name
 
-    def get_file_location(self, image_name=None, dl_dir=None):
+    def _get_file_location(self, image_name=None, dl_dir=None):
         """
         Builds download file_spec based on image name and dl_path
 
@@ -180,7 +180,7 @@ class DownloadPX(DownloadImage):
 
         return file_spec
 
-    def file_exists(self):
+    def _file_exists(self):
         """
         Check to see if file exists. If it does, set status to prevent DL.
 
@@ -206,7 +206,7 @@ class DownloadPX(DownloadImage):
 
         return exists
 
-    def dl_via_wget(self):
+    def _dl_via_wget(self):
         """
         Download the image via wget.
 
@@ -274,7 +274,7 @@ class DownloadPX(DownloadImage):
 
         return self.status
 
-    def dl_via_requests(self):
+    def _dl_via_requests(self):
         """
         Download the image via the requests module
 
