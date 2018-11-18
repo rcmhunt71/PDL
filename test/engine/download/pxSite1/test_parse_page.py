@@ -47,10 +47,15 @@ mocked_get_no_response = None
 
 class TestParsePage(object):
 
+    DOMAIN_1 = '500px.foo.com'
+    DOMAIN_2 = 'web.foo.com'
     DELIM = "sig="
     IMAGE_NAME = 'this_is_my_name'
-    DUMMY_URL_FMT = "https://wooba.com/help/{delim}{image}"
-    DUMMY_URL = DUMMY_URL_FMT.format(delim=DELIM, image=IMAGE_NAME)
+    DUMMY_URL_FMT = "https://{domain}/help/{delim}{image}"
+    DUMMY_URL_1 = DUMMY_URL_FMT.format(
+        delim=DELIM, image=IMAGE_NAME, domain=DOMAIN_1)
+    DUMMY_URL_2 = DUMMY_URL_FMT.format(
+        delim=DELIM, image=IMAGE_NAME, domain=DOMAIN_2)
 
 # ------------ ParseDisplayPage:get_page() ------------
 
@@ -58,7 +63,7 @@ class TestParsePage(object):
         'PDL.engine.download.pxSite1.parse_page.requests.get',
         return_value=mocked_get_response_proper)
     def test_get_valid_page(self, mock_get):
-        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL)
+        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
         page_content = valid_page.get_page()
         assert_equals(
             len(page_content), len(sample_valid_html_page.split('\n')))
@@ -68,7 +73,7 @@ class TestParsePage(object):
         'PDL.engine.download.pxSite1.parse_page.requests.get',
         return_value=mocked_get_no_response)
     def test_get_page_with_no_content(self, mock_get):
-        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL)
+        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
         page_content = valid_page.get_page()
         print("PAGE CONTENT:\n{0}".format(page_content))
         assert page_content is None
@@ -82,7 +87,7 @@ class TestParsePage(object):
         # should be none, but the mock should have been called MAX_ATTEMPTS
         # times.
 
-        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL)
+        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
         valid_page.RETRY_INTERVAL = 0  # No need to wait, since it is mocked
         page_content = valid_page.get_page()
         print("PAGE CONTENT:\n{0}".format(page_content))
@@ -92,7 +97,7 @@ class TestParsePage(object):
 # ------------ ParseDisplayPage:parse_page_for_link() ------------
 
     def test_parse_page_valid_content_for_link(self):
-        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL)
+        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
         valid_page.source = sample_valid_html_page.split('\n')
         link = valid_page.parse_page_for_link()
         assert_equals(link, sample_link)
@@ -100,7 +105,7 @@ class TestParsePage(object):
                       status.DownloadStatus.NOT_SET)
 
     def test_parse_page_invalid_content_for_link(self):
-        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL)
+        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
         valid_page.source = sample_invalid_html_page.split('\n')
         link = valid_page.parse_page_for_link()
         assert link is None
@@ -116,13 +121,13 @@ class TestParsePage(object):
 
 # ------------ ParseDisplayPage:get_author_name() ------------
     def test_get_valid_page_with_author(self):
-        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL)
+        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
         valid_page.source = sample_valid_html_page.split('\n')
         author = valid_page._get_author_name()
         assert_equals(author, sample_name)
 
     def test_get_valid_page_with_invalid_author(self):
-        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL)
+        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
         valid_page.source = sample_invalid_html_page.split('\n')
         author = valid_page._get_author_name()
         assert_equals(author, page.ParseDisplayPage.NOT_FOUND)
@@ -132,12 +137,12 @@ class TestParsePage(object):
         'PDL.engine.download.pxSite1.parse_page.requests.get',
         return_value=mocked_get_response_proper)
     def test_get_valid_page_info(self, mock_get):
-        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL)
-        valid_page._get_image_info()
+        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
+        valid_page.get_image_info()
 
         assert_equals(
             len(valid_page.source), len(sample_valid_html_page.split('\n')))
         assert_equals(valid_page.image_info.author, sample_name)
         assert_equals(valid_page.image_info.image_url, sample_link)
-        assert_equals(valid_page.image_info.page_url, self.DUMMY_URL)
+        assert_equals(valid_page.image_info.page_url, self.DUMMY_URL_1)
         assert_equals(mock_get.call_count, 1)

@@ -175,8 +175,8 @@ class UrlArgProcessing(object):
         :return: multi-line string
 
         """
-        url_list_string = ''
-        for index, url in enumerate(url_list):
-            url_list_string += "{counter}) {curr_url}\n".format(
-                counter=index + 1, curr_url=url)
-        return url_list_string
+        fmt = "{ctr:>3}: {url}"
+
+        url_list = [fmt.format(ctr=index + 1, url=url) for index, url
+                    in enumerate(url_list)]
+        return '\n'.join(url_list)

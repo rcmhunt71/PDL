@@ -25,6 +25,15 @@ class ParsePage(object):
         self.page_contents = None
         self.image_pages = list()
 
+    def get_image_info(self):
+        """
+        Find and store source page and image metadata.
+
+        :return: None.
+
+        """
+        raise NotImplementedMethod('get_image_info')
+
     def get_page(self):
         """
         Download the page (page_url) and store the html contents.

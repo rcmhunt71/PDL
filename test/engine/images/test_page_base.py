@@ -18,6 +18,11 @@ class TestParsePageBase(object):
         method_name = 'parse_page_for_link'
         self._test_object_using_method(method_name)
 
+    @raises(base.NotImplementedMethod)
+    def test_parse_page_for_link_definition(self):
+        method_name = 'get_image_info'
+        self._test_object_using_method(method_name)
+
     def _test_object_using_method(self, method_name):
         dl = base.ParsePage(page_url=self.IMAGE_URL)
         api = getattr(dl, method_name)

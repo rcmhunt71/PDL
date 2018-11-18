@@ -32,7 +32,7 @@ class ParseDisplayPage(CatalogPage):
         self.image_info = ImageData()
         self.source = None
 
-    def _get_image_info(self):
+    def get_image_info(self):
         """
         Store any collected info into the ImageData object
 
@@ -61,10 +61,11 @@ class ParseDisplayPage(CatalogPage):
         source = None
 
         # Attempt to retrieve primary page via requests.GET()
+        log_msg = "Attempt: {attempt}/{max}: Requesting page: '{url}'"
         while attempt < self.MAX_ATTEMPTS and source is None:
             attempt += 1
-            log.debug("(attempt: {attempt}: Requesting page: '{url}'".format(
-                url=self.page_url, attempt=attempt))
+            log.debug(log_msg.format(
+                url=self.page_url, attempt=attempt, max=self.MAX_ATTEMPTS))
 
             try:
                 source = requests.get(url=self.page_url, headers=self.HEADERS)
@@ -91,6 +92,41 @@ class ParseDisplayPage(CatalogPage):
         :return: Image URL that was embedded in the original page
 
         """
+
+        web_url = 'web'
+        www_url = '500px'
+
+        # TODO: Add tests about URL prefix logic
+
+        domain = self._get_domain_from_url().lower()
+        if domain.startswith(web_url):
+            return self._parse_web_url()
+
+        elif domain.startswith(www_url):
+            return self._parse_www_url()
+
+        else:
+            err_msg = ('Unrecognized domain format: {domain} - '
+                       'Unsure how to proceed.')
+            log.error(err_msg.format(domain=domain))
+            return None
+
+    def _get_domain_from_url(self):
+        domain_pattern = r'http.://(?P<domain>(\w+\.)?\w+\.\w+)/.*'
+
+        domain = None
+        match = re.search(domain_pattern, self.page_url)
+        if match is not None:
+            domain = match.group('domain')
+        log.debug("DOMAIN:{0}".format(domain))
+        return domain
+
+    def _parse_web_url(self):
+        # TODO: Implement web.* parsing
+        log.info('TO BE IMPLEMENTED: web.<domain>.<ext>')
+        return None
+
+    def _parse_www_url(self):
         url_regexp = (r'size\"\s*:\s*2048\s*,\s*\"url\"\s*:\s*\"'
                       r'(?P<url>https:.*)\"\s*,\s*\"https_url\"')
 

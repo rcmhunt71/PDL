@@ -120,10 +120,14 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
         app_cfg.get(AppCfgFileSections.PROJECT,
                     AppCfgFileSectionKeys.IMAGE_CONTACT_PARSE))
 
-    catalog = Catalog(page_url=url_list[0])
-
     log.info("URL LIST:\n{0}".format(
         ArgProcessing.list_urls(url_list=url_list)))
+
+    for page_url in url_list:
+        catalog = Catalog(page_url=page_url)
+        catalog.get_image_info()
+        print("IMAGE: URL: {0}".format(catalog.image_info.image_url))
+
 
 # -----------------------------------------------------------------
 #                DUPLICATE MANAGEMENT
