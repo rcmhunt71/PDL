@@ -13,21 +13,23 @@ class UrlArgProcessing(object):
     INVALID = False
 
     @classmethod
-    def process_url_list(cls, url_list, domain=None):
+    def process_url_list(cls, url_list, domains=None):
         """
         Split any combined URLs, verify all URLs are valid, and remove any duplicates
 
         :param url_list: List of URLs to process
-        :param domain: Domain URLs should contain (www.abc.com)
+        :param domains: List of possible domains URLs should contain
 
         :return: List of valid, unique URLs
 
         """
         log.info("Number of entries (URLs) in list: {0}".format(len(url_list)))
 
+        domains = domains or list()
+
         # Split and validate URLs (concatenated and/or invalid URLs), and check
-        # for the correct domain in the host portion of the URL
-        urls = UrlArgProcessing.split_urls(url_list, domain=domain)
+        # for the correct domains in the host portion of the URL
+        urls = UrlArgProcessing.split_urls(url_list, domains=domains)
 
         # Remove duplicates
         url_dict = UrlArgProcessing.reduce_url_list(urls)
@@ -73,12 +75,12 @@ class UrlArgProcessing(object):
                      list(set(duplicates))])
 
     @classmethod
-    def split_urls(cls, url_list, domain=None, delimiter=PROTOCOL):
+    def split_urls(cls, url_list, domains=None, delimiter=PROTOCOL):
         """
         Check for URLs that are not space delimited from the CLI. If found,
         split the URL into two URLs and add to the list.
         :param url_list: List of URLs to process
-        :param domain: Domain expected within host portion of URL
+        :param domains: List of allowed domains within host portion of URL
         :param delimiter: Delimiter that indicates unique URLs,
                              e.g. - space or comma
 
@@ -88,6 +90,7 @@ class UrlArgProcessing(object):
         # Concatenate all entries into a space-delimited string
         num_urls_init = len(url_list)
         url_concat = ' '.join(url_list)
+        domains = domains or list()
 
         # Split on delimiter (Catches concatenated http entries)
         # Rejoin with space delimiter (concatenated entries are now separate)
@@ -108,7 +111,8 @@ class UrlArgProcessing(object):
                 cls.INVALID: list()}
 
         for url in url_temp_list:
-            urls[UrlArgProcessing.validate_url(url, domain=domain)].append(url)
+            urls[UrlArgProcessing.validate_url(
+                url, domains=domains)].append(url)
 
         log.info("Number of VALID URLs in list: {0}".format(
             len(urls[cls.VALID])))
@@ -118,22 +122,38 @@ class UrlArgProcessing(object):
         return urls[cls.VALID]
 
     @classmethod
-    def validate_url(cls, url, domain=None, protocol=PROTOCOL):
+    def validate_url(cls, url, domains=None, protocol=PROTOCOL):
         """
         Verify URL starts with delimited, and has additional URL info.
 
         :param url: URL
-        :param domain: Expected/Required Domain
+        :param domains: List of expected/required domains in URL
         :param protocol: protocol prefix for URL
 
         :return: Boolean; True = Valid URL
 
         """
+        domains = domains or list()
+
+        log.debug('Checking for domains: {0}'.format(domains))
+
         valid = (url.lower().startswith(protocol.lower()) and
                  url.lower() != protocol.lower())
 
-        if domain is not None:
-            valid = valid and domain.lower() in url.lower()
+        if not valid:
+            msg = ("Invalid URL: '{0}'. "
+                   "Did not match expected protocol(s): '{1}'")
+            log.warn(msg.format(url.lower(), protocol.lower()))
+
+        if domains and valid:
+            if any(x.lower() in url.lower() for x in domains):
+                valid = True
+                log.debug('Matching domain found.')
+            else:
+                valid = False
+                msg = ("Invalid URL: '{0}'. "
+                       "Did not match expected domains: '{1}'")
+                log.warn(msg.format(url.lower(), ', '.join(domains)))
 
         log.debug("{status}: URL='{url}'".format(
             status="VALID" if valid else "INVALID", url=url))

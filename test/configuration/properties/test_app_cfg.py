@@ -119,7 +119,7 @@ class TestPropertiesConfig(object):
     def test_get_option_valid_section_valid_list(self):
         data = self.VALID_SECTION_AND_ITEM_LIST
         expected_value = data[2]
-        actual_value = self.config.getlist(
+        actual_value = self.config.get_list(
             section=data[0], option=data[1])
         assert_true(isinstance(actual_value, list))
         assert_equals(actual_value, expected_value)
@@ -128,12 +128,12 @@ class TestPropertiesConfig(object):
     def test_get_option_invalid_section_valid_option_valid_list(self):
         data = self.INVALID_SECTION_AND_VALID_OPTION_LIST
         expected_value = data[2]
-        actual_value = self.config.getlist(
+        actual_value = self.config.get_list(
             section=data[0], option=data[1])
 
     @raises(NoOptionError)
     def test_get_option_valid_section_invalid_option_valid_list(self):
         data = self.VALID_SECTION_AND_INVALID_OPTION_LIST
         expected_value = data[2]
-        actual_value = self.config.getlist(
+        actual_value = self.config.get_list(
             section=data[0], option=data[1])

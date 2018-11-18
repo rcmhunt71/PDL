@@ -51,7 +51,7 @@ class UrlFile(object):
                 url_list_delim=self.URL_LIST_DELIM))
             FILE.write("{0}\n".format(self.URL_DELIM.join(urls)))
 
-        log.info("Wrote urls ({num}) to the input file: {loc}".format(
+        log.info("Wrote urls to the input file: {loc} --> ({num} urls) ".format(
             loc=filespec, num=len(urls)))
 
         return filespec

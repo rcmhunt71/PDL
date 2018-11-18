@@ -99,11 +99,13 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
             raw_url_list = url_file.read_file(url_file_name)
 
     # Sanitize the URL list (missing spaces, duplicates, valid URLs)
-    url_domain = app_cfg.get(
+    url_domains = app_cfg.get_list(
         AppCfgFileSections.PROJECT,
-        AppCfgFileSectionKeys.URL_DOMAIN)
+        AppCfgFileSectionKeys.URL_DOMAINS)
 
-    url_list = ArgProcessing.process_url_list(raw_url_list)
+    print("DOMAINS: {0}".format(url_domains))
+
+    url_list = ArgProcessing.process_url_list(raw_url_list, domains=url_domains)
     url_file.write_file(urls=url_list, create_dir=True,
                         location=app_cfg.get(
                             AppCfgFileSections.LOGGING,
@@ -119,17 +121,8 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
         app_cfg.get(AppCfgFileSections.PROJECT,
                     AppCfgFileSectionKeys.IMAGE_CONTACT_PARSE))
 
-    # -----------------------------------------------
-    # TESTING <<------ DELETE ME
-    # -----------------------------------------------
-    # catalog = Catalog(page_url="foo.com")
-    # contact = Contact(page_url="foo.com/index.html")
-    # log.debug("CATALOG URL: %s" % catalog.page_url)
-    # log.debug("CONTACT URL: %s" % contact.page_url)
-    # log.debug("CONTACT URLS: %s" % contact.image_urls)
-    # -----------------------------------------------
-
-    log.info("URL LIST:\n{0}".format(pformat(url_list)))
+    log.info("URL LIST:\n{0}".format(
+        ArgProcessing.list_urls(url_list=url_list)))
 
 # -----------------------------------------------------------------
 #                DUPLICATE MANAGEMENT

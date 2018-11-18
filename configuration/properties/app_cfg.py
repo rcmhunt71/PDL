@@ -50,7 +50,7 @@ class AppCfgFileSectionKeys(object):
     STORAGE_DIR = 'storage_dir'
     SUFFIX = 'suffix'
     URL = 'url'
-    URL_DOMAIN = 'url_domain'
+    URL_DOMAINS = 'url_domains'
     URL_FILE_DIR = 'url_file_dir'
 
 
@@ -183,7 +183,7 @@ class AppConfig(ConfigParser):
             raise NoOptionError(section, option)
         raise NoSectionError(section)
 
-    def getlist(self, section, option, delimiter=','):
+    def get_list(self, section, option, delimiter=','):
         """
         Gets delimited option value, splits into list, and returns list.
 
