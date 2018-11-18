@@ -32,7 +32,7 @@ class ParseDisplayPage(CatalogPage):
         self.image_info = ImageData()
         self.source = None
 
-    def get_image_info(self):
+    def _get_image_info(self):
         """
         Store any collected info into the ImageData object
 
@@ -44,7 +44,7 @@ class ParseDisplayPage(CatalogPage):
 
         self.image_info.page_url = self.page_url
         self.image_info.image_url = self.parse_page_for_link()
-        self.image_info.author = self.get_author_name()
+        self.image_info.author = self._get_author_name()
 
     def get_page(self):
         """
@@ -107,7 +107,7 @@ class ParseDisplayPage(CatalogPage):
             if result is not None:
                 log.debug("Found match: {line}".format(line=line))
                 link = result.group('url').replace('\/', '/')
-                return self.translate_unicode_in_link(link=link)
+                return self._translate_unicode_in_link(link=link)
 
         # If you get here, you parsed the whole page and found nada...
         self.image_info.dl_status = DownloadStatus.ERROR
@@ -117,7 +117,7 @@ class ParseDisplayPage(CatalogPage):
             self.source)))
         return None
 
-    def get_author_name(self):
+    def _get_author_name(self):
         """
         Get the author's name, if it is embedded in the page.
 
@@ -141,7 +141,7 @@ class ParseDisplayPage(CatalogPage):
         return self.NOT_FOUND
 
     @staticmethod
-    def translate_unicode_in_link(link):
+    def _translate_unicode_in_link(link):
         """
         Adds quoting around unicode embedded in the links
 

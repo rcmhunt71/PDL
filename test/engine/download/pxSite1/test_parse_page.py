@@ -109,7 +109,7 @@ class TestParsePage(object):
 
 # ------------ ParseDisplayPage:translate_unicode_in_link() ------------
     def test_translate_unicode_in_link_with_no_unicode(self):
-        link = page.ParseDisplayPage.translate_unicode_in_link(link=sample_link)
+        link = page.ParseDisplayPage._translate_unicode_in_link(link=sample_link)
         assert_equals(link, sample_link)
 
     # TODO: Add test for URL with UNICODE (Translate_unicode_in_link)
@@ -118,13 +118,13 @@ class TestParsePage(object):
     def test_get_valid_page_with_author(self):
         valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL)
         valid_page.source = sample_valid_html_page.split('\n')
-        author = valid_page.get_author_name()
+        author = valid_page._get_author_name()
         assert_equals(author, sample_name)
 
     def test_get_valid_page_with_invalid_author(self):
         valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL)
         valid_page.source = sample_invalid_html_page.split('\n')
-        author = valid_page.get_author_name()
+        author = valid_page._get_author_name()
         assert_equals(author, page.ParseDisplayPage.NOT_FOUND)
 
 # ------------ ParseDisplayPage:get_image_info() ------------
@@ -133,7 +133,7 @@ class TestParsePage(object):
         return_value=mocked_get_response_proper)
     def test_get_valid_page_info(self, mock_get):
         valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL)
-        valid_page.get_image_info()
+        valid_page._get_image_info()
 
         assert_equals(
             len(valid_page.source), len(sample_valid_html_page.split('\n')))
