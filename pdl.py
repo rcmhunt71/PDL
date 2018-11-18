@@ -5,8 +5,9 @@ from pprint import pformat
 
 import PDL.configuration.cli.args as args
 from PDL.configuration.cli.urls import UrlArgProcessing as ArgProcessing
+from PDL.configuration.cli.url_file import UrlFile
 from PDL.configuration.properties.app_cfg import AppConfig, AppCfgFileSections, AppCfgFileSectionKeys
-import PDL.engine.module_imports as engine
+from PDL.engine.module_imports import import_module_class
 from PDL.logger.logger import Logger as Logger
 import PDL.logger.utils as log_utils
 from PDL.engine.images import status as image_consts
@@ -81,23 +82,20 @@ log.debug(log.list_loggers())
 if cli.args.command == args.ArgSubmodules.DOWNLOAD:
     log.debug("Selected args.ArgSubmodules.DOWNLOAD")
 
+    url_file = UrlFile()
+
     # Check for URLs
     raw_url_list = getattr(cli.args, args.ArgOptions.URLS)
     if not raw_url_list:
         log.debug("URL list from CLI is empty.")
 
         # Check for URL file
-        url_file = getattr(cli.args, args.ArgOptions.FILE, None)
-        if url_file is None:
+        url_file_name = getattr(cli.args, args.ArgOptions.FILE, None)
+        if url_file_name is None:
             log.debug("No URL file was specified on the CLI.")
         else:
-            url_file = os.path.abspath(url_file)
-            if os.path.exists(url_file):
-                with open(url_file, "r") as FILE:
-                    contents = FILE.readlines()
-                raw_url_list = [url.strip() for url in contents if url != '']
-            else:
-                log.error("Unable to find URL file: '{0}'".format(url_file))
+            url_file_name = os.path.abspath(url_file_name)
+            raw_url_list = url_file.read_file(url_file_name)
 
     # Sanitize the URL list (missing spaces, duplicates, valid URLs)
     url_domain = app_cfg.get(
@@ -105,13 +103,14 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
         AppCfgFileSectionKeys.URL_DOMAIN)
 
     url_list = ArgProcessing.process_url_list(raw_url_list)
+    url_file.write_file(urls=url_list, location='/tmp')
 
     # Import the specified routines for processing the URLs
-    Catalog = engine.import_module_class(
+    Catalog = import_module_class(
         app_cfg.get(AppCfgFileSections.PROJECT,
                     AppCfgFileSectionKeys.CATALOG_PARSE))
 
-    Contact = engine.import_module_class(
+    Contact = import_module_class(
         app_cfg.get(AppCfgFileSections.PROJECT,
                     AppCfgFileSectionKeys.IMAGE_CONTACT_PARSE))
 
