@@ -51,6 +51,7 @@ class AppCfgFileSectionKeys(object):
     SUFFIX = 'suffix'
     URL = 'url'
     URL_DOMAIN = 'url_domain'
+    URL_FILE_DIR = 'url_file_dir'
 
 
 class ProjectCfgFileSections(object):

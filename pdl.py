@@ -104,7 +104,11 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
         AppCfgFileSectionKeys.URL_DOMAIN)
 
     url_list = ArgProcessing.process_url_list(raw_url_list)
-    url_file.write_file(urls=url_list, location='/tmp')
+    url_file.write_file(urls=url_list, create_dir=True,
+                        location=app_cfg.get(
+                            AppCfgFileSections.LOGGING,
+                            AppCfgFileSectionKeys.URL_FILE_DIR, None)
+                        )
 
     # Import the specified routines for processing the URLs
     Catalog = import_module_class(

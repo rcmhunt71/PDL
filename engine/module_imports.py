@@ -41,6 +41,7 @@ def import_module_class(dotted_path_class):
     path = '.'.join(parts[:-1])
 
     module = import_module(dotted_path_module=path)
+    log.debug("Returning requested imported class '{0}'.".format(klass))
     return getattr(module, klass, None)
 
 

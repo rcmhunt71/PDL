@@ -12,14 +12,36 @@ class UrlFile(object):
     TIMESTAMP = r'%y%m%d_%H%M%S'
     URL_LIST_DELIM = 'CLI LIST'
     URL_DELIM = ' '
+    EXTENSION = 'urls'
 
-    def write_file(self, urls, location, filename=None):
+    def write_file(self, urls, location, filename=None, create_dir=False):
         if filename is None:
             timestamp = datetime.datetime.now().strftime(self.TIMESTAMP)
-            filename = '{0}.input'.format(timestamp)
+            filename = '{0}.{1}'.format(timestamp, self.EXTENSION)
         filespec = os.path.abspath(os.path.join(location, filename))
-        log.debug("Writing url input to file: {loc}".format(loc=filespec))
 
+        # If the save_url dirs do not exist... Create target directory & all
+        # intermediate directories if 'create_dir' is True
+        if not os.path.exists(location):
+            if create_dir:
+                msg = "URL save directory '{0}' already exists"
+                try:
+                    os.makedirs(location)
+                    msg = "Created URL save directory: '{0}'"
+                except FileExistsError:
+                    pass
+                log.debug(msg.format(location))
+            else:
+                msg = ("URL save file directory does not exist ('{loc}'), and "
+                       "was not configured to create dir.")
+                log.error(msg.format(loc=location))
+                return None
+
+        else:
+            log.debug("URL save file directory exists ('{loc}')".format(
+                loc=location))
+
+        log.debug("Writing url input to file: {loc}".format(loc=filespec))
         with open(filespec, 'w') as FILE:
             FILE.write("URL LIST:\n")
             for index, url in enumerate(urls):
