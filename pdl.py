@@ -34,8 +34,9 @@ def build_logfile_name(cfg_info):
                                AppCfgFileSectionKeys.SUFFIX, None),
         'extension': cfg_info.get(AppCfgFileSections.LOGGING,
                                   AppCfgFileSectionKeys.EXTENSION, None),
-        'drive': cfg_info.get(AppCfgFileSections.LOGGING,
-                              AppCfgFileSectionKeys.LOG_DRIVE_LETTER, None),
+        'drive_letter': cfg_info.get(AppCfgFileSections.LOGGING,
+                                     AppCfgFileSectionKeys.LOG_DRIVE_LETTER,
+                                     None),
         'directory': cfg_info.get(AppCfgFileSections.LOGGING,
                                   AppCfgFileSectionKeys.LOG_DIRECTORY, None)
     }
@@ -117,11 +118,11 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
     # -----------------------------------------------
     # TESTING <<------ DELETE ME
     # -----------------------------------------------
-    catalog = Catalog(page_url="foo.com")
-    contact = Contact(page_url="foo.com/index.html")
-    log.debug("CATALOG URL: %s" % catalog.page_url)
-    log.debug("CONTACT URL: %s" % contact.page_url)
-    log.debug("CONTACT URLS: %s" % contact.image_urls)
+    # catalog = Catalog(page_url="foo.com")
+    # contact = Contact(page_url="foo.com/index.html")
+    # log.debug("CATALOG URL: %s" % catalog.page_url)
+    # log.debug("CONTACT URL: %s" % contact.page_url)
+    # log.debug("CONTACT URLS: %s" % contact.image_urls)
     # -----------------------------------------------
 
     log.info("URL LIST:\n{0}".format(pformat(url_list)))

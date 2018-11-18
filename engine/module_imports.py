@@ -17,7 +17,7 @@ def import_module(dotted_path_module):
     module = None
     try:
         module = importlib.import_module(name=dotted_path_module)
-        log.debug("Import of '{0}' was successful.".format(dotted_path_module))
+        log.debug("SUCCESS: Import of '{0}'".format(dotted_path_module))
     except ImportError as exc:
         msg = "Unable to import: '{module}' --> {exc}".format(module=dotted_path_module, exc=exc.message)
         log.error(msg)

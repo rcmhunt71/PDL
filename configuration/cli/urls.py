@@ -46,7 +46,8 @@ class UrlArgProcessing(object):
 
         """
         reduced_list = list(set(url_list))
-        total_dups = [url for n, url in enumerate(url_list) if url in url_list[:n]]
+        total_dups = [url for n, url in enumerate(url_list) if
+                      url in url_list[:n]]
         unique_counts = UrlArgProcessing.counts_of_each_dup(total_dups)
         unique_dups = unique_counts.keys()
 
@@ -56,9 +57,11 @@ class UrlArgProcessing(object):
         log.info("Number of Unique Duplicates:  {0}".format(len(unique_dups)))
 
         # Log counts of duplicates per duplicate URL
-        log.debug("Count of Each Unique Duplicate:")
-        for url, count in unique_counts.items():
-            log.debug("DUP: {url}: Count:  {count}".format(url=url, count=count))
+        if len(total_dups) > 0:
+            log.debug("Count of Each Unique Duplicate:")
+            for url, count in unique_counts.items():
+                log.debug("DUP: {url}: Count:  {count}".format(
+                    url=url, count=count))
 
         return {cls.REDUCED_LIST: reduced_list,
                 cls.TOTAL_DUP_LIST: total_dups,
@@ -66,7 +69,8 @@ class UrlArgProcessing(object):
 
     @classmethod
     def counts_of_each_dup(cls, duplicates):
-        return dict([(url, duplicates.count(url)) for url in list(set(duplicates))])
+        return dict([(url, duplicates.count(url)) for url in
+                     list(set(duplicates))])
 
     @classmethod
     def split_urls(cls, url_list, domain=None, delimiter=PROTOCOL):
@@ -75,7 +79,8 @@ class UrlArgProcessing(object):
         split the URL into two URLs and add to the list.
         :param url_list: List of URLs to process
         :param domain: Domain expected within host portion of URL
-        :param delimiter: Delimiter that indicates unique URLs, e.g. - space or comma
+        :param delimiter: Delimiter that indicates unique URLs,
+                             e.g. - space or comma
 
         :return: List of valid URLs
 
@@ -88,16 +93,17 @@ class UrlArgProcessing(object):
         # Rejoin with space delimiter (concatenated entries are now separate)
         url_temp = ' {0}'.format(delimiter).join(url_concat.split(delimiter))
         if url_concat != url_temp:
-            log.debug("Concatenated URL Found (Delimiter: {delim}) - Fixed".format(
-                delim=delimiter))
+            msg = "Concatenated URL Found (Delimiter: {delim}) - Fixed"
+            log.debug(msg.format(delim=delimiter))
 
         # Ignore '' urls, they are not valid, and the splitting generates a ''
         # at the front of each element in a split list.
         url_temp_list = [url for url in url_temp.split(' ') if url != '']
 
-        log.info("Number of concatenations: {0}".format(len(url_temp_list) - num_urls_init))
+        log.info("Number of concatenations: {0}".format(
+            len(url_temp_list) - num_urls_init))
 
-        # Check the validity of all existing URLs and classify based on validity.
+        # Check the validity of all existing URLs and classify based on validity
         urls = {cls.VALID: list(),
                 cls.INVALID: list()}
 

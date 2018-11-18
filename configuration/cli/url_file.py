@@ -18,7 +18,7 @@ class UrlFile(object):
             timestamp = datetime.datetime.now().strftime(self.TIMESTAMP)
             filename = '{0}.input'.format(timestamp)
         filespec = os.path.abspath(os.path.join(location, filename))
-        log.info("Writing url input to file: {loc}".format(loc=filespec))
+        log.debug("Writing url input to file: {loc}".format(loc=filespec))
 
         with open(filespec, 'w') as FILE:
             FILE.write("URL LIST:\n")
