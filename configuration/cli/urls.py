@@ -145,6 +145,9 @@ class UrlArgProcessing(object):
                    "Did not match expected protocol(s): '{1}'")
             log.warn(msg.format(url.lower(), protocol.lower()))
 
+        # Filter out 'None' domains... it is an invalid domain.
+        domains = [x for x in domains if x is not None]
+
         if domains and valid:
             if any(x.lower() in url.lower() for x in domains):
                 valid = True
