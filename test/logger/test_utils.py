@@ -1,7 +1,14 @@
+try:
+    # Python 2.7+
+    from unittest.mock import patch, create_autospec
+except ImportError:
+    from mock import patch, create_autospec
+
 import os
 import re
 
-from PDL.logger.utils import datestamp_filename, DEFAULT_EXTENSION, DELIMITER
+from PDL.logger.utils import (
+    datestamp_filename, DEFAULT_EXTENSION, DELIMITER, check_if_location_exists)
 
 from nose.tools import assert_equals, assert_is_not_none
 
@@ -137,3 +144,81 @@ class TestLogUtils(object):
 
         # Validate Extension
         assert_equals(filename_parts[-1], ".{0}".format(extension))
+
+# ----------------------------------------------------------------
+#       check_if_location_exists()
+# ----------------------------------------------------------------
+    def test_check_if_location_exists_but_does_not_exist_no_create(self):
+        path_dirs = ['tmp', 'does', 'not', 'exist']
+        path = os.path.sep.join(path_dirs)
+        create_dir = False
+
+        if os.path.exists(path):
+            os.removedirs(path)
+
+        result = check_if_location_exists(
+            location=path, create_dir=create_dir)
+        try:
+            os.removedirs(path)
+        except OSError:
+            pass  # Found a directory that was not empty
+
+        assert result is False
+        assert os.path.exists(path) is False
+
+    def test_check_if_location_exists_but_does_not_exist_create(self):
+        path_dirs = ['tmp', 'does', 'not', 'exist']
+        path = os.path.sep.join(path_dirs)
+        create_dir = True
+
+        if os.path.exists(path):
+            os.removedirs(path)
+
+        result = check_if_location_exists(
+            location=path, create_dir=create_dir)
+        try:
+            os.removedirs(path)
+        except OSError:
+            pass  # Found a directory that was not empty
+
+        assert result is True
+        assert os.path.exists(path) is False
+
+    @patch('PDL.logger.utils.os.makedirs',
+           side_effect=Exception())
+    def test_check_if_location_exists_but_does_not_exist_cannot_create(
+            self, makedirs_mock):
+        path_dirs = ['tmp', 'does', 'not', 'exist']
+        path = os.path.sep.join(path_dirs)
+        create_dir = True
+
+        if os.path.exists(path):
+            os.removedirs(path)
+
+        result = check_if_location_exists(
+            location=path, create_dir=create_dir)
+        try:
+            os.removedirs(path)
+        except OSError:
+            pass  # Found a directory that was not empty
+
+        assert result is False
+        assert makedirs_mock.call_count == 1
+        assert os.path.exists(path) is False
+
+    def test_check_if_location_exists_and_does_exist(
+            self):
+        path_dirs = ['tmp', 'does', 'not', 'exist']
+        path = os.path.sep.join(path_dirs)
+        create_dir = True
+        os.makedirs(path)
+
+        result = check_if_location_exists(
+            location=path, create_dir=create_dir)
+        try:
+            os.removedirs(path)
+        except OSError:
+            pass  # Found a directory that was not empty
+
+        assert result is True
+        assert os.path.exists(path) is False

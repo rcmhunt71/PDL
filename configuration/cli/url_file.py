@@ -3,6 +3,7 @@ import os
 import pprint
 
 from PDL.logger.logger import Logger as Log
+import PDL.logger.utils as utils
 
 log = Log()
 
@@ -28,7 +29,7 @@ class UrlFile(object):
         """
 
         # Check if location exists, create if requested
-        if not self._check_if_location_exists(
+        if not utils.check_if_location_exists(
                 location=location, create_dir=create_dir):
             return None
 
@@ -86,46 +87,3 @@ class UrlFile(object):
         log.debug("URLs Found in File:\n{0}".format(pprint.pformat(url_list)))
 
         return url_list
-
-    @staticmethod
-    def _check_if_location_exists(location, create_dir):
-        """
-        If the save_url directory path does not exist... Create target
-        directory & all intermediate directories if 'create_dir' is True
-
-        :param location: (str) directory path
-        :param create_dir: (bool) - Create path if it does not exist
-
-        :return: (bool) Does path exist (or was it created, if requested)
-
-        """
-        if not os.path.exists(location):
-            if create_dir:
-                msg = "URL save directory '{0}' already exists"
-                try:
-                    os.makedirs(location)
-
-                # Unexpected exception
-                except Exception as exc:
-                    result = False
-                    log.exception(exc)
-
-                else:
-                    result = True
-                    msg = "Created URL save directory: '{0}'"
-                    log.debug(msg.format(location))
-
-            # Path does not exist, but not asked to create it.
-            else:
-                result = False
-                msg = ("URL save file directory does not exist ('{loc}'), and "
-                       "was not configured to create dir.")
-                log.error(msg.format(loc=location))
-
-        # Path exists
-        else:
-            result = True
-            log.debug("URL save file directory exists ('{loc}')".format(
-                loc=location))
-
-        return result
