@@ -99,19 +99,11 @@ class UrlFile(object):
         :return: (bool) Does path exist (or was it created, if requested)
 
         """
-
-        # TODO: Write tests for this routine.
-
-        result = None
         if not os.path.exists(location):
             if create_dir:
                 msg = "URL save directory '{0}' already exists"
                 try:
                     os.makedirs(location)
-
-                # Path exists
-                except FileExistsError:
-                    pass
 
                 # Unexpected exception
                 except Exception as exc:

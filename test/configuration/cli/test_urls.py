@@ -93,8 +93,6 @@ class TestUrlProcessing(object):
 
     INVALID_URL = ".idea/not/valid"
 
-
-
     def test_validate_url_with_valid_url_lowercase(self):
         url = self.VALID_URL
         valid = UrlArgProcessing.validate_url(url=url)
@@ -150,12 +148,23 @@ class TestUrlProcessing(object):
         assert_false(valid, "Invalid URL ({url}) was marked as valid with valid protocol ({delim}).".format(
             url=url, delim=protocol))
 
-    def test_validate_url_with_valid_domain(self):
+    def test_validate_url_with_valid_domains(self):
         url = self.VALID_URL
         domain = self.VALID_DOMAIN
         protocol = self.VALID_PROTOCOL
         valid = UrlArgProcessing.validate_url(
-            url=url, protocol=protocol, domains=[domain])
+            url=url, protocol=protocol, domains=[domain, self.INVALID_DOMAIN])
+        assert_true(
+            valid, ("Valid URL ({url}) was marked as invalid with valid "
+                    "protocol ({delim}) and domain ({domain}).".format(
+                url=url, delim=protocol, domain=domain)))
+
+    def test_validate_url_with_valid_domain_and_none_domain(self):
+        url = self.VALID_URL
+        domain = self.VALID_DOMAIN
+        protocol = self.VALID_PROTOCOL
+        valid = UrlArgProcessing.validate_url(
+            url=url, protocol=protocol, domains=[domain, None])
         assert_true(
             valid, ("Valid URL ({url}) was marked as invalid with valid "
                     "protocol ({delim}) and domain ({domain}).".format(
@@ -221,7 +230,7 @@ class TestUrlProcessing(object):
         domain = self.VALID_DOMAIN
         protocol = self.VALID_PROTOCOL
         valid = UrlArgProcessing.validate_url(
-            url=url, protocol=protocol, domains=[domain])
+            url=url, protocol=protocol, domains=[domain, self.INVALID_DOMAIN])
         assert_false(
             valid, ("Invalid URL ({url}) was marked as valid with valid "
                     "protocol ({delim}) and valid domain ({domain}).".format(
