@@ -11,9 +11,7 @@ from PDL.logger.logger import Logger
 
 log = Logger()
 
-# TODO: Add code documentation explaining approach
-# TODO: Add page parsing for new URL domain (need to check each domain, and act accordingly)
-
+# TODO: <DOC> Add code documentation explaining approach
 
 class ParseDisplayPage(CatalogPage):
 
@@ -96,7 +94,7 @@ class ParseDisplayPage(CatalogPage):
         web_url = 'web'
         www_url = '500px'
 
-        # TODO: Add tests about URL prefix logic
+        # TODO: <TESTS> Add tests about URL prefix logic
 
         domain = self._get_domain_from_url().lower()
         if domain.startswith(web_url):
@@ -122,7 +120,7 @@ class ParseDisplayPage(CatalogPage):
         return domain
 
     def _parse_web_url(self):
-        # TODO: Implement web.* parsing
+        # TODO: <CODE> Implement web.* parsing
         log.info('TO BE IMPLEMENTED: web.<domain>.<ext>')
         return None
 

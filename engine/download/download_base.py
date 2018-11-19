@@ -51,4 +51,4 @@ class DownloadImage(object):
         """
         raise NotImplementedMethod('download_image')
 
-# TODO: Add ability to create a queue, and perform multiple, simultaneous DLs
+# TODO: <CODE> Add ability to create a queue, and perform multiple, simultaneous DLs

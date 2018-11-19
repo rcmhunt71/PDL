@@ -117,7 +117,7 @@ class TestParsePage(object):
         link = page.ParseDisplayPage._translate_unicode_in_link(link=sample_link)
         assert_equals(link, sample_link)
 
-    # TODO: Add test for URL with UNICODE (Translate_unicode_in_link)
+    # TODO: <CODE|TEST> Add test for URL with UNICODE (Translate_unicode_in_link)
 
 # ------------ ParseDisplayPage:get_author_name() ------------
     def test_get_valid_page_with_author(self):

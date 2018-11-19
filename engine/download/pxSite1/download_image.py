@@ -15,7 +15,7 @@ from PDL.logger.logger import Logger
 
 log = Logger()
 
-# TODO: Need to remove specifics to 500 in this file, and create 500 specific file
+# TODO: <CODE> Need to remove specifics to 500 in this file, and create 500 specific file
 #       that passes in the necessary info (or does the URL processing externally
 
 

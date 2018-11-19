@@ -227,7 +227,7 @@ class TestDownloadPX(object):
         assert image_obj.status == status.DownloadStatus.ERROR
         assert image_obj.image_info.dl_status == status.DownloadStatus.ERROR
 
-        # TODO: Move delete patch to context manager to allow proper os.remove()
+        # TODO: <CODE|TEST> Move delete patch to context manager to allow proper os.remove()
 
     @patch('PDL.engine.download.pxSite1.download_image.wget.download',
            return_value=wget_tmp_file_obj_conn_error.name,
