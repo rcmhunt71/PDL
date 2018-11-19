@@ -25,7 +25,7 @@ def create_temp_file(size=1024):
 
 class TestDownloadPX(object):
 
-    DELIM = "sig="
+    DELIM = dl.DownloadPX.URL_KEY
     IMAGE_NAME = 'this_is_my_name'
     DUMMY_URL_FMT = "https://wooba.com/help/{delim}{image}"
     DUMMY_URL = DUMMY_URL_FMT.format(delim=DELIM, image=IMAGE_NAME)

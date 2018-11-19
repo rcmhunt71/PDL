@@ -13,6 +13,7 @@ log = Logger()
 
 # TODO: <DOC> Add code documentation explaining approach
 
+
 class ParseDisplayPage(CatalogPage):
 
     HEADERS = {
@@ -116,12 +117,13 @@ class ParseDisplayPage(CatalogPage):
         match = re.search(domain_pattern, self.page_url)
         if match is not None:
             domain = match.group('domain')
-        log.debug("DOMAIN:{0}".format(domain))
+        log.debug("DOMAIN: {0}".format(domain))
         return domain
 
     def _parse_web_url(self):
         # TODO: <CODE> Implement web.* parsing
-        log.info('TO BE IMPLEMENTED: web.<domain>.<ext>')
+        log.warn('Unable to parse: {url}'.format(url=self.page_url))
+        log.fatal('TO BE IMPLEMENTED: web.<domain>.<ext>')
         return None
 
     def _parse_www_url(self):

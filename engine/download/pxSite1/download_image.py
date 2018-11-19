@@ -23,7 +23,9 @@ class DownloadPX(DownloadImage):
 
     EXTENSION = 'jpg'  # Default Extension
 
-    URL_KEY = 'sig='   # Key to identify where image name starts
+    # URL_KEY = 'sig='   # Key to identify where image name starts
+    URL_KEY = 'sig%3D'   # Key to identify where image name starts
+
     KILOBYTES = 1024   # in bytes
     MIN_KB = 10        # min file size to not qualify as an image
 
@@ -57,6 +59,8 @@ class DownloadPX(DownloadImage):
 
     @status.setter
     def status(self, status):
+        log.debug("Setting status from '{orig}' to '{to}' for {image}".format(
+            orig=self._status, to=status, image=self.image_url))
         self._status = status
         self.image_info.dl_status = status
 
@@ -89,8 +93,12 @@ class DownloadPX(DownloadImage):
         if not self._file_exists() and status == Status.PENDING:
             while (attempts < self.MAX_ATTEMPTS and
                    status != Status.DOWNLOADED):
-
                 attempts += 1
+
+                log.debug("({attempt}/{max}: Attempting to DL '{url}'".format(
+                    attempt=attempts, max=self.MAX_ATTEMPTS, url=self.image_url)
+                )
+
                 if self.use_wget:
                     status = self._dl_via_wget()
                 else:
@@ -119,7 +127,6 @@ class DownloadPX(DownloadImage):
         """
         image_url = image_url or self.image_url
         delimiter_key = delimiter_key or self.url_split_token
-        image_name = None
 
         log.debug("Image URL: {0}".format(image_url))
         if image_url is None:

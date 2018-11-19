@@ -9,7 +9,7 @@ from PDL.configuration.cli.url_file import UrlFile
 from PDL.configuration.properties.app_cfg import AppConfig, AppCfgFileSections, AppCfgFileSectionKeys
 from PDL.engine.module_imports import import_module_class
 from PDL.logger.logger import Logger as Logger
-import PDL.logger.utils as log_utils
+import PDL.logger.utils as utils
 from PDL.engine.images import status as image_consts
 
 DEFAULT_ENGINE_CONFIG = 'pdl.cfg'
@@ -44,7 +44,7 @@ def build_logfile_name(cfg_info):
     for key, value in logfile_info.items():
         if value == '' or value == 'None':
             logfile_info[key] = None
-    log_name = log_utils.datestamp_filename(**logfile_info)
+    log_name = utils.datestamp_filename(**logfile_info)
     return log_name
 
 # --------------------------------------------------------------------
@@ -103,8 +103,6 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
         AppCfgFileSections.PROJECT,
         AppCfgFileSectionKeys.URL_DOMAINS)
 
-    print("DOMAINS: {0}".format(url_domains))
-
     url_list = ArgProcessing.process_url_list(raw_url_list, domains=url_domains)
     url_file.write_file(urls=url_list, create_dir=True,
                         location=app_cfg.get(
@@ -123,11 +121,28 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
     log.info("URL LIST:\n{0}".format(
         ArgProcessing.list_urls(url_list=url_list)))
 
+    image_data = list()
     for page_url in url_list:
         catalog = Catalog(page_url=page_url)
         catalog.get_image_info()
-        print("IMAGE: URL: {0}".format(catalog.image_info.image_url))
+        if (catalog.image_info.image_url is not None and
+                catalog.image_info.image_url.lower().startswith(
+                    ArgProcessing.PROTOCOL.lower())):
+            image_data.append(catalog.image_info)
 
+    # TODO: <CODE> Build all relevant data for locations (OS-agnostic)
+
+    dl_dir = app_cfg.get(AppCfgFileSections.STORAGE,
+                         AppCfgFileSectionKeys.LOCAL_DIR)
+
+    utils.check_if_location_exists(dl_dir, create_dir=True)
+
+    for index, image in enumerate(image_data):
+        print("{index:>3} - {url}".format(index=index, url=image.image_url))
+        contact = Contact(
+            image_url=image.image_url, dl_dir=dl_dir, image_info=image)
+        status = contact.download_image()
+        log.info('DL STATUS: {0}'.format(status))
 
 # -----------------------------------------------------------------
 #                DUPLICATE MANAGEMENT
