@@ -48,7 +48,6 @@ def import_module_class(dotted_path_class):
 
     module = import_module(dotted_path_module=path)
 
-    # TODO: Add tests for class not found in module
     if klass not in dir(module):
         log.error("Class ({klass}) not found in module: {module}".format(
             klass=klass, module=path))
