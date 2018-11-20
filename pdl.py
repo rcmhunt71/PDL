@@ -81,7 +81,10 @@ log = Logger(filename=build_logfile_name(cfg_info=app_cfg),
                  AppCfgFileSections.PROJECT,
                  AppCfgFileSectionKeys.NAME, None),
              set_root=True)
-log.debug(log.list_loggers())
+
+# (DEBUG) Show defined loggers and log levels
+for line in log.list_loggers().split('\n'):
+    log.debug(line)
 
 # Actions for each specific sub-command
 

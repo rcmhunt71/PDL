@@ -2,6 +2,8 @@ import inspect
 import logging
 import os
 
+import prettytable
+
 # TODO: <DOC> Add README.md to directory
 
 
@@ -147,24 +149,19 @@ class Logger(object):
         alphabetically listing children.
 
         """
+        child = "CHILD LOGGER"
+        level = 'LOG LEVEL'
 
         # Define table format
-        border = "+{0}+{1}+\n".format('-' * 42, '-' * 12)
-        table_row = "| {0:<40} | {1:^10} |\n"
-
-        # Create Header
-        table = "\n{0}".format(border)
-        table += table_row.format("CHILD LOGGER", "LOG LEVEL")
-        table += border
+        table = prettytable.PrettyTable()
+        table.field_names = [child, level]
+        table.align[child] = 'l'
+        table.align[level] = 'c'
 
         # Populate Table
         for data in self._list_loggers():
-            table += table_row.format(*data)
-
-        # Close Table
-        table += border
-
-        return table
+            table.add_row(data)
+        return table.get_string(title='Loggers')
 
     def _get_logger_info(self, name):
         """
