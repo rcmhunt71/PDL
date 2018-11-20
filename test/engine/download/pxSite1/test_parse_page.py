@@ -49,6 +49,7 @@ class TestParsePage(object):
 
     DOMAIN_1 = '500px.foo.com'
     DOMAIN_2 = 'web.foo.com'
+    DOMAIN_3 = 'foo.wooba.edu'
     DELIM = "sig="
     IMAGE_NAME = 'this_is_my_name'
     DUMMY_URL_FMT = "https://{domain}/help/{delim}{image}"
@@ -56,6 +57,8 @@ class TestParsePage(object):
         delim=DELIM, image=IMAGE_NAME, domain=DOMAIN_1)
     DUMMY_URL_2 = DUMMY_URL_FMT.format(
         delim=DELIM, image=IMAGE_NAME, domain=DOMAIN_2)
+    DUMMY_URL_3 = DUMMY_URL_FMT.format(
+        delim=DELIM, image=IMAGE_NAME, domain=DOMAIN_3)
 
 # ------------ ParseDisplayPage:get_page() ------------
 
@@ -109,6 +112,14 @@ class TestParsePage(object):
         valid_page.source = sample_invalid_html_page.split('\n')
         link = valid_page.parse_page_for_link()
         assert link is None
+        assert_equals(valid_page.image_info.dl_status,
+                      status.DownloadStatus.ERROR)
+
+    def test_parse_page_invalid_url_type(self):
+        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_3)
+        valid_page.source = sample_valid_html_page.split('\n')
+        link = valid_page.parse_page_for_link()
+        assert_equals(link, None)
         assert_equals(valid_page.image_info.dl_status,
                       status.DownloadStatus.ERROR)
 

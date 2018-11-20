@@ -95,11 +95,9 @@ class ParseDisplayPage(CatalogPage):
         web_url = 'web'
         www_url = '500px'
 
-        # TODO: <TESTS> Add tests about URL prefix logic
-
         domain = self._get_domain_from_url().lower()
         if domain.startswith(web_url):
-            return self._parse_web_url()
+            return self._parse_www_url()
 
         elif domain.startswith(www_url):
             return self._parse_www_url()
@@ -108,6 +106,7 @@ class ParseDisplayPage(CatalogPage):
             err_msg = ('Unrecognized domain format: {domain} - '
                        'Unsure how to proceed.')
             log.error(err_msg.format(domain=domain))
+            self.image_info.dl_status = DownloadStatus.ERROR
             return None
 
     def _get_domain_from_url(self):
@@ -119,12 +118,6 @@ class ParseDisplayPage(CatalogPage):
             domain = match.group('domain')
         log.debug("DOMAIN: {0}".format(domain))
         return domain
-
-    def _parse_web_url(self):
-        # TODO: <CODE> Implement web.* parsing
-        log.warn('Unable to parse: {url}'.format(url=self.page_url))
-        log.fatal('TO BE IMPLEMENTED: web.<domain>.<ext>')
-        return None
 
     def _parse_www_url(self):
         url_regexp = (r'size\"\s*:\s*2048\s*,\s*\"url\"\s*:\s*\"'
