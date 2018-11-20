@@ -2,6 +2,7 @@ import datetime
 import os
 import pprint
 
+from PDL.configuration.cli.urls import UrlArgProcessing
 from PDL.logger.logger import Logger as Log
 import PDL.logger.utils as utils
 
@@ -74,16 +75,11 @@ class UrlFile(object):
         with open(filename, "r") as FILE:
             lines = FILE.readlines()
 
-        url_list = list()
-
         # Split file entry into list
-        log.info("Number of URLs found: {0}".format(len(lines)))
-        for index in range(len(lines)):
-            if self.URL_LIST_DELIM in lines[index]:
-                url_list = [x.strip() for x in
-                            lines[index + 1].split(self.URL_DELIM)]
-                break
+        url_list = list()
+        for line in lines:
+            if line.strip().startswith(UrlArgProcessing.PROTOCOL):
+                url_list.extend([x.strip() for x in line.split(self.URL_DELIM)])
 
         log.debug("URLs Found in File:\n{0}".format(pprint.pformat(url_list)))
-
         return url_list
