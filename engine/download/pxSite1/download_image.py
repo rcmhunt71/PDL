@@ -23,8 +23,8 @@ class DownloadPX(DownloadImage):
 
     EXTENSION = 'jpg'  # Default Extension
 
-    # URL_KEY = 'sig='   # Key to identify where image name starts
-    URL_KEY = 'sig%3D'   # Key to identify where image name starts
+    URL_KEY = 'sig='   # Key to identify where image name starts
+    # URL_KEY = 'sig%3D'   # Key to identify where image name starts
 
     KILOBYTES = 1024   # in bytes
     MIN_KB = 10        # min file size to not qualify as an image
@@ -58,11 +58,11 @@ class DownloadPX(DownloadImage):
         return self._status
 
     @status.setter
-    def status(self, status):
+    def status(self, new_status):
         log.debug("Setting status from '{orig}' to '{to}' for {image}".format(
-            orig=self._status, to=status, image=self.image_url))
-        self._status = status
-        self.image_info.dl_status = status
+            orig=self._status, to=new_status, image=self.image_url))
+        self._status = new_status
+        self.image_info.dl_status = new_status
 
     def parse_image_info(self):
         """
@@ -90,6 +90,7 @@ class DownloadPX(DownloadImage):
         # Try to download image
         attempts = 0
         status = self.status
+        log.debug("Image Status: {0}".format(status))
         if not self._file_exists() and status == Status.PENDING:
             while (attempts < self.MAX_ATTEMPTS and
                    status != Status.DOWNLOADED):
@@ -104,12 +105,12 @@ class DownloadPX(DownloadImage):
                 else:
                     status = self._dl_via_requests()
 
-                if self.status != Status.DOWNLOADED:
+                if status != Status.DOWNLOADED:
                     time.sleep(self.RETRY_DELAY)
 
         log.info("Image download status for {0}: {1}".format(
-            self.image_url, status))
-        return status
+            self.image_url, self.status))
+        return self.status
 
     def get_image_name(self, image_url=None, delimiter_key=None,
                        use_wget=False):
@@ -291,7 +292,7 @@ class DownloadPX(DownloadImage):
         # Download the image
         image = requests.get(self.image_url, stream=True)
 
-        status_msg = "File: {0}\n\tDL STATUS CODE: {1}".format(
+        status_msg = "File: {0} --> DL STATUS CODE: {1}".format(
                 self.dl_file_spec, image.status_code)
 
         # If the return code was SUCCESSFUL (200):
