@@ -89,11 +89,10 @@ class DownloadPX(DownloadImage):
 
         # Try to download image
         attempts = 0
-        status = self.status
-        log.debug("Image Status: {0}".format(status))
-        if not self._file_exists() and status == Status.PENDING:
+        log.debug("Image Status: {0}".format(self.status))
+        if not self._file_exists() and self.status == Status.PENDING:
             while (attempts < self.MAX_ATTEMPTS and
-                   status != Status.DOWNLOADED):
+                   self.status != Status.DOWNLOADED):
                 attempts += 1
 
                 log.debug("({attempt}/{max}: Attempting to DL '{url}'".format(
@@ -101,11 +100,12 @@ class DownloadPX(DownloadImage):
                 )
 
                 if self.use_wget:
-                    status = self._dl_via_wget()
-                else:
-                    status = self._dl_via_requests()
+                    self.status = self._dl_via_wget()
 
-                if status != Status.DOWNLOADED:
+                else:
+                    self.status = self._dl_via_requests()
+
+                if self.status != Status.DOWNLOADED:
                     time.sleep(self.RETRY_DELAY)
 
         log.info("Image download status for {0}: {1}".format(
