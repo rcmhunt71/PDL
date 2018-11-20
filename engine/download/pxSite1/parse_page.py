@@ -143,7 +143,7 @@ class ParseDisplayPage(CatalogPage):
             if result is not None:
                 log.debug("Found match: {line}".format(line=line))
                 link = result.group('url').replace('\/', '/')
-                return self._translate_unicode_in_link(link=link)
+                return link
 
         # If you get here, you parsed the whole page and found nada...
         self.image_info.dl_status = DownloadStatus.ERROR
