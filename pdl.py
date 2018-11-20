@@ -138,7 +138,7 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
     utils.check_if_location_exists(dl_dir, create_dir=True)
 
     for index, image in enumerate(image_data):
-        print("{index:>3} - {url}".format(index=index, url=image.image_url))
+        log.info("{index:>3}: {url}".format(index=index, url=image.image_url))
         contact = Contact(
             image_url=image.image_url, dl_dir=dl_dir, image_info=image)
         status = contact.download_image()
