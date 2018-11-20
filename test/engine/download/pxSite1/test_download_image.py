@@ -23,6 +23,13 @@ def create_temp_file(size=1024):
     return file_obj
 
 
+def remove_temp_file(filename):
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
+
+
 class TestDownloadPX(object):
 
     DELIM = dl.DownloadPX.URL_KEY
@@ -127,10 +134,13 @@ class TestDownloadPX(object):
         temp_file.close()
         print("Closed/Removed temp file: {0}".format(image_obj.dl_file_spec))
 
+        remove_temp_file(image_obj.dl_file_spec)
+
         assert requests_get.call_count == 1
         assert copyfileobj.call_count == 1
         assert image_obj.status == status.DownloadStatus.DOWNLOADED
         assert dl_status == status.DownloadStatus.DOWNLOADED
+        assert not os.path.exists(image_obj.dl_file_spec)
 
     mocked_get_response_proper = create_autospec(requests.Response)
     mocked_get_response_proper.status_code = 404
@@ -155,10 +165,13 @@ class TestDownloadPX(object):
         temp_file.close()
         print("Closed/removed temp file: {0}".format(image_obj.dl_file_spec))
 
+        remove_temp_file(image_obj.dl_file_spec)
+
         assert requests_get.call_count == 1
         assert copyfileobj.call_count == 0
         assert image_obj.status == status.DownloadStatus.ERROR
         assert dl_status == status.DownloadStatus.ERROR
+        assert not os.path.exists(image_obj.dl_file_spec)
 
 # -----------------------------------------------------------------------
 # ------------------------ DOWNLOAD VIA WGET ----------------------------
@@ -187,7 +200,7 @@ class TestDownloadPX(object):
         assert image_obj.status == status.DownloadStatus.PENDING
 
         dl_status = image_obj._dl_via_wget()
-        os.remove(wget_mock.return_value)
+        remove_temp_file(wget_mock.return_value)
 
         print("Deleted temp file: {0}".format(image_file))
         print("Mock call count: {0}".format(wget_mock.call_count))
@@ -196,6 +209,7 @@ class TestDownloadPX(object):
         assert dl_status == status.DownloadStatus.DOWNLOADED
         assert image_obj.status == status.DownloadStatus.DOWNLOADED
         assert image_obj.image_info.dl_status == status.DownloadStatus.DOWNLOADED
+        assert not os.path.exists(wget_mock.return_value)
 
     @patch('PDL.engine.download.pxSite1.download_image.wget.download',
            return_value=wget_tmp_file_obj_5k.name)
@@ -215,17 +229,19 @@ class TestDownloadPX(object):
         assert image_obj.status == status.DownloadStatus.PENDING
 
         dl_status = image_obj._dl_via_wget()
-        os.remove(wget_mock.return_value)
 
         print("Deleted temp file: {0}".format(image_file))
         print("Mock WGET call count: {0}".format(wget_mock.call_count))
         print("Mock delete call count: {0}".format(mock_delete.call_count))
 
         assert wget_mock.call_count == dl.DownloadPX.MAX_ATTEMPTS
-        assert mock_delete.call_count == dl.DownloadPX.MAX_ATTEMPTS + 1
+        assert mock_delete.call_count == dl.DownloadPX.MAX_ATTEMPTS
         assert dl_status == status.DownloadStatus.ERROR
         assert image_obj.status == status.DownloadStatus.ERROR
         assert image_obj.image_info.dl_status == status.DownloadStatus.ERROR
+
+        # remove_temp_file(wget_mock.return_value)
+        # assert not os.path.exists(wget_mock.return_value)
 
         # TODO: <CODE|TEST> Move delete patch to context manager to allow proper os.remove()
 
@@ -255,6 +271,9 @@ class TestDownloadPX(object):
         assert image_obj.status == status.DownloadStatus.ERROR
         assert image_obj.image_info.dl_status == status.DownloadStatus.ERROR
 
+        remove_temp_file(wget_mock.return_value)
+        assert not os.path.exists(wget_mock.return_value)
+
     @patch('PDL.engine.download.pxSite1.download_image.wget.download',
            return_value=wget_tmp_file_wget_disabled)
     def test_dl_via_wget_but_wget_is_disabled(self, wget_mock):
@@ -274,6 +293,9 @@ class TestDownloadPX(object):
         assert image_obj.status == status.DownloadStatus.ERROR
         assert image_obj.image_info.dl_status == status.DownloadStatus.ERROR
 
+        remove_temp_file(wget_mock.return_value.name)
+        assert not os.path.exists(wget_mock.return_value.name)
+
 # -----------------------------------------------------------------------
 # --------------------------- file_exists  ------------------------------
 # -----------------------------------------------------------------------
@@ -285,6 +307,7 @@ class TestDownloadPX(object):
 
         result = image_obj._file_exists()
         assert result is False
+        assert image_obj.status == status.DownloadStatus.ERROR
         assert image_obj.status == status.DownloadStatus.ERROR
 
     def test_filespec_is_empty_string(self):
@@ -305,10 +328,11 @@ class TestDownloadPX(object):
         image_obj.dl_file_spec = temp_file.name
 
         result = image_obj._file_exists()
-        os.remove(temp_file.name)
+        remove_temp_file(temp_file.name)
 
         assert result is True
         assert image_obj.status == status.DownloadStatus.EXISTS
+        assert not os.path.exists(temp_file.name)
 
     def test_filespec_does_not_exist(self):
 
@@ -358,3 +382,4 @@ class TestDownloadPX(object):
 
         assert dl_status == status.DownloadStatus.DOWNLOADED
         assert dl_pending_mock.call_count == 1
+

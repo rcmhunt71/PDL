@@ -58,7 +58,7 @@ class TestUrlFile(object):
 
     def test_read_empty_file(self):
         with tempfile.NamedTemporaryFile(
-                mode="w", suffix='jpg', delete=False) as file_obj:
+                mode="w", suffix='jpg') as file_obj:
             file_obj.close()
             print("Using an empty file: {0}".format(file_obj.name))
             url_list = url_file.UrlFile().read_file(file_obj.name)

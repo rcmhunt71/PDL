@@ -62,19 +62,16 @@ class TestPropertiesConfig(object):
 
     @raises(ConfigSectionDoesNotExist)
     def test_get_options_non_existent_section(self):
-        expected_options = list()
-        actual_options = self.config.get_options(section=self.INVALID_SECTION)
+        self.config.get_options(section=self.INVALID_SECTION)
 
     @raises(NoSectionError)
     def test_get_option_non_existent_section(self):
-        expected_option = None
-        actual_option = self.config.get(
+        self.config.get(
             section=self.INVALID_SECTION, option=self.INVALID_OPTION)
 
     @raises(NoOptionError)
     def test_get_option_non_existent_option(self):
-        expected_option = None
-        actual_option = self.config.get(
+        self.config.get(
             section=self.VALID_SECTIONS[-1], option=self.INVALID_OPTION)
 
     def test_get_option_valid_section_valid_option(self):
@@ -112,9 +109,7 @@ class TestPropertiesConfig(object):
     @raises(ValueError)
     def test_get_option_valid_section_valid_str_illegal_cast_float(self):
         data = self.VALID_SECTION_AND_ITEM_STR
-        expected_value = data[2]
-        actual_value = self.config.getfloat(
-            section=data[0], option=data[1])
+        self.config.getfloat(section=data[0], option=data[1])
 
     def test_get_option_valid_section_valid_list(self):
         data = self.VALID_SECTION_AND_ITEM_LIST
@@ -127,13 +122,9 @@ class TestPropertiesConfig(object):
     @raises(NoSectionError)
     def test_get_option_invalid_section_valid_option_valid_list(self):
         data = self.INVALID_SECTION_AND_VALID_OPTION_LIST
-        expected_value = data[2]
-        actual_value = self.config.get_list(
-            section=data[0], option=data[1])
+        self.config.get_list(section=data[0], option=data[1])
 
     @raises(NoOptionError)
     def test_get_option_valid_section_invalid_option_valid_list(self):
         data = self.VALID_SECTION_AND_INVALID_OPTION_LIST
-        expected_value = data[2]
-        actual_value = self.config.get_list(
-            section=data[0], option=data[1])
+        self.config.get_list(section=data[0], option=data[1])
