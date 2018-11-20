@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
 import os
-from pprint import pformat
 
 import PDL.configuration.cli.args as args
 from PDL.configuration.cli.urls import UrlArgProcessing as ArgProcessing
 from PDL.configuration.cli.url_file import UrlFile
 from PDL.configuration.properties.app_cfg import AppConfig, AppCfgFileSections, AppCfgFileSectionKeys
+from PDL.engine.images import status as image_consts
 from PDL.engine.module_imports import import_module_class
 from PDL.logger.logger import Logger as Logger
 import PDL.logger.utils as utils
-from PDL.engine.images import status as image_consts
+from PDL.reporting.summary import ReportingSummary
 
 DEFAULT_ENGINE_CONFIG = 'pdl.cfg'
 DEFAULT_APP_CONFIG = None
@@ -46,6 +46,14 @@ def build_logfile_name(cfg_info):
             logfile_info[key] = None
     log_name = utils.datestamp_filename(**logfile_info)
     return log_name
+
+
+def log_download_results(data):
+    results = ReportingSummary(data)
+    results.tally_results()
+    for line in results.results_table().split('\n'):
+        log.info(line)
+
 
 # --------------------------------------------------------------------
 
@@ -138,11 +146,18 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
     utils.check_if_location_exists(dl_dir, create_dir=True)
 
     for index, image in enumerate(image_data):
-        log.info("{index:>3}: {url}".format(index=index, url=image.image_url))
+        log.info("{index:>3}: {url}".format(
+            index=index +1, url=image.image_url))
         contact = Contact(
             image_url=image.image_url, dl_dir=dl_dir, image_info=image)
         status = contact.download_image()
         log.info('DL STATUS: {0}'.format(status))
+
+    # Log Results
+    log_download_results(image_data)
+
+    # TODO: Create JSON output file.
+    # TODO: Fix logfile issue
 
 # -----------------------------------------------------------------
 #                DUPLICATE MANAGEMENT

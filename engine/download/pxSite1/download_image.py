@@ -108,8 +108,8 @@ class DownloadPX(DownloadImage):
                 if self.status != Status.DOWNLOADED:
                     time.sleep(self.RETRY_DELAY)
 
-        log.info("Image download status for {0}: {1}".format(
-            self.image_url, self.status))
+        log.info("Image status: {status} --> {url}".format(
+            url=self.image_url, status=self.status.upper()))
         return self.status
 
     def get_image_name(self, image_url=None, delimiter_key=None,
