@@ -32,3 +32,6 @@ class ReportingSummary(object):
         table.align[count_header] = 'r'
         table.align[status_header] = 'l'
         return table.get_string(title='Download Status')
+
+# TODO: <code> Add report about errors, and link info
+# TODO: <code> Create JSON report of DL'd info.
