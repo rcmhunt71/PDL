@@ -6,7 +6,7 @@ import prettytable
 class ReportingSummary(object):
     def __init__(self, image_data):
         self.data = image_data
-        self.tally = self._init_tally_dict()
+        self.tally = self.init_tally_dict_()
 
     def tally_results(self):
         for image in self.data:
@@ -14,9 +14,9 @@ class ReportingSummary(object):
         return self.tally
 
     @staticmethod
-    def _init_tally_dict():
-        return dict([(getattr(DownloadStatus, status), 0) for status in
-                     dir(DownloadStatus) if not status.startswith('_')])
+    def init_tally_dict_():
+        statuses = DownloadStatus.get_statuses_()
+        return dict([(getattr(DownloadStatus, status), 0) for status in statuses])
 
     def results_table(self):
 

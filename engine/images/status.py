@@ -6,6 +6,11 @@ class DownloadStatus(object):
     EXISTS = 'Exists'
     ERROR = 'Error'
 
+    @staticmethod
+    def get_statuses_():
+        return [x for x in dir(DownloadStatus) if (
+                not x.startswith('_') or not x.endswith('_'))]
+
 
 class ImageDataModificationStatus(object):
     NEW = "New"
