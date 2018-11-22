@@ -107,6 +107,7 @@ class ParseDisplayPage(CatalogPage):
                        'Unsure how to proceed.')
             log.error(err_msg.format(domain=domain))
             self.image_info.dl_status = DownloadStatus.ERROR
+            self.image_info.error_info = err_msg
             return None
 
     def _get_domain_from_url(self):
@@ -140,7 +141,9 @@ class ParseDisplayPage(CatalogPage):
 
         # If you get here, you parsed the whole page and found nada...
         self.image_info.dl_status = DownloadStatus.ERROR
-        log.error('Unable to find url in source page.')
+        msg = 'Unable to find url in source page.'
+        self.image_info.error_info = msg
+        log.error(msg)
         log.error('IMAGE LINES:\n{lines}'.format(lines=lines))
         log.debug('COMPLETE SOURCE:\n{source}'.format(source=pprint.pformat(
             self.source)))

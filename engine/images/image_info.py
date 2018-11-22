@@ -1,5 +1,5 @@
 from PDL.engine.images.status import (
-    DownloadStatus,
+    DownloadStatus as Status,
     ImageDataModificationStatus as ModStatus
 )
 
@@ -15,5 +15,6 @@ class ImageData(object):
         self.downloaded_on = None
         self.download_dur = None
         self.locations = list()
-        self.dl_status = DownloadStatus.NOT_SET
+        self.dl_status = Status.NOT_SET
         self.mod_status = ModStatus.NEW
+        self.error_info = None

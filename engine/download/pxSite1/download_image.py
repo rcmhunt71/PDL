@@ -15,16 +15,12 @@ from PDL.logger.logger import Logger
 
 log = Logger()
 
-# TODO: <CODE> Need to remove specifics to 500 in this file, and create 500 specific file
-#       that passes in the necessary info (or does the URL processing externally
-
 
 class DownloadPX(DownloadImage):
 
     EXTENSION = 'jpg'  # Default Extension
 
     URL_KEY = 'sig='   # Key to identify where image name starts
-    # URL_KEY = 'sig%3D'   # Key to identify where image name starts
 
     KILOBYTES = 1024   # in bytes
     MIN_KB = 10        # min file size to not qualify as an image
@@ -131,8 +127,10 @@ class DownloadPX(DownloadImage):
 
         log.debug("Image URL: {0}".format(image_url))
         if image_url is None:
-            log.error('Image Url is None.')
+            msg = 'Image Url is None.'
             self.status = Status.ERROR
+            self.image_info.error_info = msg
+            log.error(msg)
             return None
 
         # Build regexp from key
@@ -152,9 +150,11 @@ class DownloadPX(DownloadImage):
 
         # Didn't find the url or something bad happened
         if image_name is None:
+            msg = "Unable to get image_name from url: {url}".format(
+                url=image_url)
             self.status = Status.ERROR
-            log.error("Unable to get image_name from url: {url}".format(
-                url=image_url))
+            self.image_info.error_info = msg
+            log.error(msg)
 
         # Append the extension
         else:
@@ -181,8 +181,10 @@ class DownloadPX(DownloadImage):
         if image_name is None or dl_dir is None:
             msg = ('No image name ({image}) or base_dir ({base}) was'
                    ' provided.'.format(image=image_name, base=dl_dir))
-            log.error(msg)
             self.status = Status.ERROR
+            self.image_info.error_info = msg
+            log.error(msg)
+
         else:
             file_spec = os.path.join(dl_dir, image_name)
 
@@ -198,9 +200,11 @@ class DownloadPX(DownloadImage):
         exists = False
 
         if self.dl_file_spec is None or self.dl_file_spec == '':
+            msg = "No File Location set. Status set to '{0}'.".format(
+                self.status)
             self.status = Status.ERROR
-            log.error("No File Location set. Status set to '{0}'.".format(
-                self.status))
+            self.image_info.error_info = msg
+            log.error(msg)
 
         elif os.path.exists(self.dl_file_spec):
             self.status = Status.EXISTS
@@ -266,19 +270,26 @@ class DownloadPX(DownloadImage):
 
                     if file_size < self.MIN_KB * self.KILOBYTES:
                         self.status = Status.ERROR
+                        error_msg = "Incorrect filesize: {0}".format(
+                            file_size)
+                        self.image_info.error_info = error_msg
+                        log.warn(error_msg)
+                        log.warn(retry_msg)
                         os.remove(filename)
 
-                        log.warn(retry_msg)
                         time.sleep(self.RETRY_DELAY)
 
             # If out of the attempts loop and unable download: all attempts were
             # connection failures, mark the download as a failure.
             if self.status != Status.DOWNLOADED:
                 self.status = Status.ERROR
+                self.image_info.error_info = (
+                    "All attempts to download were connection failures.")
 
         # The wget download is not working, so it is an automatic failure.
         else:
             self.status = Status.ERROR
+            self.image_info.error_info = "Used wget but wget has SSL issues."
 
         return self.status
 
@@ -304,10 +315,12 @@ class DownloadPX(DownloadImage):
                 image.raw.decode_content = True
                 shutil.copyfileobj(image.raw, OUTPUT)
                 self.status = Status.DOWNLOADED
+                self.image_info.error_info = None
 
         # Any status other than 200 is an error...
         else:
             log.error(status_msg)
             self.status = Status.ERROR
+            self.image_info.error_info = status_msg
 
         return self.status
