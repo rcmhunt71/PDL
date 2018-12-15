@@ -1,11 +1,9 @@
-from ConfigParser import NoSectionError, NoOptionError
 import inspect
 import os
+from configparser import NoSectionError, NoOptionError
 
 from PDL.configuration.properties.app_cfg import (
-    AppConfig, ConfigSectionDoesNotExist, OptionDoesNotExist,
-    CannotCastValueToType, CfgFileDoesNotExist)
-
+    AppConfig, ConfigSectionDoesNotExist, CfgFileDoesNotExist)
 from nose.tools import assert_equals, assert_true, raises
 
 

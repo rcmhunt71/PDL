@@ -9,7 +9,6 @@ import re
 
 from PDL.logger.utils import (
     datestamp_filename, DEFAULT_EXTENSION, DELIMITER, check_if_location_exists)
-
 from nose.tools import assert_equals, assert_is_not_none
 
 
@@ -130,12 +129,12 @@ class TestLogUtils(object):
         assert_equals(log_dir, path_str)
 
         # Validate prefix
-        if filename_parts > 2 and prefix is not None:
+        if len(filename_parts) > 2 and prefix is not None:
             assert_equals(filename_parts[0], self.EXPECTED_PREFIX)
             filename_parts = filename_parts[1:]
 
         # Validate suffix
-        if filename_parts > 2 and suffix is not None:
+        if len(filename_parts) > 2 and suffix is not None:
             assert_equals(filename_parts[-2], self.EXPECTED_SUFFIX)
             del filename_parts[-2]
 

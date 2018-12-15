@@ -1,5 +1,5 @@
-from ConfigParser import ConfigParser, NoSectionError, NoOptionError
 import os
+from configparser import ConfigParser, NoSectionError, NoOptionError
 
 from PDL.logger.logger import Logger
 
