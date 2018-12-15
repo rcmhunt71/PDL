@@ -3,11 +3,10 @@ try:
 except ImportError:
     from mock import patch
 
-import requests
-
 import PDL.engine.download.pxSite1.parse_page as page
 import PDL.engine.images.status as status
 
+import requests
 from nose.tools import assert_equals
 
 sample_link = r'https://foo.com/clouds.jpeg'
@@ -40,7 +39,9 @@ sample_invalid_html_page = sample_html_page_format.format(
     link='', name='')
 
 mocked_get_response_proper = requests.Response()
-mocked_get_response_proper._content = sample_valid_html_page
+mocked_get_response_proper._content = sample_valid_html_page.encode(encoding='UTF-8', errors='strict')
+mocked_get_response_proper.status_code = 200
+mocked_get_response_proper.encoding = 'utf-8'
 
 mocked_get_no_response = None
 
