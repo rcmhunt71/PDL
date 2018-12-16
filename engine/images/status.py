@@ -9,7 +9,7 @@ class DownloadStatus(object):
     @staticmethod
     def get_statuses_():
         return [x for x in dir(DownloadStatus) if (
-                not x.startswith('_') or not x.endswith('_'))]
+            (not x.startswith('_') or not x.endswith('_')) and x.lower() != x)]
 
 
 class ImageDataModificationStatus(object):
