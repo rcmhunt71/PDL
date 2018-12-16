@@ -27,8 +27,8 @@ class ReportingSummary(object):
         for status, count in self.tally.items():
             table.add_row([status, count])
 
-        table.sortby = count_header
-        table.reversesort = True
+        table.sortby = status_header
+        table.reversesort = False
         table.align[count_header] = 'r'
         table.align[status_header] = 'l'
         return table.get_string(title='Download Status')

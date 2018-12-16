@@ -1,5 +1,5 @@
 class DownloadStatus(object):
-    NOT_SET = 'Not Set'
+    NOT_SET = 'Status_Not_Set'
     PENDING = 'Pending'
     DOWNLOADED = 'Downloaded'
     IN_DATABASE = "In_Database"
