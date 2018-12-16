@@ -132,7 +132,7 @@ class AppConfig(ConfigParser):
 
             # Check to see if config file exists. If so, read it, otherwise
             # throw an exception
-            if os.path.exists(self.cfg_file):
+            if self.cfg_file is not None and os.path.exists(self.cfg_file):
                 log.debug('Reading: {cfg}'.format(cfg=self.cfg_file))
                 self.config = self.read(self.cfg_file)
 
