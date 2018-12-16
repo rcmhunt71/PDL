@@ -1,6 +1,5 @@
-from PDL.engine.images.status import DownloadStatus
-
 import prettytable
+from PDL.engine.images.status import DownloadStatus
 
 
 class ReportingSummary(object):
@@ -27,7 +26,13 @@ class ReportingSummary(object):
         table.field_names = [status_header, count_header]
         for status, count in self.tally.items():
             table.add_row([status, count])
-        table.sortby = count_header
+
+        # PrettyTable's get_string() is calling something that used to return an int in Python2.x,
+        # but it is now a str. Need to dig into, find issue, and submit a patch.
+        # TODO: Find str/int issue for prettytable in Python 3
+
+        # table.sortby = table.field_names.index(count_header)
+
         table.reversesort = True
         table.align[count_header] = 'r'
         table.align[status_header] = 'l'
