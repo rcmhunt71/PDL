@@ -1,5 +1,10 @@
 import os
-from configparser import ConfigParser, NoSectionError, NoOptionError
+try:
+    # Python 2.x
+    from ConfigParser import ConfigParser, NoSectionError, NoOptionError
+except ModuleNotFoundError:
+    # Python 3.x
+    from configparser import ConfigParser, NoSectionError, NoOptionError
 
 from PDL.logger.logger import Logger
 

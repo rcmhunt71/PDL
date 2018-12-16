@@ -1,6 +1,12 @@
+try:
+    # Python 2.x
+    import ConfigParser
+except ModuleNotFoundError:
+    # Python 3.x
+    import configparser
+
 import inspect
 import os
-from configparser import NoSectionError, NoOptionError
 
 from PDL.configuration.properties.app_cfg import (
     AppConfig, ConfigSectionDoesNotExist, CfgFileDoesNotExist)
