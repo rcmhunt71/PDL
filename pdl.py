@@ -3,13 +3,12 @@
 import os
 
 import PDL.configuration.cli.args as args
-from PDL.configuration.cli.urls import UrlArgProcessing as ArgProcessing
+import PDL.logger.utils as utils
 from PDL.configuration.cli.url_file import UrlFile
+from PDL.configuration.cli.urls import UrlArgProcessing as ArgProcessing
 from PDL.configuration.properties.app_cfg import AppConfig, AppCfgFileSections, AppCfgFileSectionKeys
-from PDL.engine.images import status as image_consts
 from PDL.engine.module_imports import import_module_class
 from PDL.logger.logger import Logger as Logger
-import PDL.logger.utils as utils
 from PDL.reporting.summary import ReportingSummary
 
 DEFAULT_ENGINE_CONFIG = 'pdl.cfg'
@@ -29,16 +28,15 @@ def build_logfile_name(cfg_info):
     """
     logfile_info = {
         'prefix': cfg_info.get(AppCfgFileSections.LOGGING,
-                               AppCfgFileSectionKeys.PREFIX, None),
+                               AppCfgFileSectionKeys.PREFIX),
         'suffix': cfg_info.get(AppCfgFileSections.LOGGING,
-                               AppCfgFileSectionKeys.SUFFIX, None),
+                               AppCfgFileSectionKeys.SUFFIX),
         'extension': cfg_info.get(AppCfgFileSections.LOGGING,
-                                  AppCfgFileSectionKeys.EXTENSION, None),
+                                  AppCfgFileSectionKeys.EXTENSION),
         'drive_letter': cfg_info.get(AppCfgFileSections.LOGGING,
-                                     AppCfgFileSectionKeys.LOG_DRIVE_LETTER,
-                                     None),
+                                     AppCfgFileSectionKeys.LOG_DRIVE_LETTER),
         'directory': cfg_info.get(AppCfgFileSections.LOGGING,
-                                  AppCfgFileSectionKeys.LOG_DIRECTORY, None)
+                                  AppCfgFileSectionKeys.LOG_DIRECTORY)
     }
 
     for key, value in logfile_info.items():
@@ -71,15 +69,14 @@ if cli.args.debug:
 else:
     log_level = app_cfg.get(
         AppCfgFileSections.LOGGING,
-        AppCfgFileSectionKeys.LOG_LEVEL.lower(),
-        Logger.INFO)
+        AppCfgFileSectionKeys.LOG_LEVEL.lower())
 
 # Setup the root logger for the app
 log = Logger(filename=build_logfile_name(cfg_info=app_cfg),
              default_level=Logger.STR_TO_VAL[log_level],
              project=app_cfg.get(
                  AppCfgFileSections.PROJECT,
-                 AppCfgFileSectionKeys.NAME, None),
+                 AppCfgFileSectionKeys.NAME),
              set_root=True)
 
 # (DEBUG) Show defined loggers and log levels
@@ -118,7 +115,7 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
     url_file.write_file(urls=url_list, create_dir=True,
                         location=app_cfg.get(
                             AppCfgFileSections.LOGGING,
-                            AppCfgFileSectionKeys.URL_FILE_DIR, None))
+                            AppCfgFileSectionKeys.URL_FILE_DIR))
 
     # Import the specified routines for processing the URLs
     Catalog = import_module_class(
@@ -158,6 +155,7 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
 
     # Log Results
     log_download_results(image_data)
+
 
     # TODO: Create JSON output file.
     # TODO: Fix logfile issue
