@@ -46,13 +46,6 @@ def build_logfile_name(cfg_info):
     return log_name
 
 
-def log_download_results(data):
-    results = ReportingSummary(data)
-    results.tally_results()
-    for line in results.results_table().split('\n'):
-        log.info(line)
-
-
 # --------------------------------------------------------------------
 
 
@@ -154,8 +147,9 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
         log.info('DL STATUS: {0}'.format(status))
 
     # Log Results
-    log_download_results(image_data)
-
+    results = ReportingSummary(image_data)
+    results.log_download_status_results_table()
+    results.log_url_status_table()
 
     # TODO: Create JSON output file.
     # TODO: Fix logfile issue

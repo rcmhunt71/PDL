@@ -1,7 +1,7 @@
 from random import choice
 
-from PDL.engine.images.status import DownloadStatus as Status
 from PDL.engine.images.image_info import ImageData
+from PDL.engine.images.status import DownloadStatus as Status
 from PDL.reporting.summary import ReportingSummary
 
 data = list()
@@ -17,9 +17,9 @@ for _ in range(num_data):
 
 class TestReportingSummary(object):
     summary = ReportingSummary(image_data=data)
-    results = summary.tally_results()
+    results = summary.tally_status_results()
 
-    data_tally = ReportingSummary.init_tally_dict_()
+    data_tally = ReportingSummary.init_status_dict_()
     for image in data:
         data_tally[image.dl_status] += 1
 
