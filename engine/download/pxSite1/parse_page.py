@@ -1,13 +1,15 @@
+import json
 import pprint
 import re
-import requests
 import time
-from six.moves.urllib.parse import quote
+import unicodedata
 
+import requests
 from PDL.engine.images.image_info import ImageData
 from PDL.engine.images.page_base import CatalogPage
 from PDL.engine.images.status import DownloadStatus
 from PDL.logger.logger import Logger
+from six.moves.urllib.parse import quote
 
 log = Logger()
 
@@ -25,11 +27,26 @@ class ParseDisplayPage(CatalogPage):
     MAX_ATTEMPTS = 3
     KEY = 'jpeg'
     NOT_FOUND = 'Not Found'
+    EXTENSION = 'jpg'
+
+    # SOURCE PAGE CONSTANTS
+    CREATED_AT = 'created_at'
+    DESCRIPTION = 'description'
+    HEIGHT = "height"
+    IMAGES = 'images'
+    NAME = 'name'
+    PHOTO = 'photo'
+    SIZE = 'size'
+    URL = 'url'
+    USER = 'user'
+    USERNAME = 'username'
+    WIDTH = "width"
 
     def __init__(self, page_url):
-        super(CatalogPage, self).__init__(page_url=page_url)
+        super(ParseDisplayPage, self).__init__(page_url=page_url)
         self.image_info = ImageData()
-        self.source = None
+        self.source_list = None
+        self._metadata = None
 
     def get_image_info(self):
         """
@@ -38,12 +55,52 @@ class ParseDisplayPage(CatalogPage):
         :return: None
 
         """
-        if self.source is None:
-            self.source = self.get_page()
+        if self.source_list is None:
+            self.source_list = self.get_page()
+            self._metadata = self._get_metadata()
 
         self.image_info.page_url = self.page_url
         self.image_info.image_url = self.parse_page_for_link()
         self.image_info.author = self._get_author_name()
+        self.image_info.image_name = self._get_title()
+        self.image_info.description = self._get_description()
+        self.image_info.image_date = self._get_image_date()
+        self.image_info.resolution = self._get_resolution()
+        self.image_info.filename = self._get_filename()
+
+    def _get_author_name(self):
+        return self._metadata[self.PHOTO][self.USER][self.USERNAME]
+
+    def _get_title(self):
+        return self._metadata[self.PHOTO][self.NAME]
+
+    def _get_description(self):
+        return self._metadata[self.PHOTO][self.DESCRIPTION]
+
+    def _get_image_date(self):
+        return self._metadata[self.PHOTO][self.CREATED_AT]
+
+    def _get_filename(self):
+        filename = (self._get_image_url() if self.image_info.image_url is None
+                    else self.image_info.image_url)
+
+        return '{filename}.{ext}'.format(
+            filename=filename.split("=")[-1], ext=self.EXTENSION)
+
+    def _get_resolution(self):
+        width = self._metadata[self.PHOTO][self.WIDTH]
+        height = self._metadata[self.PHOTO][self.HEIGHT]
+        return "{width}x{height}".format(width=width, height=height)
+
+    def _get_image_url(self):
+        image_list = self._metadata[self.PHOTO][self.IMAGES]
+        image_list.sort(key=lambda x: x[self.SIZE])
+        target_url = image_list[-1][self.URL]
+
+        log.debug("URL LIST:\n{0}".format(pprint.pformat(image_list)))
+        log.debug("Returning URL: {0}".format(target_url))
+
+        return target_url
 
     def get_page(self):
         """
@@ -83,6 +140,16 @@ class ParseDisplayPage(CatalogPage):
 
         return source
 
+    def _get_domain_from_url(self):
+        domain_pattern = r'http.://(?P<domain>(\w+\.)?\w+\.\w+)/.*'
+
+        domain = None
+        match = re.search(domain_pattern, self.page_url)
+        if match is not None:
+            domain = match.group('domain')
+        log.debug("DOMAIN: {0}".format(domain))
+        return domain
+
     def parse_page_for_link(self):
         """
         Retrieve the originating page, and get the desired image link out of
@@ -97,10 +164,10 @@ class ParseDisplayPage(CatalogPage):
 
         domain = self._get_domain_from_url().lower()
         if domain.startswith(web_url):
-            return self._parse_www_url()
+            url = self._get_image_url()
 
         elif domain.startswith(www_url):
-            return self._parse_www_url()
+            url = self._get_image_url()
 
         else:
             err_msg = ('Unrecognized domain format: {domain} - '
@@ -108,69 +175,45 @@ class ParseDisplayPage(CatalogPage):
             log.error(err_msg.format(domain=domain))
             self.image_info.dl_status = DownloadStatus.ERROR
             self.image_info.error_info = err_msg
-            return None
+            url = None
 
-    def _get_domain_from_url(self):
-        domain_pattern = r'http.://(?P<domain>(\w+\.)?\w+\.\w+)/.*'
+        return url
 
-        domain = None
-        match = re.search(domain_pattern, self.page_url)
+    def _get_metadata(self):
+        metadata = None
+
+        # Get PreLoaded Data, which contains image metadata
+        data_pattern = r'window\.PxPreloadedData\s*=\s*(?P<data>.*?);'
+        match = re.search(data_pattern, ''.join(self.source_list))
+
         if match is not None:
-            domain = match.group('domain')
-        log.debug("DOMAIN: {0}".format(domain))
-        return domain
 
-    def _parse_www_url(self):
-        url_regexp = (r'size\"\s*:\s*2048\s*,\s*\"url\"\s*:\s*\"'
-                      r'(?P<url>https:.*)\"\s*,\s*\"https_url\"')
+            # Remove control characters
+            raw_data = self.remove_control_characters(match.group('data'))
 
-        # Reduce data to only check lines with the KEY (jpg) is found
-        lines = [line for line in self.source if self.KEY in line]
-        log.debug('Number of lines found with key: {key}: {num}'.format(
-            key=self.KEY, num=len(lines)))
-        patt = re.compile(url_regexp)
+            # Adjust brace count to be zero if partial DOM is retrieved
+            mismatch = raw_data.count("{") - raw_data.count("}")
+            log.debug("Brace mismatch count: {0}".format(mismatch))
+            raw_data = "{0}{1}".format(raw_data, '}' * mismatch)
 
-        # Try to find largest resolution image link (there are multiple links,
-        # one for each size)
-        for line in lines:
-            result = patt.search(line)
-            if result is not None:
-                log.debug("Found match: {line}".format(line=line))
-                link = result.group('url').replace('\/', '/')
-                return link
+            # Remove literal "\n" in source
+            raw_data = raw_data.replace("\\n", "")
 
-        # If you get here, you parsed the whole page and found nada...
-        self.image_info.dl_status = DownloadStatus.ERROR
-        msg = 'Unable to find url in source page.'
-        self.image_info.error_info = msg
-        log.error(msg)
-        log.error('IMAGE LINES:\n{lines}'.format(lines=lines))
-        log.debug('COMPLETE SOURCE:\n{source}'.format(source=pprint.pformat(
-            self.source)))
-        return None
+            try:
+                metadata = json.loads(raw_data)
 
-    def _get_author_name(self):
-        """
-        Get the author's name, if it is embedded in the page.
+            except ValueError as exc:
+                log.error("ValueError: Unable to convert to JSON "
+                          "representation: {0}".format(exc.args))
+                log.debug("Matching Source:  {0}".format(raw_data))
+                pass
 
-        :return: (str) Author's name
+        log.debug("Image Metadata:\n{0}".format(pprint.pformat(metadata)))
+        return metadata
 
-        """
-        key = 'fullname'
-        regexp_pattern = r'\s*\"fullname\"\s*:\s*\"(?P<author>.*?)\"\s*,\s*"'
-
-        # Find all lines with the 'key' word
-        lines = [line for line in self.source if key in line]
-
-        log.debug("Matching Lines:\n{lines}".format(lines=lines))
-
-        # Check each link for the regexp, which will contain the author's name
-        for line in lines:
-            result = re.search(pattern=regexp_pattern, string=line)
-            if result is not None and result.group('author') != '':
-                return result.group('author')
-
-        return self.NOT_FOUND
+    @staticmethod
+    def remove_control_characters(s):
+        return "".join(ch for ch in s if unicodedata.category(ch)[0] != "C")
 
     @staticmethod
     def _translate_unicode_in_link(link):

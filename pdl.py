@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import pprint
 
 import PDL.configuration.cli.args as args
 import PDL.logger.utils as utils
@@ -140,7 +141,7 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
 
     for index, image in enumerate(image_data):
         log.info("{index:>3}: {url}".format(
-            index=index +1, url=image.image_url))
+            index=index + 1, url=image.image_url))
         contact = Contact(
             image_url=image.image_url, dl_dir=dl_dir, image_info=image)
         status = contact.download_image()
@@ -150,6 +151,9 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
     results = ReportingSummary(image_data)
     results.log_download_status_results_table()
     results.log_url_status_table()
+
+    for image in image_data:
+        print(pprint.pformat(image.to_json()))
 
     # TODO: Create JSON output file.
     # TODO: Fix logfile issue
