@@ -123,6 +123,7 @@ class DownloadPX(DownloadImage):
         self.image_info.downloaded_on = str(datetime.datetime.now().isoformat()).split('.')[0]
         self.image_info.download_duration = dl_duration
         self.image_info.mod_status = db_status
+        self.image_info.locations.append(self.dl_dir)
 
         log.info("Downloaded in {0:0.3f} seconds.".format(dl_duration))
         log.info("Image status: {status} --> {url}".format(
