@@ -162,7 +162,6 @@ if __name__ == '__main__':
             pprint.pprint(image.to_dict())
 
         # TODO: Create JSON output file.
-        # TODO: Fix logfile issue
 
     # -----------------------------------------------------------------
     #                DUPLICATE MANAGEMENT
