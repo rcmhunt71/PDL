@@ -15,7 +15,7 @@ class ImageData(object):
         self.image_date = None
         self.resolution = None
         self.downloaded_on = None
-        self.download_duration = None
+        self.download_duration = 0
         self.locations = list()
         self.dl_status = Status.NOT_SET
         self.mod_status = ModStatus.MOD_NOT_SET

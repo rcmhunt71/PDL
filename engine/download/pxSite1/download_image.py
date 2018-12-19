@@ -117,7 +117,7 @@ class DownloadPX(DownloadImage):
 
         # TODO: Display dl_on based on UTC (not local)
         self.image_info.downloaded_on = str(datetime.datetime.now().isoformat()).split('.')[0]
-        self.image_info.download_duration = dl_duration
+        self.image_info.download_duration += dl_duration
         self.image_info.mod_status = db_status
         self.image_info.locations.append(self.dl_dir)
 

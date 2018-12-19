@@ -56,6 +56,8 @@ class ParseDisplayPage(CatalogPage):
         :return: None
 
         """
+
+        dl_start = datetime.datetime.now()
         if self.source_list is None:
             self.source_list = self.get_page()
             self._metadata = self._get_metadata()
@@ -68,6 +70,8 @@ class ParseDisplayPage(CatalogPage):
         self.image_info.image_date = self._get_image_date()
         self.image_info.resolution = self._get_resolution()
         self.image_info.filename = self._get_filename()
+        self.image_info.download_duration += (datetime.datetime.now() - dl_start).total_seconds()
+        log.info("Downloaded page in {0:0.3f} seconds.".format(self.image_info.download_duration))
 
     def _get_author_name(self):
         return self._metadata[self.PHOTO][self.USER][self.USERNAME]
@@ -185,7 +189,7 @@ class ParseDisplayPage(CatalogPage):
         metadata = None
 
         # Get PreLoaded Data, which contains image metadata
-        data_pattern = r'window\.PxPreloadedData\s*=\s*(?P<data>.*?);'
+        data_pattern = r'window\.PxPreloadedData\s*=\s*(?P<data>.*?),\"comments\"'
         match = re.search(data_pattern, ''.join(self.source_list))
 
         if match is not None:
