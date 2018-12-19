@@ -144,16 +144,17 @@ if cli.args.command == args.ArgSubmodules.DOWNLOAD:
             index=index + 1, url=image.image_url))
         contact = Contact(
             image_url=image.image_url, dl_dir=dl_dir, image_info=image)
-        status = contact.download_image()
-        log.info('DL STATUS: {0}'.format(status))
+        contact.download_image()
+        log.info('DL STATUS: {0}'.format(contact.status))
 
     # Log Results
     results = ReportingSummary(image_data)
     results.log_download_status_results_table()
-    results.log_url_status_table()
+    results.log_detailed_download_results_table()
 
     for image in image_data:
-        print(pprint.pformat(image.to_json()))
+        print(image.image_name)
+        pprint.pprint(image.to_dict())
 
     # TODO: Create JSON output file.
     # TODO: Fix logfile issue
