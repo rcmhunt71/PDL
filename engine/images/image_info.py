@@ -1,6 +1,3 @@
-import json
-import pprint
-
 from PDL.engine.images.status import (
     DownloadStatus as Status,
     ImageDataModificationStatus as ModStatus
@@ -21,16 +18,13 @@ class ImageData(object):
         self.download_duration = None
         self.locations = list()
         self.dl_status = Status.NOT_SET
-        self.mod_status = ModStatus.NEW
+        self.mod_status = ModStatus.MOD_NOT_SET
         self.error_info = None
 
-    def to_json(self):
+    def to_dict(self):
         attributes = self._list_attributes()
         attr_dict = dict([(key, getattr(self, key)) for key in attributes])
-
-        pprint.pprint(attr_dict)
-
-        return json.dumps(attr_dict)
+        return attr_dict
 
     def _list_attributes(self):
         return [x for x in dir(self) if not x.startswith('_')
