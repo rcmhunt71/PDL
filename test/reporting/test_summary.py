@@ -19,7 +19,7 @@ class TestReportingSummary(object):
     summary = ReportingSummary(image_data=data)
     results = summary.tally_status_results()
 
-    data_tally = ReportingSummary.init_status_dict_()
+    data_tally = summary.init_status_dict_()
     for image in data:
         data_tally[image.dl_status] += 1
 

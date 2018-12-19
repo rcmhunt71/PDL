@@ -3,7 +3,7 @@ try:
     import ConfigParser
 except ModuleNotFoundError:
     # Python 3.x
-    import configparser
+    import configparser as ConfigParser
 
 import inspect
 import os
@@ -68,12 +68,12 @@ class TestPropertiesConfig(object):
     def test_get_options_non_existent_section(self):
         self.config.get_options(section=self.INVALID_SECTION)
 
-    @raises(NoSectionError)
+    @raises(ConfigParser.NoSectionError)
     def test_get_option_non_existent_section(self):
         self.config.get(
             section=self.INVALID_SECTION, option=self.INVALID_OPTION)
 
-    @raises(NoOptionError)
+    @raises(ConfigParser.NoOptionError)
     def test_get_option_non_existent_option(self):
         self.config.get(
             section=self.VALID_SECTIONS[-1], option=self.INVALID_OPTION)
@@ -123,12 +123,12 @@ class TestPropertiesConfig(object):
         assert_true(isinstance(actual_value, list))
         assert_equals(actual_value, expected_value)
 
-    @raises(NoSectionError)
+    @raises(ConfigParser.NoSectionError)
     def test_get_option_invalid_section_valid_option_valid_list(self):
         data = self.INVALID_SECTION_AND_VALID_OPTION_LIST
         self.config.get_list(section=data[0], option=data[1])
 
-    @raises(NoOptionError)
+    @raises(ConfigParser.NoOptionError)
     def test_get_option_valid_section_invalid_option_valid_list(self):
         data = self.VALID_SECTION_AND_INVALID_OPTION_LIST
         self.config.get_list(section=data[0], option=data[1])
