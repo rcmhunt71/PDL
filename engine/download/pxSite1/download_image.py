@@ -122,8 +122,8 @@ class DownloadPX(DownloadImage):
         self.image_info.locations.append(self.dl_dir)
 
         log.info("Downloaded in {0:0.3f} seconds.".format(dl_duration))
-        log.info("Image status: {status} --> {url}".format(
-            url=self.image_url, status=self.status.upper()))
+        log.info("{url} --> {status}".format(
+            url=self.image_info.page_url, status=self.status.upper()))
 
         return self.status
 
