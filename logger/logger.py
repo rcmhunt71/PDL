@@ -4,6 +4,7 @@ import os
 
 import prettytable
 
+
 # TODO: <DOC> Add README.md to directory
 
 
@@ -46,7 +47,19 @@ class Logger(object):
         self.name = test_name
         self.root = set_root
 
-        self._start_logger()
+        # Need to clear the existing loggers if building the root logger and then
+        # re-add the handlers after updating the root logger config.
+        # Reason: Updating the config with handlers attached is a 'no-op'
+        if self.root:
+            handlers = logging.root.handlers[:]
+
+            for handler in handlers:
+                logging.root.removeHandler(handler)
+            self._start_logger()
+            for handler in handlers:
+                logging.root.addHandler(handler)
+        else:
+            self._start_logger()
 
     def _start_logger(self):
         """
