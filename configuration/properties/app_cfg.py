@@ -43,6 +43,7 @@ class AppCfgFileSectionKeys(object):
     SIMULTANEOUS_DLS = 'simultaneous_dls'
     EXTENSION = 'extension'
     IMAGE_CONTACT_PARSE = 'image_contact_parse'
+    JSON_FILE_DIR = 'json_file_dir'
     LOCAL_DIR = 'local_dir'
     LOCAL_DRIVE_LETTER = 'local_drive_letter'
     LOG_DIRECTORY = 'log_directory'

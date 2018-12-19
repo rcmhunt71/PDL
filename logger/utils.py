@@ -43,6 +43,7 @@ def datestamp_filename(prefix=None, suffix=None, extension=DEFAULT_EXTENSION,
     if prefix is not None:
         filename = "{prefix}{delim}".format(prefix=prefix, delim=DELIMITER)
 
+    # Add timestamp
     filename += timestamp
 
     # Add suffix

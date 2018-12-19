@@ -4,6 +4,7 @@ import os
 import pprint
 
 import PDL.configuration.cli.args as args
+import PDL.logger.json_log as json_log
 import PDL.logger.utils as utils
 from PDL.configuration.cli.url_file import UrlFile
 from PDL.configuration.cli.urls import UrlArgProcessing as ArgProcessing
@@ -163,6 +164,9 @@ if __name__ == '__main__':
             for image in image_data:
                 print(image.image_name)
                 pprint.pprint(image.to_dict())
+
+        jsonlog = json_log.JsonLog(image_obj_list=image_data, cfg_info=app_cfg, logfile_name=log_file)
+        jsonlog.write_json()
 
         # TODO: Create JSON output file.
 
