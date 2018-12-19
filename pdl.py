@@ -37,7 +37,9 @@ def build_logfile_name(cfg_info):
         'drive_letter': cfg_info.get(AppCfgFileSections.LOGGING,
                                      AppCfgFileSectionKeys.LOG_DRIVE_LETTER),
         'directory': cfg_info.get(AppCfgFileSections.LOGGING,
-                                  AppCfgFileSectionKeys.LOG_DIRECTORY)
+                                  AppCfgFileSectionKeys.LOG_DIRECTORY),
+        'log_level': cfg_info.get(AppCfgFileSections.LOGGING,
+                                  AppCfgFileSectionKeys.LOG_LEVEL)
     }
 
     for key, value in logfile_info.items():
@@ -157,9 +159,10 @@ if __name__ == '__main__':
         results.log_download_status_results_table()
         results.log_detailed_download_results_table()
 
-        for image in image_data:
-            print(image.image_name)
-            pprint.pprint(image.to_dict())
+        if cli.args.debug:
+            for image in image_data:
+                print(image.image_name)
+                pprint.pprint(image.to_dict())
 
         # TODO: Create JSON output file.
 
@@ -187,3 +190,5 @@ if __name__ == '__main__':
     else:
         # Should never get here, argparse should prevent it...
         raise args.UnrecognizedModule(cli.args.command)
+
+    log.info("LOGGED TO: {logfile}".format(logfile=log_file))

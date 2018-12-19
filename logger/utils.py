@@ -12,7 +12,7 @@ log = logger.Logger()
 
 def datestamp_filename(prefix=None, suffix=None, extension=DEFAULT_EXTENSION,
                        drive_letter=None, directory='.',
-                       timestamp_format=TIMESTAMP):
+                       timestamp_format=TIMESTAMP, log_level='INFO'):
 
     """
     Creates the full path and filename to the log file. Implemented to support
@@ -28,6 +28,7 @@ def datestamp_filename(prefix=None, suffix=None, extension=DEFAULT_EXTENSION,
     :param directory: (str) - Directory path to log directory.
     :param timestamp_format: (str) - format of timestamp.
                       See datetime.strftime() formats for acceptable directives.
+    :param log_level: (str) - added to filename to indicate level of output.
 
     :return: (str) - Fully qualified absolute path to the log file.
 
@@ -50,7 +51,7 @@ def datestamp_filename(prefix=None, suffix=None, extension=DEFAULT_EXTENSION,
             filename=filename, suffix=suffix, delim=DELIMITER)
 
     # Add extension
-    filename += ".{ext}".format(ext=extension)
+    filename += "-{loglevel}.{ext}".format(ext=extension, loglevel=log_level.upper())
 
     log.debug("RAW LOG FILENAME: {0}".format(filename))
 
