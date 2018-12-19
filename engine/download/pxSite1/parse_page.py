@@ -1,3 +1,4 @@
+import datetime
 import json
 import pprint
 import re
@@ -78,7 +79,8 @@ class ParseDisplayPage(CatalogPage):
         return self._metadata[self.PHOTO][self.DESCRIPTION]
 
     def _get_image_date(self):
-        return self._metadata[self.PHOTO][self.CREATED_AT]
+        date = datetime.datetime.fromisoformat(self._metadata[self.PHOTO][self.CREATED_AT])
+        return str(date.isoformat()).split('.')[0]
 
     def _get_filename(self):
         filename = (self._get_image_url() if self.image_info.image_url is None

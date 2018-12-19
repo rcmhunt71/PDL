@@ -1,3 +1,4 @@
+import datetime
 import os
 import re
 import shutil
@@ -5,13 +6,12 @@ import time
 
 import requests
 import wget
-
-
 from PDL.engine.download.download_base import DownloadImage
 from PDL.engine.images.image_info import ImageData
-from PDL.engine.images.status import DownloadStatus as Status
+from PDL.engine.images.status import (
+    DownloadStatus as Status,
+    ImageDataModificationStatus as ModStatus)
 from PDL.logger.logger import Logger
-
 
 log = Logger()
 
@@ -77,7 +77,8 @@ class DownloadPX(DownloadImage):
         Download the image. If unsuccessful, wait a few seconds and try again,
         up to the maximum number of attempts.
 
-        :return: dl_status (see PDL.engine.images.status)
+        :return: dl_status (see PDL.engine.images.status),
+                dl_duration (in seconds)
 
         """
         log.debug("Image URL: {url}".format(url=self.image_url))
@@ -86,7 +87,11 @@ class DownloadPX(DownloadImage):
         # Try to download image
         attempts = 0
         log.debug("Image Status: {0}".format(self.status))
-        if not self._file_exists() and self.status == Status.PENDING:
+        start_dl = datetime.datetime.now()
+        db_status = ModStatus.MOD_NOT_SET
+        exists = self._file_exists()
+
+        if not exists and self.status == Status.PENDING:
             while (attempts < self.MAX_ATTEMPTS and
                    self.status != Status.DOWNLOADED):
                 attempts += 1
@@ -104,8 +109,25 @@ class DownloadPX(DownloadImage):
                 if self.status != Status.DOWNLOADED:
                     time.sleep(self.RETRY_DELAY)
 
+            if self.status == Status.DOWNLOADED:
+                db_status = ModStatus.NEW
+
+        elif exists:
+            # Depends if it exists in the DB, but for now, unchanged
+            db_status = ModStatus.UNCHANGED
+
+        dl_duration = (datetime.datetime.now() - start_dl).total_seconds()
+
+        # TODO: Display dl_on based on UTC (not local)
+        self.image_info.dl_status = self.status
+        self.image_info.downloaded_on = str(datetime.datetime.now().isoformat()).split('.')[0]
+        self.image_info.download_duration = dl_duration
+        self.image_info.mod_status = db_status
+
+        log.info("Downloaded in {0:0.3f} seconds.".format(dl_duration))
         log.info("Image status: {status} --> {url}".format(
             url=self.image_url, status=self.status.upper()))
+
         return self.status
 
     def get_image_name(self, image_url=None, delimiter_key=None,
