@@ -38,7 +38,7 @@ class JsonLog(object):
         timestamp = '-'.join(log_name.split('-')[0:-1])
         for update in add_ons:
             if update is not None:
-                timestamp.replace(update, '')
+                timestamp = timestamp.replace(update, '')
 
         # Build the file name
         filename = "{timestamp}.{ext}".format(timestamp=timestamp,
