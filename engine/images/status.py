@@ -16,3 +16,5 @@ class ImageDataModificationStatus(object):
     NEW = "New"
     UPDATED = "Updated"
     DELETE = "Delete"
+    MOD_NOT_SET = "Not_Set"
+    UNCHANGED = 'Unchanged'
