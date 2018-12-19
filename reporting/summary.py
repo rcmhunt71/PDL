@@ -83,39 +83,50 @@ class ReportingSummary(object):
 
     # ------------------- URL RESULTS -------------------
 
-    def tally_url_results(self):
-        log.debug("Tallying URL results.")
-        url_results = self.init_status_dict_(value_type=self.LIST_VALUE_TYPE)
-        for image in self.data:
-            url_results[image.dl_status].append(image.image_url)
-        return url_results
+    def detailed_download_results_table(self, specific_status=None):
 
-    def url_results_table(self, specific_status=None, recalculate=False):
-
-        delimiter = '   + '
-        url_header = "URL"
+        delimiter = '   - '
+        image_header = "Image"
+        time_format = "{0:0.3f} sec"
+        duration_header = "Duration"
         table = prettytable.PrettyTable()
-        table.field_names = [url_header]
-        table.align[url_header] = 'l'
+        table.field_names = [image_header, duration_header]
+        table.align[image_header] = 'l'
+
+        # Aggregating data
+        data_dict = self.init_status_dict_(value_type='list')
+        for image in self.data:
+            data_dict[image.dl_status].append(image)
 
         log.debug("Displaying specific status: '{0}'".format(str(specific_status).upper()))
 
-        if self.url_results is None or recalculate:
-            self.url_results = self.tally_url_results()
-
         log.debug("Building URL results table.")
-        for status, urls in sorted(self.url_results.items()):
+        total_dur = 0.0
+        for status, image_obj_list in sorted(data_dict.items()):
             if specific_status is None or specific_status.lower() == status.lower():
-                table.add_row(["{status} ({count})".format(
-                    status=status.upper(), count=len(urls))])
-                [table.add_row(["{delim}{url}".format(
-                    url=url, delim=delimiter)]) for url in urls]
+                table.add_row([
+                    "{status} ({count})".format(status=status.upper(), count=len(image_obj_list)),
+                    ''])
+                status_dur = 0.0
+                for image in image_obj_list:
+                    table.add_row([
+                        "{delim}{url}".format(
+                            url='{name}'.format(name=image.filename),
+                            delim=delimiter),
+                        time_format.format(image.download_duration)])
+
+                    status_dur += image.download_duration
+                    total_dur += image.download_duration
+
+                table.add_row(["", time_format.format(status_dur)])
+                table.add_row(["", ""])
+        table.add_row(["TOTAL DURATION", time_format.format(total_dur)])
         return table.get_string(title='URL Status')
 
-    def log_url_status_table(self, specific_status=None, recalculate=False):
+    def log_detailed_download_results_table(self, specific_status=None):
         self._log_table(
-            table=self.url_results_table(
-                specific_status=specific_status, recalculate=recalculate))
+            table=self.detailed_download_results_table(specific_status=specific_status))
+
 
 # ------------------- TODOs -------------------
 # TODO: <code> Add report about errors, and link info
