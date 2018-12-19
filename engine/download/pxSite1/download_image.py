@@ -100,11 +100,8 @@ class DownloadPX(DownloadImage):
                     attempt=attempts, max=self.MAX_ATTEMPTS, url=self.image_url)
                 )
 
-                if self.use_wget:
-                    self.status = self._dl_via_wget()
-
-                else:
-                    self.status = self._dl_via_requests()
+                # Download the image
+                self.status = self._dl_via_wget() if self.use_wget else self._dl_via_requests()
 
                 if self.status != Status.DOWNLOADED:
                     time.sleep(self.RETRY_DELAY)
@@ -119,7 +116,6 @@ class DownloadPX(DownloadImage):
         dl_duration = (datetime.datetime.now() - start_dl).total_seconds()
 
         # TODO: Display dl_on based on UTC (not local)
-        self.image_info.dl_status = self.status
         self.image_info.downloaded_on = str(datetime.datetime.now().isoformat()).split('.')[0]
         self.image_info.download_duration = dl_duration
         self.image_info.mod_status = db_status
