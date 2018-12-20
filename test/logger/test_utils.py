@@ -17,6 +17,7 @@ class TestLogUtils(object):
     TIMESTAMP_FORMAT = r'[0-9]{6}T[0-9]{6}'
     EXPECTED_PREFIX = 'myPrefix'
     EXPECTED_SUFFIX = 'mySuffix'
+    LOG_LEVEL = 'INFO'
     NON_DEFAULT_EXT = 'txt'
     DEFAULT_LOG_DIR = '.'
 
@@ -85,7 +86,7 @@ class TestLogUtils(object):
                                     is_windows=True)
 
     def _validate_filename(self,
-                           filename, prefix=None, suffix=None,
+                           filename, prefix=None, suffix=None, log_level=LOG_LEVEL,
                            extension=DEFAULT_EXTENSION,
                            log_dir=DEFAULT_LOG_DIR,
                            is_windows=False):
@@ -96,6 +97,7 @@ class TestLogUtils(object):
         :param filename: (str) - filename
         :param prefix: (str) - custom prefix expected in filename
         :param suffix: (str) - custom suffix expected in filename
+        :param log_level (str) - logging level expected in file
         :param extension: (str) - expected file extension
         :param log_dir: (str) - path of the filename
         :param is_windows: (bool) - Is this for windows (verify drive letter on
@@ -109,10 +111,15 @@ class TestLogUtils(object):
 
         # Break apart filename based on path separator, delimiter and
         # file extension
+
+        # Split on OS separator, rebuild path without last arg (filename)
         path_and_file = filename.split(os.path.sep)
         path_str = os.path.sep.join(path_and_file[:-1])
 
+        # Split filename based on the file name delimiter
         filename_parts = path_and_file[-1].split(DELIMITER)
+
+        # Remove file extension from the filename parts
         filename_parts.extend(os.path.splitext(filename_parts.pop()))
 
         # Debug statement for failure assessment
@@ -128,25 +135,33 @@ class TestLogUtils(object):
         print("PARSED PATH STR: %s" % path_str)
         assert_equals(log_dir, path_str)
 
-        # Validate prefix
-        if len(filename_parts) > 2 and prefix is not None:
-            assert_equals(filename_parts[0], self.EXPECTED_PREFIX)
-            filename_parts = filename_parts[1:]
+        # Filename parts can consist of prefix, TIMESTAMP, suffix, LOG_LEVEL, EXTENSION
+        # (CAPITALIZED = MANDATORY, lowercase = optional)
+
+        # Validate extension
+        assert_equals(filename_parts[-1], ".{0}".format(extension))
+        del filename_parts[-1]
+
+        # Validate log_level
+        assert_equals(filename_parts[-1], self.LOG_LEVEL)
+        del filename_parts[-1]
 
         # Validate suffix
         if len(filename_parts) > 2 and suffix is not None:
-            assert_equals(filename_parts[-2], self.EXPECTED_SUFFIX)
-            del filename_parts[-2]
+            assert_equals(filename_parts[-1], self.EXPECTED_SUFFIX)
+            del filename_parts[-1]
+
+        # Validate prefix
+        if len(filename_parts) > 2 and prefix is not None:
+            assert_equals(filename_parts[0], self.EXPECTED_PREFIX)
 
         # Validate Timestamp
         assert_is_not_none(re.search(self.TIMESTAMP_FORMAT, filename))
 
-        # Validate Extension
-        assert_equals(filename_parts[-1], ".{0}".format(extension))
-
 # ----------------------------------------------------------------
 #       check_if_location_exists()
 # ----------------------------------------------------------------
+
     def test_check_if_location_exists_but_does_not_exist_no_create(self):
         path_dirs = ['tmp', 'does', 'not', 'exist']
         path = os.path.sep.join(path_dirs)
@@ -183,28 +198,6 @@ class TestLogUtils(object):
         assert result is True
         assert os.path.exists(path) is False
 
-    @patch('PDL.logger.utils.os.makedirs',
-           side_effect=Exception())
-    def test_check_if_location_exists_but_does_not_exist_cannot_create(
-            self, makedirs_mock):
-        path_dirs = ['tmp', 'does', 'not', 'exist']
-        path = os.path.sep.join(path_dirs)
-        create_dir = True
-
-        if os.path.exists(path):
-            os.removedirs(path)
-
-        result = check_if_location_exists(
-            location=path, create_dir=create_dir)
-        try:
-            os.removedirs(path)
-        except OSError:
-            pass  # Found a directory that was not empty
-
-        assert result is False
-        assert makedirs_mock.call_count == 1
-        assert os.path.exists(path) is False
-
     def test_check_if_location_exists_and_does_exist(
             self):
         path_dirs = ['tmp', 'does', 'not', 'exist']
@@ -221,3 +214,26 @@ class TestLogUtils(object):
 
         assert result is True
         assert os.path.exists(path) is False
+
+
+class TestLogUtilsMocked(object):
+
+    def test_check_if_location_exists_but_does_not_exist_cannot_create(self):
+
+        with patch('PDL.logger.utils.os.makedirs', side_effect=Exception()) as make_dirs_mock:
+            path_dirs = ['tmp', 'does', 'not', 'exist']
+            path = os.path.sep.join(path_dirs)
+            create_dir = True
+
+            if os.path.exists(path):
+                os.removedirs(path)
+
+            result = check_if_location_exists(location=path, create_dir=create_dir)
+            try:
+                os.removedirs(path)
+            except OSError:
+                pass  # Found a directory that was not empty
+
+            assert result is False
+            assert make_dirs_mock.call_count == 1
+            assert os.path.exists(path) is False

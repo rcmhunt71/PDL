@@ -52,7 +52,8 @@ def datestamp_filename(prefix=None, suffix=None, extension=DEFAULT_EXTENSION,
             filename=filename, suffix=suffix, delim=DELIMITER)
 
     # Add extension
-    filename += "-{loglevel}.{ext}".format(ext=extension, loglevel=log_level.upper())
+    filename += "{delim}{loglevel}.{ext}".format(
+        ext=extension, loglevel=log_level.upper(), delim=DELIMITER)
 
     log.debug("RAW LOG FILENAME: {0}".format(filename))
 
