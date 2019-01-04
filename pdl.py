@@ -31,6 +31,12 @@ class PdlConfig(object):
         # TODO: <CODE> Build all relevant data for locations (OS-agnostic)
         self.dl_dir = self.app_cfg.get(AppCfgFileSections.STORAGE,
                                        AppCfgFileSectionKeys.LOCAL_DIR)
+        self.dl_drive = self.app_cfg.get(AppCfgFileSections.STORAGE,
+                                         AppCfgFileSectionKeys.LOCAL_DRIVE_LETTER)
+
+        if self.dl_drive is not None:
+            self.dl_dir = "{drive}:{dl_dir}".format(drive=self.dl_drive, dl_dir=self.dl_dir)
+            print("Updated DL directory for drive letter: {0}".format(self.dl_dir))
 
         utils.check_if_location_exists(self.dl_dir, create_dir=True)
 
@@ -137,10 +143,16 @@ def process_and_record_urls(cfg_obj):
     cfg_obj.urls = ArgProcessing.process_url_list(raw_url_list, domains=url_domains)
 
     # Write the file of accepted/sanitized URLs to be processed
+    url_file_dir = cfg_obj.app_cfg.get(AppCfgFileSections.LOGGING,
+                                       AppCfgFileSectionKeys.URL_FILE_DIR)
+    url_file_drive = cfg_obj.app_cfg.get(AppCfgFileSections.LOGGING,
+                                         AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
+    if url_file_drive is not None:
+        url_file_dir = "{drive}:{dl_dir}".format(drive=url_file_drive, dl_dir=url_file_dir)
+        log.debug("Updated URL File directory for drive letter: {0}".format(url_file_dir))
+
     url_file.write_file(
-        urls=cfg_obj.urls, create_dir=True,
-        location=cfg_obj.app_cfg.get(AppCfgFileSections.LOGGING,
-                                     AppCfgFileSectionKeys.URL_FILE_DIR))
+        urls=cfg_obj.urls, create_dir=True, location=url_file_dir)
     return cfg_obj.urls
 
 
