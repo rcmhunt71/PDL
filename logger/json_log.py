@@ -21,8 +21,15 @@ class JsonLog(object):
     def build_json_filespec(self):
         location = self.cfg_info.get(AppCfgFileSections.LOGGING,
                                      AppCfgFileSectionKeys.JSON_FILE_DIR)
+        dl_drive = self.cfg_info.get(AppCfgFileSections.LOGGING,
+                                     AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
 
         # Check if location exists, create if requested
+
+        if dl_drive is not None:
+            location = "{drive}:{dl_dir}".format(drive=dl_drive, dl_dir=location)
+            log.debug("Updated DL directory for drive letter: {0}".format(location))
+
         if not utils.check_if_location_exists(
                 location=location, create_dir=True):
             return None
