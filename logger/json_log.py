@@ -25,7 +25,6 @@ class JsonLog(object):
                                      AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
 
         # Check if location exists, create if requested
-
         if dl_drive is not None:
             location = "{drive}:{dl_dir}".format(drive=dl_drive, dl_dir=location)
             log.debug("Updated DL directory for drive letter: {0}".format(location))
@@ -42,7 +41,7 @@ class JsonLog(object):
 
         # Isolate the timestamp out of the logfile name.
         log_name = self.logfile_name.split(os.path.sep)[-1]
-        timestamp = '-'.join(log_name.split('-')[0:-1])
+        timestamp = '-'.join(log_name.split('_')[0:-1])
         for update in add_ons:
             if update is not None:
                 timestamp = timestamp.replace(update, '')
