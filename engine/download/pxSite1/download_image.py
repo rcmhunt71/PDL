@@ -96,7 +96,7 @@ class DownloadPX(DownloadImage):
                    self.status != Status.DOWNLOADED):
                 attempts += 1
 
-                log.debug("({attempt}/{max}: Attempting to DL '{url}'".format(
+                log.debug("({attempt}/{max}): Attempting to DL '{url}'".format(
                     attempt=attempts, max=self.MAX_ATTEMPTS, url=self.image_url)
                 )
 
