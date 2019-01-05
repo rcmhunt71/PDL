@@ -9,6 +9,8 @@ import PDL.logger.utils as utils
 from PDL.configuration.cli.url_file import UrlFile
 from PDL.configuration.cli.urls import UrlArgProcessing as ArgProcessing
 from PDL.configuration.properties.app_cfg import AppConfig, AppCfgFileSections, AppCfgFileSectionKeys
+from PDL.engine.images.image_info import ImageData
+from PDL.engine.inventory.json.inventory import JsonInventory
 from PDL.engine.module_imports import import_module_class
 from PDL.logger.logger import Logger as Logger
 from PDL.reporting.summary import ReportingSummary
@@ -45,6 +47,16 @@ class PdlConfig(object):
 
         self.urls = None
         self.image_data = None
+
+        # Get Inventory (This is a temp solution until a DB is in place)
+        json_loc = self.app_cfg.get(AppCfgFileSections.LOGGING,
+                                    AppCfgFileSectionKeys.JSON_FILE_DIR)
+        json_drive = self.app_cfg.get(AppCfgFileSections.LOGGING,
+                                      AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
+        if json_drive is not None:
+            json_loc = '{0}:{1}'.format(json_drive, json_loc)
+
+        self.inventory = JsonInventory(dir_location=json_loc).get_inventory()
 
 
 class AppLogging(object):
@@ -142,6 +154,9 @@ def process_and_record_urls(cfg_obj):
     # Sanitize the URL list (missing spaces, duplicates, valid and accepted URLs)
     cfg_obj.urls = ArgProcessing.process_url_list(raw_url_list, domains=url_domains)
 
+    # Remove duplicates from the inventory
+    cfg_obj.urls = remove_duplicate_urls_from_inv(cfg_obj)
+
     # Write the file of accepted/sanitized URLs to be processed
     url_file_dir = cfg_obj.app_cfg.get(AppCfgFileSections.LOGGING,
                                        AppCfgFileSectionKeys.URL_FILE_DIR)
@@ -151,8 +166,29 @@ def process_and_record_urls(cfg_obj):
         url_file_dir = "{drive}:{dl_dir}".format(drive=url_file_drive, dl_dir=url_file_dir)
         log.debug("Updated URL File directory for drive letter: {0}".format(url_file_dir))
 
-    url_file.write_file(
-        urls=cfg_obj.urls, create_dir=True, location=url_file_dir)
+    if len(cfg_obj.urls) > 0:
+        url_file.write_file(urls=cfg_obj.urls, create_dir=True, location=url_file_dir)
+    else:
+        log.info("No URLs for DL, no URL FILE created.")
+    return cfg_obj.urls
+
+
+def remove_duplicate_urls_from_inv(cfg_obj):
+    page_urls_in_inv = [getattr(image_obj, ImageData.PAGE_URL) for image_obj in cfg_obj.inventory.values()]
+    orig_urls = set(cfg_obj.urls.copy())
+
+    cfg_obj.urls = [url for url in cfg_obj.urls if url not in page_urls_in_inv]
+    new_urls = set(cfg_obj.urls.copy())
+    duplicates = orig_urls - new_urls
+
+    log.info("Removing URLs from existing inventory: Found {dups} duplicates.".format(
+        dups=len(orig_urls)-len(new_urls)))
+    log.info("URLs for downloading: {dl}.".format(
+        dl=len(new_urls)))
+    if cfg_obj.cli_args.debug:
+        for dup in duplicates:
+            log.debug("Duplicate: {0}".format(dup))
+
     return cfg_obj.urls
 
 
@@ -202,10 +238,13 @@ def download_images(cfg_obj):
             print(image.image_name)
             pprint.pprint(image.to_dict())
 
-    json_logger.JsonLog(
-        image_obj_list=cfg_obj.image_data,
-        cfg_info=cfg_obj.app_cfg,
-        logfile_name=cfg_obj.logfile_name).write_json()
+    if len(cfg_obj.image_data) > 0:
+        json_logger.JsonLog(
+            image_obj_list=cfg_obj.image_data,
+            cfg_info=cfg_obj.app_cfg,
+            logfile_name=cfg_obj.logfile_name).write_json()
+    else:
+        log.info("No images DL'd. No JSON file created.")
 
 # --------------------------------------------------------------------
 
