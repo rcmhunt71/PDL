@@ -25,6 +25,7 @@ class AppCfgFileSections(object):
     IMAGES = 'images'
     PROJECT = 'project'
     STORAGE = 'storage'
+    CLASSIFICATION = 'classification'
 
 
 class AppCfgFileSectionKeys(object):
@@ -55,6 +56,7 @@ class AppCfgFileSectionKeys(object):
     STORAGE_DRIVE_LETTER = 'storage_drive_letter'
     STORAGE_DIR = 'storage_dir'
     SUFFIX = 'suffix'
+    TYPES = 'types'
     URL = 'url'
     URL_DOMAINS = 'url_domains'
     URL_FILE_DIR = 'url_file_dir'
