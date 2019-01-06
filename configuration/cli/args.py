@@ -51,6 +51,7 @@ class ArgOptions(object):
     FILE = 'file'
     FILE_SPEC = 'filespec'
     GENERAL = 'general'
+    IGNORE_DUPS = 'ignore_dups'
     IMAGE = 'image'
     RECORDS = 'records'
     SYNC = 'sync'
@@ -65,6 +66,7 @@ class ArgOptions(object):
         ENGINE: "e",
         FILE: "f",
         FILE_SPEC: "f",
+        IGNORE_DUPS: "i",
         RECORDS: "r",
         REMOVE_DUPS: "x",
         SYNC: "s",
@@ -204,6 +206,14 @@ class CLIArgs(object):
             '--{0}'.format(ArgOptions.FILE),
             help="Download PLAY file from a previous execution",
             metavar="<DL_FILE>"
+        )
+
+        # FILE TO READ URLS
+        dl_args.add_argument(
+            self.get_shortcut(ArgOptions.IGNORE_DUPS),
+            '--{0}'.format(ArgOptions.IGNORE_DUPS),
+            help="Allow duplicate DLs (DL even if DL'd previously)",
+            action='store_true'
         )
 
     def _database(self):
