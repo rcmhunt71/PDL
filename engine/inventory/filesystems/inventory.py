@@ -51,7 +51,7 @@ class FSInv(BaseInventory):
         elif base_dir is None:
             base_dir = target_dir
 
-        log.info("Base Dir: {0}".format(base_dir))
+        log.debug("Scanning Base Dir: {0}".format(base_dir))
 
         # Get the list of files and directories
         contents = os.listdir(directory)
@@ -59,7 +59,7 @@ class FSInv(BaseInventory):
         directories = [str(x) for x in contents if '.' not in x]
 
         # Iterate through the files, populating/updating the _inventory dictionary.
-        log.info("\t+ {0}".format(base_dir))
+        log.debug("\t+ {0}".format(base_dir))
         for file_name in files:
             self._create_entry_structure(file_name)
 
@@ -69,6 +69,7 @@ class FSInv(BaseInventory):
                     for meta in self.metadata:
                         if base_dir.lower().endswith(meta):
                             self._inventory[file_name][meta] = True
+                            self._inventory[file_name][self.DIRS].append(base_dir)
 
                 # Directory did not match metadata, so add location
                 else:
@@ -137,7 +138,7 @@ class FSInv(BaseInventory):
         # Populate the table
         for index, (name, data) in enumerate(self._inventory.items()):
             row = [index, name]
-            for meta in self.metadata:
+            for meta in sorted(self.metadata):
                 row.append('X' if meta in data else '')
             row.append(', '.join(data[self.DIRS]) if data[self.DIRS] != [] else '')
             table.add_row(row)
