@@ -10,6 +10,7 @@ from PDL.configuration.cli.url_file import UrlFile
 from PDL.configuration.cli.urls import UrlArgProcessing as ArgProcessing
 from PDL.configuration.properties.app_cfg import AppConfig, AppCfgFileSections, AppCfgFileSectionKeys
 from PDL.engine.images.image_info import ImageData
+from PDL.engine.inventory.filesystems.inventory import FSInv
 from PDL.engine.inventory.json.inventory import JsonInventory
 from PDL.engine.module_imports import import_module_class
 from PDL.logger.logger import Logger as Logger
@@ -269,6 +270,15 @@ if __name__ == '__main__':
     # -----------------------------------------------------------------
     elif app_config.cli_args.command == args.ArgSubmodules.DUPLICATES:
         log.debug("Selected args.ArgSubmodules.DUPLICATES")
+
+        # INVENTORY
+        metadata = app_config.app_cfg.get_list(section=AppCfgFileSections.CLASSIFICATION,
+                                               option=AppCfgFileSectionKeys.TYPES)
+
+        inv = FSInv(base_dir="E:\\Other Backups\\System\\Media\\Music\\TC", metadata=metadata)
+        inv.get_inventory()
+        inv.list_duplicates()
+        log.info(inv.list_inventory())
 
     # -----------------------------------------------------------------
     #                      DATABASE
