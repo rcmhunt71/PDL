@@ -154,8 +154,9 @@ def process_and_record_urls(cfg_obj):
     # Sanitize the URL list (missing spaces, duplicates, valid and accepted URLs)
     cfg_obj.urls = ArgProcessing.process_url_list(raw_url_list, domains=url_domains)
 
-    # Remove duplicates from the inventory
-    cfg_obj.urls = remove_duplicate_urls_from_inv(cfg_obj)
+    # Remove duplicates from the inventory (can be disabled via CLI)
+    if not cfg_obj.cli_args.ignore_dups:
+        cfg_obj.urls = remove_duplicate_urls_from_inv(cfg_obj)
 
     # Write the file of accepted/sanitized URLs to be processed
     url_file_dir = cfg_obj.app_cfg.get(AppCfgFileSections.LOGGING,
@@ -185,9 +186,9 @@ def remove_duplicate_urls_from_inv(cfg_obj):
         dups=len(orig_urls)-len(new_urls)))
     log.info("URLs for downloading: {dl}.".format(
         dl=len(new_urls)))
-    if cfg_obj.cli_args.debug:
-        for dup in duplicates:
-            log.debug("Duplicate: {0}".format(dup))
+
+    for dup in duplicates:
+        log.info("Duplicate: {0}".format(dup))
 
     return cfg_obj.urls
 
