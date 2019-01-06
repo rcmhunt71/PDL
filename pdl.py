@@ -30,14 +30,14 @@ class PdlConfig(object):
         self.engine_cfg = AppConfig(self.cli_args.engine or DEFAULT_ENGINE_CONFIG)
 
         # Define the download the directory and create the directory if needed
-        # TODO: <CODE> Build all relevant data for locations (OS-agnostic)
         self.dl_dir = self.app_cfg.get(AppCfgFileSections.STORAGE,
                                        AppCfgFileSectionKeys.LOCAL_DIR)
         self.dl_drive = self.app_cfg.get(AppCfgFileSections.STORAGE,
                                          AppCfgFileSectionKeys.LOCAL_DRIVE_LETTER)
 
         if self.dl_drive is not None:
-            self.dl_dir = "{drive}:{dl_dir}".format(drive=self.dl_drive, dl_dir=self.dl_dir)
+            self.dl_dir = "{drive}:{dl_dir}".format(
+                drive=self.dl_drive.strip(':'), dl_dir=self.dl_dir)
             print("Updated DL directory for drive letter: {0}".format(self.dl_dir))
 
         utils.check_if_location_exists(self.dl_dir, create_dir=True)
@@ -54,7 +54,7 @@ class PdlConfig(object):
         json_drive = self.app_cfg.get(AppCfgFileSections.LOGGING,
                                       AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
         if json_drive is not None:
-            json_loc = '{0}:{1}'.format(json_drive, json_loc)
+            json_loc = '{0}:{1}'.format(json_drive.strip(':'), json_loc)
 
         self.inventory = JsonInventory(dir_location=json_loc).get_inventory()
 
@@ -233,12 +233,14 @@ def download_images(cfg_obj):
     results.log_download_status_results_table()
     results.log_detailed_download_results_table()
 
+    # Log image metadata (DEBUG)
     if cfg_obj.cli_args.debug:
         for image in cfg_obj.image_data:
-            print(image.image_name)
-            pprint.pprint(image.to_dict())
+            log.debug(image.image_name)
+            log.debug(pprint.pformat(image.to_dict()))
 
-    if len(cfg_obj.image_data) > 0:
+    # If images were downloaded, create the corresponding JSON file
+    if cfg_obj.image_data:
         json_logger.JsonLog(
             image_obj_list=cfg_obj.image_data,
             cfg_info=cfg_obj.app_cfg,
