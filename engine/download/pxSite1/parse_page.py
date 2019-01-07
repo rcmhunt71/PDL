@@ -186,7 +186,7 @@ class ParseDisplayPage(CatalogPage):
         return url
 
     def _get_metadata(self):
-        metadata = None
+        metadata = dict()
 
         # Get PreLoaded Data, which contains image metadata
         data_pattern = r'window\.PxPreloadedData\s*=\s*(?P<data>.*?),\"comments\"'
@@ -213,6 +213,11 @@ class ParseDisplayPage(CatalogPage):
                           "representation: {0}".format(exc.args))
                 log.debug("Matching Source:  {0}".format(raw_data))
                 pass
+
+        # Did not find a match... something has changed on the page
+        else:
+            log.error("*** Unable to parse metadata from page. ***")
+            log.error("PAGE:\n{0}".format(self.source_list))
 
         log.debug("Image Metadata:\n{0}".format(pprint.pformat(metadata)))
         return metadata
