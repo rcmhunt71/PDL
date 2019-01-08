@@ -1,4 +1,5 @@
 import os
+import pickle
 
 import prettytable
 
@@ -7,6 +8,8 @@ from PDL.engine.inventory.base_inventory import BaseInventory
 from PDL.logger.logger import Logger
 
 log = Logger()
+
+# TODO: Add doctstrings
 
 
 class FSInv(BaseInventory):
@@ -20,30 +23,39 @@ class FSInv(BaseInventory):
     FILE_EXT = ".jpg"
     DIRS = 'dirs'
 
-    def __init__(self, base_dir, cfg_info=None, metadata=None):
+    def __init__(self, base_dir, cfg_info=None, metadata=None, serialization=False):
         self.base_dir = base_dir
         self.metadata = metadata
         self.cfg_info = cfg_info
         self.pickle_fname = self._build_pickle_filename()
+        self.serialize = serialization
         super(FSInv, self).__init__()
 
-    def get_inventory(self, from_file=False, pickle=False):
+    def get_inventory(self, from_file=None, serialize=None):
+        serialize = self.serialize if serialize is None else serialize
+        from_file = self.serialize if from_file is None else from_file
+
         if not self._inventory:
-            self.scan_inventory(pickle=pickle, from_file=from_file)
+            self.scan_inventory(serialize=serialize, from_file=from_file)
+
         return self._inventory
 
-    def scan_inventory(self, pickle=False, from_file=False):
+    def scan_inventory(self, serialize=None, from_file=None):
         """
         Aggregate the inventory, and include previous inventory if requested.
+
         :return: None
 
         """
+        serialize = self.serialize if serialize is None else serialize
+        from_file = self.serialize if from_file is None else from_file
+
         if from_file:
             self._inventory = self._unpickle(filename=self.pickle_fname)
 
         self._scan_(base_dir=self.base_dir)
 
-        if pickle:
+        if serialize:
             self._pickle(data=self._inventory, filename=self.pickle_fname)
 
     def _build_pickle_filename(self):
@@ -57,19 +69,24 @@ class FSInv(BaseInventory):
         # Check if location exists, create if requested
         location = os.path.sep.join([location, filename])
         if dl_drive is not None:
-            location = "{drive}:{dl_dir}".format(drive=dl_drive, dl_dir=location)
+            location = "{drive}:{dl_dir}".format(drive=dl_drive.strip(":"), dl_dir=location)
             log.debug("Updated data directory for drive letter: {0}".format(location))
         return filename
 
     def _pickle(self, data, filename):
         # TODO: Add write pickling
-        # open file
+        # Example: https://pythontips.com/2013/08/02/what-is-pickle-in-python/
+        # Check for file existence
+        # open file (overwrite, binary)
         # pickle.dump(obj)
         pass
 
     def _unpickle(self, filename):
         # TODO: Add read pickling
         data = dict()
+        # Check for file existence
+        # FD = open file
+        # pickle.load(FD)
         return data
 
     def _scan_(self, target_dir=None, base_dir=None):
