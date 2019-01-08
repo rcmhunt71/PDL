@@ -34,6 +34,7 @@ class ImageData(object):
         self.image_date = None
         self.resolution = None
         self.downloaded_on = None
+        self.classification_metadata = dict()
         self.download_duration = 0
         self.locations = list()
         self.dl_status = Status.NOT_SET

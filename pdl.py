@@ -8,7 +8,8 @@ import PDL.logger.json_log as json_logger
 import PDL.logger.utils as utils
 from PDL.configuration.cli.url_file import UrlFile
 from PDL.configuration.cli.urls import UrlArgProcessing as ArgProcessing
-from PDL.configuration.properties.app_cfg import AppConfig, AppCfgFileSections, AppCfgFileSectionKeys
+from PDL.configuration.properties.app_cfg import (
+    AppConfig, AppCfgFileSections, AppCfgFileSectionKeys, ProjectCfgFileSectionKeys, ProjectCfgFileSections)
 from PDL.engine.images.image_info import ImageData
 from PDL.engine.inventory.filesystems.inventory import FSInv
 from PDL.engine.inventory.json.inventory import JsonInventory
@@ -18,6 +19,10 @@ from PDL.reporting.summary import ReportingSummary
 
 DEFAULT_ENGINE_CONFIG = 'pdl.cfg'
 DEFAULT_APP_CONFIG = None
+PICKLE_EXT = ".dat"
+
+# TODO: Add docstrings and inline comments
+LOCAL_STORAGE = ""
 
 
 class NoURLsProvided(Exception):
@@ -31,33 +36,59 @@ class PdlConfig(object):
         self.engine_cfg = AppConfig(self.cli_args.engine or DEFAULT_ENGINE_CONFIG)
 
         # Define the download the directory and create the directory if needed
-        self.dl_dir = self.app_cfg.get(AppCfgFileSections.STORAGE,
-                                       AppCfgFileSectionKeys.LOCAL_DIR)
-        self.dl_drive = self.app_cfg.get(AppCfgFileSections.STORAGE,
-                                         AppCfgFileSectionKeys.LOCAL_DRIVE_LETTER)
-
-        if self.dl_drive is not None:
-            self.dl_dir = "{drive}:{dl_dir}".format(
-                drive=self.dl_drive.strip(':'), dl_dir=self.dl_dir)
-            print("Updated DL directory for drive letter: {0}".format(self.dl_dir))
-
-        utils.check_if_location_exists(self.dl_dir, create_dir=True)
+        self.json_log_location = None
+        self.dl_dir = None
 
         self.logfile_name = None
         self.json_log = None
-
         self.urls = None
         self.image_data = None
+        self.inv_pickle_file = None
+
+        self._build_resource_paths_and_filename()
+        utils.check_if_location_exists(self.dl_dir, create_dir=True)
 
         # Get Inventory (This is a temp solution until a DB is in place)
-        json_loc = self.app_cfg.get(AppCfgFileSections.LOGGING,
-                                    AppCfgFileSectionKeys.JSON_FILE_DIR)
+        self.inventory = JsonInventory(dir_location=self.json_log_location).get_inventory()
+
+    def _build_resource_paths_and_filename(self):
+
+        # IMAGE DOWNLOAD DIRECTORY
+        # =========================
+        self.dl_dir = self.app_cfg.get(AppCfgFileSections.STORAGE,
+                                       AppCfgFileSectionKeys.LOCAL_DIR)
+        dl_drive = self.app_cfg.get(AppCfgFileSections.STORAGE,
+                                    AppCfgFileSectionKeys.LOCAL_DRIVE_LETTER)
+
+        if dl_drive is not None:
+            self.dl_dir = "{drive}:{dl_dir}".format(
+                drive=dl_drive.strip(':'), dl_dir=self.dl_dir)
+        print("DL directory: {0}".format(self.dl_dir))
+
+        # JSON LOG FILE
+        # ======================
+        self.json_log_location = self.app_cfg.get(AppCfgFileSections.LOGGING,
+                                                  AppCfgFileSectionKeys.JSON_FILE_DIR)
         json_drive = self.app_cfg.get(AppCfgFileSections.LOGGING,
                                       AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
         if json_drive is not None:
-            json_loc = '{0}:{1}'.format(json_drive.strip(':'), json_loc)
+            self.json_log_location = '{0}:{1}'.format(json_drive.strip(':'), self.json_log_location)
+        print("JSON DL Info: {0}".format(self.json_log_location))
 
-        self.inventory = JsonInventory(dir_location=json_loc).get_inventory()
+        # INVENTORY PICKLE FILE
+        # ==========================
+        pickle_location = self.app_cfg.get(AppCfgFileSections.LOGGING,
+                                           AppCfgFileSectionKeys.JSON_FILE_DIR)
+        pickle_drive = self.app_cfg.get(AppCfgFileSections.LOGGING,
+                                        AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
+        pickle_filename = "{0}{1}".format(self.engine_cfg.get(ProjectCfgFileSections.PYTHON_PROJECT,
+                                                              ProjectCfgFileSectionKeys.NAME).upper(), PICKLE_EXT)
+
+        self.inv_pickle_file = os.path.sep.join([pickle_location, pickle_filename])
+        if pickle_drive is not None:
+            self.inv_pickle_file = "{drive}:{dl_dir}".format(
+                drive=pickle_drive.strip(":"), dl_dir=self.inv_pickle_file)
+        print("Binary Inventory Data File: {0}".format(self.inv_pickle_file))
 
 
 class AppLogging(object):
@@ -211,10 +242,12 @@ def download_images(cfg_obj):
 
     # Get the correct image URL from each catalog Page
     cfg_obj.image_data = list()
-    for page_url in url_list:
+    for index, page_url in enumerate(url_list):
 
         # Parse the primary image page for the image URL and metadata.
         catalog = Catalog(page_url=page_url)
+        log.info("({index}/{total}) Retrieving URL: {url}".format(
+            index=index + 1, total=len(url_list), url=page_url))
         catalog.get_image_info()
 
         # If parsing was successful, store the image URL
@@ -258,25 +291,31 @@ if __name__ == '__main__':
     app_config = PdlConfig()
     log = AppLogging.configure_logging(app_cfg_obj=app_config)
 
+    # INVENTORY
+    metadata = app_config.app_cfg.get_list(
+        section=AppCfgFileSections.CLASSIFICATION,
+        option=AppCfgFileSectionKeys.TYPES)
+
+    inv = FSInv(
+        base_dir=LOCAL_STORAGE, metadata=metadata,
+        serialization=True, binary_filename=app_config.inv_pickle_file)
+
+    inv.get_inventory(from_file=True, serialize=True, scan_local=True)
+
     # -----------------------------------------------------------------
     #                      DOWNLOAD
     # -----------------------------------------------------------------
     if app_config.cli_args.command == args.ArgSubmodules.DOWNLOAD:
         log.debug("Selected args.ArgSubmodules.DOWNLOAD")
         download_images(cfg_obj=app_config)
+        # TODO: Get inventory, include as part of filtering for downloading images.
 
     # -----------------------------------------------------------------
     #                DUPLICATE MANAGEMENT
     # -----------------------------------------------------------------
     elif app_config.cli_args.command == args.ArgSubmodules.DUPLICATES:
         log.debug("Selected args.ArgSubmodules.DUPLICATES")
-
-        # INVENTORY
-        metadata = app_config.app_cfg.get_list(section=AppCfgFileSections.CLASSIFICATION,
-                                               option=AppCfgFileSectionKeys.TYPES)
-
-        inv = FSInv(base_dir="E:\\Other Backups\\System\\Media\\Music\\TC", metadata=metadata)
-        inv.get_inventory()
+        inv.scan_inventory()
         inv.list_duplicates()
         log.info(inv.list_inventory())
 
@@ -300,3 +339,4 @@ if __name__ == '__main__':
         raise args.UnrecognizedModule(app_config.cli_args.command)
 
     log.info("LOGGED TO: {logfile}".format(logfile=app_config.logfile_name))
+    inv.scan_inventory(scan_local=True, from_file=False, serialize=True)
