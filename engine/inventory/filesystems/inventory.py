@@ -2,6 +2,7 @@ import os
 
 import prettytable
 
+from PDL.configuration.properties.app_cfg import AppCfgFileSections, AppCfgFileSectionKeys
 from PDL.engine.inventory.base_inventory import BaseInventory
 from PDL.logger.logger import Logger
 
@@ -19,19 +20,57 @@ class FSInv(BaseInventory):
     FILE_EXT = ".jpg"
     DIRS = 'dirs'
 
-    def __init__(self, base_dir, metadata=None):
+    def __init__(self, base_dir, cfg_info=None, metadata=None):
         self.base_dir = base_dir
         self.metadata = metadata
+        self.cfg_info = cfg_info
+        self.pickle_fname = self._build_pickle_filename()
         super(FSInv, self).__init__()
 
-    def get_inventory(self):
-        """
-        Aggregate the inventory.
+    def get_inventory(self, from_file=False, pickle=False):
+        if not self._inventory:
+            self.scan_inventory(pickle=pickle, from_file=from_file)
+        return self._inventory
 
+    def scan_inventory(self, pickle=False, from_file=False):
+        """
+        Aggregate the inventory, and include previous inventory if requested.
         :return: None
 
         """
+        if from_file:
+            self._inventory = self._unpickle(filename=self.pickle_fname)
+
         self._scan_(base_dir=self.base_dir)
+
+        if pickle:
+            self._pickle(data=self._inventory, filename=self.pickle_fname)
+
+    def _build_pickle_filename(self):
+        location = self.cfg_info.get(AppCfgFileSections.LOGGING,
+                                     AppCfgFileSectionKeys.JSON_FILE_DIR)
+        dl_drive = self.cfg_info.get(AppCfgFileSections.LOGGING,
+                                     AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
+        filename = self.cfg_info.get(AppCfgFileSections.CLASSIFICATION,
+                                     AppCfgFileSectionKeys.INVENTORY_FILENAME)
+
+        # Check if location exists, create if requested
+        location = os.path.sep.join([location, filename])
+        if dl_drive is not None:
+            location = "{drive}:{dl_dir}".format(drive=dl_drive, dl_dir=location)
+            log.debug("Updated data directory for drive letter: {0}".format(location))
+        return filename
+
+    def _pickle(self, data, filename):
+        # TODO: Add write pickling
+        # open file
+        # pickle.dump(obj)
+        pass
+
+    def _unpickle(self, filename):
+        # TODO: Add read pickling
+        data = dict()
+        return data
 
     def _scan_(self, target_dir=None, base_dir=None):
         """
