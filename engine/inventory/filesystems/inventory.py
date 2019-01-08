@@ -2,8 +2,8 @@ import os
 import pickle
 
 import prettytable
-
-from PDL.configuration.properties.app_cfg import AppCfgFileSections, AppCfgFileSectionKeys
+from PDL.configuration.properties.app_cfg import (
+    AppCfgFileSections, AppCfgFileSectionKeys, ProjectCfgFileSectionKeys, ProjectCfgFileSections)
 from PDL.engine.inventory.base_inventory import BaseInventory
 from PDL.logger.logger import Logger
 
@@ -20,7 +20,8 @@ class FSInv(BaseInventory):
     the metadata, it will create a flag (rather than store the location for that instance of the image)
     """
 
-    FILE_EXT = ".jpg"
+    INV_FILE_EXT = ".jpg"
+    DATA_FILE_EXT = ".dat"
     DIRS = 'dirs'
 
     def __init__(self, base_dir, cfg_info=None, metadata=None, serialization=False):
@@ -31,16 +32,16 @@ class FSInv(BaseInventory):
         self.serialize = serialization
         super(FSInv, self).__init__()
 
-    def get_inventory(self, from_file=None, serialize=None):
+    def get_inventory(self, from_file=None, serialize=None, scan_local=True):
         serialize = self.serialize if serialize is None else serialize
         from_file = self.serialize if from_file is None else from_file
 
         if not self._inventory:
-            self.scan_inventory(serialize=serialize, from_file=from_file)
+            self.scan_inventory(serialize=serialize, from_file=from_file, scan_local=scan_local)
 
         return self._inventory
 
-    def scan_inventory(self, serialize=None, from_file=None):
+    def scan_inventory(self, scan_local=True, serialize=None, from_file=None):
         """
         Aggregate the inventory, and include previous inventory if requested.
 
@@ -50,43 +51,52 @@ class FSInv(BaseInventory):
         serialize = self.serialize if serialize is None else serialize
         from_file = self.serialize if from_file is None else from_file
 
+        log.debug("Serialize data: {0}".format(str(serialize)))
+        log.debug("Read from file: {0}".format(str(from_file)))
+
         if from_file:
+            log.info("Reading inventory from {0}".format(self.pickle_fname))
             self._inventory = self._unpickle(filename=self.pickle_fname)
 
-        self._scan_(base_dir=self.base_dir)
+        if scan_local:
+            log.debug("Scanning local inventory.")
+            self._scan_(base_dir=self.base_dir)
 
         if serialize:
+            log.info("Writing inventory to {0}".format(self.pickle_fname))
             self._pickle(data=self._inventory, filename=self.pickle_fname)
 
     def _build_pickle_filename(self):
-        location = self.cfg_info.get(AppCfgFileSections.LOGGING,
-                                     AppCfgFileSectionKeys.JSON_FILE_DIR)
-        dl_drive = self.cfg_info.get(AppCfgFileSections.LOGGING,
-                                     AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
-        filename = self.cfg_info.get(AppCfgFileSections.CLASSIFICATION,
-                                     AppCfgFileSectionKeys.INVENTORY_FILENAME)
+        location = self.cfg_info.app_cfg.get(AppCfgFileSections.LOGGING,
+                                             AppCfgFileSectionKeys.JSON_FILE_DIR)
+        dl_drive = self.cfg_info.app_cfg.get(AppCfgFileSections.LOGGING,
+                                             AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
+        filename = "{0}{1}".format(self.cfg_info.engine_cfg.get(ProjectCfgFileSections.PYTHON_PROJECT,
+                                                                ProjectCfgFileSectionKeys.NAME).upper(),
+                                   self.DATA_FILE_EXT)
 
         # Check if location exists, create if requested
         location = os.path.sep.join([location, filename])
         if dl_drive is not None:
             location = "{drive}:{dl_dir}".format(drive=dl_drive.strip(":"), dl_dir=location)
             log.debug("Updated data directory for drive letter: {0}".format(location))
-        return filename
+        log.debug("Inventory Data File: {0}".format(location))
+        return location
 
     def _pickle(self, data, filename):
-        # TODO: Add write pickling
-        # Example: https://pythontips.com/2013/08/02/what-is-pickle-in-python/
-        # Check for file existence
-        # open file (overwrite, binary)
-        # pickle.dump(obj)
-        pass
+        log.debug("Pickling inventory to {0}".format(filename))
+        with open(filename, "wb") as PICKLE:
+            pickle.dump(data, PICKLE)
+        log.debug("Pickling inventory complete")
 
     def _unpickle(self, filename):
-        # TODO: Add read pickling
         data = dict()
-        # Check for file existence
-        # FD = open file
-        # pickle.load(FD)
+        if os.path.exists(filename):
+            with open(filename, "rb") as PICKLE:
+                data = pickle.load(PICKLE)
+            self._inventory.update(data)
+        else:
+            log.error("Unable to find/open '{0}' for reading serialized data.".format(filename))
         return data
 
     def _scan_(self, target_dir=None, base_dir=None):
@@ -111,7 +121,7 @@ class FSInv(BaseInventory):
 
         # Get the list of files and directories
         contents = os.listdir(directory)
-        files = [str(x).rstrip(self.FILE_EXT) for x in contents if x.endswith(self.FILE_EXT)]
+        files = [str(x).rstrip(self.INV_FILE_EXT) for x in contents if x.endswith(self.INV_FILE_EXT)]
         directories = [str(x) for x in contents if '.' not in x]
 
         # Iterate through the files, populating/updating the _inventory dictionary.
