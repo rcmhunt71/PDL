@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from collections import OrderedDict
 import os
 import pprint
 
@@ -15,7 +16,10 @@ from PDL.engine.inventory.filesystems.inventory import FSInv
 from PDL.engine.inventory.json.inventory import JsonInventory
 from PDL.engine.module_imports import import_module_class
 from PDL.logger.logger import Logger as Logger
+from PDL.logger.json_log import JsonLog
 from PDL.reporting.summary import ReportingSummary
+
+import prettytable
 
 DEFAULT_ENGINE_CONFIG = 'pdl.cfg'
 DEFAULT_APP_CONFIG = None
@@ -36,59 +40,102 @@ class PdlConfig(object):
         self.engine_cfg = AppConfig(self.cli_args.engine or DEFAULT_ENGINE_CONFIG)
 
         # Define the download the directory and create the directory if needed
-        self.json_log_location = None
-        self.dl_dir = None
-
-        self.logfile_name = None
-        self.json_log = None
+        self.dl_dir = self._build_image_download_dir()
+        self.logfile_name = self._build_logfile_name()
+        self.json_log_location = self._build_json_log_location()
+        self.json_logfile = self._build_json_logfile_name()
+        self.inv_pickle_file = self._build_pickle_filename()
         self.urls = None
         self.image_data = None
-        self.inv_pickle_file = None
 
-        self._build_resource_paths_and_filename()
-        utils.check_if_location_exists(self.dl_dir, create_dir=True)
+        self._display_file_locations()
 
         # Get Inventory (This is a temp solution until a DB is in place)
         self.inventory = JsonInventory(dir_location=self.json_log_location).get_inventory()
 
-    def _build_resource_paths_and_filename(self):
-
+    def _build_image_download_dir(self):
+        # =========================
         # IMAGE DOWNLOAD DIRECTORY
         # =========================
-        self.dl_dir = self.app_cfg.get(AppCfgFileSections.STORAGE,
-                                       AppCfgFileSectionKeys.LOCAL_DIR)
+        dl_dir = self.app_cfg.get(AppCfgFileSections.STORAGE,
+                                  AppCfgFileSectionKeys.LOCAL_DIR)
         dl_drive = self.app_cfg.get(AppCfgFileSections.STORAGE,
                                     AppCfgFileSectionKeys.LOCAL_DRIVE_LETTER)
 
         if dl_drive is not None:
-            self.dl_dir = "{drive}:{dl_dir}".format(
-                drive=dl_drive.strip(':'), dl_dir=self.dl_dir)
-        print("DL directory: {0}".format(self.dl_dir))
+            dl_dir = "{drive}:{dl_dir}".format(
+                drive=dl_drive.strip(':'), dl_dir=dl_dir)
+        utils.check_if_location_exists(location=dl_dir, create_dir=True)
+        return dl_dir
 
-        # JSON LOG FILE
+    def _build_logfile_name(self):
+        # ================================
+        # LOGFILE NAME
+        # ================================
+        logfile_name = AppLogging.build_logfile_name(cfg_info=self.app_cfg)
+        log_dir = os.path.sep.join(logfile_name.split(os.path.sep)[0:-1])
+        utils.check_if_location_exists(location=log_dir, create_dir=True)
+        return logfile_name
+
+    def _build_json_log_location(self):
         # ======================
-        self.json_log_location = self.app_cfg.get(AppCfgFileSections.LOGGING,
-                                                  AppCfgFileSectionKeys.JSON_FILE_DIR)
+        # JSON LOGFILE LOCATION
+        # ======================
+        json_log_location = self.app_cfg.get(AppCfgFileSections.LOGGING,
+                                             AppCfgFileSectionKeys.JSON_FILE_DIR)
         json_drive = self.app_cfg.get(AppCfgFileSections.LOGGING,
                                       AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
         if json_drive is not None:
-            self.json_log_location = '{0}:{1}'.format(json_drive.strip(':'), self.json_log_location)
-        print("JSON DL Info: {0}".format(self.json_log_location))
+            json_log_location = '{0}:{1}'.format(json_drive.strip(':'), json_log_location)
+        utils.check_if_location_exists(location=json_log_location, create_dir=True)
+        return json_log_location
 
+    def _build_json_logfile_name(self):
+        # Get logging prefix and suffix
+        add_ons = [self.app_cfg.get(AppCfgFileSections.LOGGING,
+                                    AppCfgFileSectionKeys.PREFIX),
+                   self.app_cfg.get(AppCfgFileSections.LOGGING,
+                                    AppCfgFileSectionKeys.SUFFIX)]
+
+        # Isolate the timestamp out of the logfile name.
+        log_name = self.logfile_name.split(os.path.sep)[-1]
+        timestamp = '-'.join(log_name.split('_')[0:-1])
+        for update in add_ons:
+            if update is not None:
+                timestamp = timestamp.replace(update, '')
+
+        # Build the file name
+        filename = "{timestamp}.{ext}".format(timestamp=timestamp,
+                                              ext=JsonLog.EXTENSION)
+        # Build the full file spec
+        filename = os.path.sep.join([self.json_log_location, filename])
+        return filename
+
+    def _build_pickle_filename(self):
+        # ==========================
         # INVENTORY PICKLE FILE
         # ==========================
-        pickle_location = self.app_cfg.get(AppCfgFileSections.LOGGING,
-                                           AppCfgFileSectionKeys.JSON_FILE_DIR)
-        pickle_drive = self.app_cfg.get(AppCfgFileSections.LOGGING,
-                                        AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
+        pickle_location = self.json_log_location
         pickle_filename = "{0}{1}".format(self.engine_cfg.get(ProjectCfgFileSections.PYTHON_PROJECT,
                                                               ProjectCfgFileSectionKeys.NAME).upper(), PICKLE_EXT)
+        pickle_filename = os.path.sep.join([pickle_location, pickle_filename])
+        utils.check_if_location_exists(location=pickle_location, create_dir=True)
+        return pickle_filename
 
-        self.inv_pickle_file = os.path.sep.join([pickle_location, pickle_filename])
-        if pickle_drive is not None:
-            self.inv_pickle_file = "{drive}:{dl_dir}".format(
-                drive=pickle_drive.strip(":"), dl_dir=self.inv_pickle_file)
-        print("Binary Inventory Data File: {0}".format(self.inv_pickle_file))
+    def _display_file_locations(self):
+        table = prettytable.PrettyTable()
+        table.field_names = ['File Type', 'Location']
+        for col in table.field_names:
+            table.align[col] = 'l'
+
+        setup = OrderedDict([
+            ('DL Directory', self.dl_dir),
+            ('DL Log File', self.logfile_name),
+            ('JSON Data File', self.json_logfile),
+            ('Binary Inv File', self.inv_pickle_file)])
+        for name, data in setup.items():
+            table.add_row([name, data])
+        print(table.get_string(title="FILE INFORMATION"))
 
 
 class AppLogging(object):
@@ -102,7 +149,7 @@ class AppLogging(object):
 
         :param cfg_info: Absolute path to the configuration file
 
-        :return: (str) name of the log file.
+        :return: tuple((str) log file directory, (str) full filespec name of the log file).
 
         """
         logfile_info = {
@@ -125,8 +172,7 @@ class AppLogging(object):
             if value == '' or value == 'None':
                 logfile_info[key] = None
 
-        log_name = utils.datestamp_filename(**logfile_info)
-        return log_name
+        return utils.datestamp_filename(**logfile_info)
 
     @classmethod
     def configure_logging(cls, app_cfg_obj):
@@ -139,13 +185,11 @@ class AppLogging(object):
             log_level = 'debug'
 
         # Determine and store the log file name, create directory if needed.
-        log_file = cls.build_logfile_name(cfg_info=app_cfg_obj.app_cfg)
-        app_cfg_obj.logfile_name = log_file
-        log_dir = os.path.sep.join(log_file.split(os.path.sep)[0:-1])
+        log_dir = os.path.sep.join(app_cfg_obj.logfile_name.split(os.path.sep)[0:-1])
         utils.check_if_location_exists(location=log_dir, create_dir=True)
 
         # Setup the root logger for the app
-        logger = Logger(filename=log_file,
+        logger = Logger(filename=app_cfg_obj.logfile_name,
                         default_level=Logger.STR_TO_VAL[log_level],
                         project=app_cfg_obj.app_cfg.get(
                             AppCfgFileSections.PROJECT,
@@ -153,7 +197,7 @@ class AppLogging(object):
                         set_root=True)
 
         # Show defined loggers and log levels
-        logger.debug("Log File: {0}".format(log_file))
+        logger.debug("Log File: {0}".format(app_cfg_obj.logfile_name))
         for line in logger.list_loggers().split('\n'):
             logger.debug(line)
 
@@ -278,8 +322,7 @@ def download_images(cfg_obj):
     if cfg_obj.image_data:
         json_logger.JsonLog(
             image_obj_list=cfg_obj.image_data,
-            cfg_info=cfg_obj.app_cfg,
-            logfile_name=cfg_obj.logfile_name).write_json()
+            logfile_name=cfg_obj.json_logfile).write_json()
     else:
         log.info("No images DL'd. No JSON file created.")
 
