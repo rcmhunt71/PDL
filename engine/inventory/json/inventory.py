@@ -36,7 +36,7 @@ class JsonInventory(BaseInventory):
         """
 
         # Get list of JSON files
-        filename_list = self._get_json_files(loc=self.location)
+        filename_list = self.get_json_files(loc=self.location)
 
         # Read all json files and return list of json blobs (1 blob per file)
         content_list = self._read_content(files=filename_list)
@@ -46,7 +46,7 @@ class JsonInventory(BaseInventory):
         inv = self._build_inventory_dict(content_list)
         return inv
 
-    def _get_json_files(self, loc):
+    def get_json_files(self, loc=None):
         """
         Get list of JSON files (<filespec>.json)
 
@@ -55,6 +55,8 @@ class JsonInventory(BaseInventory):
         :return: list of files (with full filespec)
 
         """
+        loc = loc or self.location
+
         files = list()
         if os.path.exists(loc):
             files = [os.path.sep.join([loc, x]) for x in os.listdir(loc) if x.lower().endswith(self.EXT.lower())]
