@@ -20,9 +20,12 @@ class ImageData(object):
     AUTHOR = 'author'
     DESCRIPTION = 'description'
     RESOLUTION = 'resolution'
+    FILENAME = 'filename'
+    LOCATIONS = 'locations'
+    CLASSIFICATION = 'classification_metadata'
 
     # List of the metadata specific to the image
-    METADATA = [DL_STATUS, IMAGE_NAME, PAGE_URL, IMAGE_URL, AUTHOR, DESCRIPTION, RESOLUTION]
+    METADATA = [DL_STATUS, IMAGE_NAME, PAGE_URL, IMAGE_URL, AUTHOR, DESCRIPTION, RESOLUTION, FILENAME]
 
     def __init__(self):
         self.image_name = None
@@ -34,7 +37,7 @@ class ImageData(object):
         self.image_date = None
         self.resolution = None
         self.downloaded_on = None
-        self.classification_metadata = dict()
+        self.classification_metadata = list()
         self.download_duration = 0
         self.locations = list()
         self.dl_status = Status.NOT_SET

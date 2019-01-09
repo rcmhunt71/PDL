@@ -1,9 +1,12 @@
 import os
 import pickle
 
-import prettytable
+from PDL.engine.images.image_info import ImageData
+from PDL.engine.images.status import DownloadStatus
 from PDL.engine.inventory.base_inventory import BaseInventory
 from PDL.logger.logger import Logger
+
+import prettytable
 
 log = Logger()
 
@@ -20,7 +23,6 @@ class FSInv(BaseInventory):
 
     INV_FILE_EXT = ".jpg"
     DATA_FILE_EXT = ".dat"
-    DIRS = 'dirs'
 
     def __init__(self, base_dir, metadata=None, serialization=False, binary_filename=None):
         self.base_dir = base_dir
@@ -108,39 +110,43 @@ class FSInv(BaseInventory):
         # Iterate through the files, populating/updating the _inventory dictionary.
         log.debug("\t+ {0}".format(base_dir))
         for file_name in files:
-            self._create_entry_structure(file_name)
+            self._add_imagedata_object(file_name)
 
             # If metadata was defined/provided
-            if self.metadata:
-                if base_dir.lower().endswith(tuple([x.lower() for x in self.metadata])):
-                    for meta in self.metadata:
-                        if base_dir.lower().endswith(meta):
-                            self._inventory[file_name][meta] = True
-                            self._inventory[file_name][self.DIRS].append(base_dir)
+            image_obj = self._inventory[file_name]
+            if base_dir not in getattr(image_obj, ImageData.LOCATIONS):
+                if self.metadata:
+                    if base_dir.lower().endswith(tuple([x.lower() for x in self.metadata])):
+                        for meta in self.metadata:
+                            if base_dir.lower().endswith(meta.lower()):
+                                getattr(image_obj, ImageData.CLASSIFICATION).append(meta)
+                                getattr(image_obj, ImageData.LOCATIONS).append(base_dir)
 
-                # Directory did not match metadata, so add location
+                    # Directory did not match metadata, so add new location
+                    else:
+                        getattr(self._inventory[file_name], ImageData.LOCATIONS).append(base_dir)
+
+                # No metadata provided... just store location
                 else:
-                    self._inventory[file_name][self.DIRS].append(str(directory))
-
-            # No metadata provided... just store location
-            else:
-                self._inventory[file_name][self.DIRS].append(str(directory))
+                    getattr(self._inventory[file_name], ImageData.LOCATIONS).append(base_dir)
 
         # Iterate through the directories
         for directory in directories:
             directory = os.path.join(str(base_dir), str(directory))
             self._scan_(target_dir=directory)
 
-    def _create_entry_structure(self, file_name):
+    def _add_imagedata_object(self, file_name):
         """
-        Used to initialize each dictionary entry in _inventory
-        :param file_name: Element to add to _inventory
+        Used to initialize each dictionary entry in _inventory with an ImageData object
+        :param file_name: Image to add to _inventory
 
-        :return:None
+        :return: None
 
         """
         if file_name not in self._inventory:
-            self._inventory[file_name] = {self.DIRS: []}
+            self._inventory[file_name] = ImageData()
+            setattr(self._inventory[file_name], ImageData.DL_STATUS, DownloadStatus.DOWNLOADED)
+            setattr(self._inventory[file_name], ImageData.FILENAME, file_name)
 
     def list_duplicates(self):
         """
@@ -149,10 +155,11 @@ class FSInv(BaseInventory):
         :return: None
 
         """
-        duplicates = dict([(k, v) for k, v in self._inventory.items() if len(v[self.DIRS]) > 1])
+        duplicates = dict([(name, obj) for name, obj in self._inventory.items()
+                           if len(getattr(obj, ImageData.LOCATIONS)) > 1])
         log.info("DUPLICATES: {0}".format(len(duplicates.keys())))
-        for name, image in duplicates.items():
-            log.info("{0}: {1}".format(name, image))
+        for name, image_obj in duplicates.items():
+            log.info("{0}: {1}".format(name, ", ".join(getattr(image_obj, ImageData.CLASSIFICATION))))
         log.info("TOTAL FILES ANALYZED: {0}".format(len(self._inventory.keys())))
 
     def list_inventory(self):
@@ -183,11 +190,12 @@ class FSInv(BaseInventory):
             table.align[x.capitalize()] = 'c'
 
         # Populate the table
-        for index, (name, data) in enumerate(self._inventory.items()):
+        for index, (name, data) in enumerate(sorted(self._inventory.items())):
             row = [index, name]
             for meta in sorted(self.metadata):
-                row.append('X' if meta in data else '')
-            row.append(', '.join(data[self.DIRS]) if data[self.DIRS] != [] else '')
+                row.append('X' if meta in getattr(data, ImageData.CLASSIFICATION) else '')
+            row.append(', '.join(getattr(data, ImageData.LOCATIONS)) if
+                       getattr(data, ImageData.LOCATIONS) != [] else '')
             table.add_row(row)
 
         # Add the column headers at the bottom of the table for large tables
