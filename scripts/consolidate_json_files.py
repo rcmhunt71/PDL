@@ -1,5 +1,4 @@
 import argparse
-import datetime
 try:
     # Python 2.x
     from ConfigParser import ConfigParser, NoSectionError, NoOptionError
