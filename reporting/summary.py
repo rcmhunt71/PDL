@@ -5,6 +5,8 @@ from PDL.logger.logger import Logger
 log = Logger()
 
 
+# TODO: Add Docstrings and necessary inline comments
+
 class ReportingSummary(object):
 
     INT_VALUE_TYPE = 'int'
