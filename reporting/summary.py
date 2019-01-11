@@ -127,7 +127,25 @@ class ReportingSummary(object):
         self._log_table(
             table=self.detailed_download_results_table(specific_status=specific_status))
 
+    def error_table(self):
+        image_header = "Image Name"
+        url_header = "URL"
+        status_header = "Error"
+
+        table = prettytable.PrettyTable()
+        table.field_names = [image_header, status_header, url_header]
+
+        data = [x for x in self.data if
+                x.image_info.dl_status == DownloadStatus.ERROR]
+
+        for image in data:
+            table.add_row(
+                [image.name, image.image_info.error_info, image.image_url])
+        table.align[image_header] = 'l'
+        table.align[status_header] = 'l'
+        table.align[url_header] = 'l'
+        return table.get_string(title='Download Errors')
+
 
 # ------------------- TODOs -------------------
-# TODO: <code> Add report about errors, and link info
 # TODO: <code> Create JSON report of DL'd info.
