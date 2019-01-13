@@ -23,7 +23,8 @@ class Inventory(object):
 
         self.json_inventory = JsonInventory(dir_location=cfg.json_log_location)
         self.json_inv = self.json_inventory.get_inventory()
-        self.complete_inventory = self._accumulate_inv()
+        # self.complete_inventory = self._accumulate_inv()
+        self.complete_inventory = self.json_inv
 
     def _accumulate_inv(self):
         inv = self.fs_inv
