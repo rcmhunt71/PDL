@@ -13,19 +13,22 @@ class ImageData(object):
     """ Image Metadata Storage Object """
 
     # Used for checking specific attributes that would not change for the image.
+    AUTHOR = 'author'
+    CLASSIFICATION = 'classification_metadata'
+    DESCRIPTION = 'description'
     DL_STATUS = "dl_status"
+    DOWNLOADED_ON = 'downloaded_on'
+    FILENAME = 'filename'
     IMAGE_NAME = "image_name"
+    LOCATIONS = 'locations'
     PAGE_URL = 'page_url'
     IMAGE_URL = 'image_url'
-    AUTHOR = 'author'
-    DESCRIPTION = 'description'
+    IMAGE_DATE = 'image_date'
     RESOLUTION = 'resolution'
-    FILENAME = 'filename'
-    LOCATIONS = 'locations'
-    CLASSIFICATION = 'classification_metadata'
 
     # List of the metadata specific to the image
-    METADATA = [DL_STATUS, IMAGE_NAME, PAGE_URL, IMAGE_URL, AUTHOR, DESCRIPTION, RESOLUTION, FILENAME]
+    METADATA = [DL_STATUS, IMAGE_NAME, PAGE_URL, IMAGE_URL, AUTHOR, DESCRIPTION, RESOLUTION, FILENAME, IMAGE_DATE]
+    DL_METADATA = [CLASSIFICATION, DOWNLOADED_ON]
 
     def __init__(self):
         self.image_name = None

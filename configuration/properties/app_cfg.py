@@ -56,6 +56,8 @@ class AppCfgFileSectionKeys(object):
     PREFIX = 'prefix'
     STORAGE_DRIVE_LETTER = 'storage_drive_letter'
     STORAGE_DIR = 'storage_dir'
+    TMP_STORAGE_DRIVE = 'tmp_drive'
+    TMP_STORAGE_PATH = 'tmp_storage_path'
     SUFFIX = 'suffix'
     TYPES = 'types'
     URL = 'url'
