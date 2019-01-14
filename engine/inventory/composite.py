@@ -1,7 +1,6 @@
 from PDL.configuration.properties.app_cfg import AppCfgFileSections, AppCfgFileSectionKeys
 from PDL.engine.inventory.json.inventory import JsonInventory
 from PDL.engine.inventory.filesystems.inventory import FSInv
-from PDL.engine.images.image_info import ImageData
 from PDL.logger.logger import Logger
 
 log = Logger()
@@ -35,13 +34,7 @@ class Inventory(object):
                 continue
 
             log.debug("JSON: Image {0} is NOT new to inventory.".format(image_obj.image_name))
-            base_obj = inv[image_obj.image_name]
-            updated_obj = image_obj
-            for attribute in ImageData.METADATA + ImageData.DL_METADATA:
-                if getattr(base_obj, attribute) is None:
-                    setattr(base_obj, attribute, getattr(updated_obj, attribute))
-                    log.debug("JSON: Image {name}: Added Attribute: '{attr}' Value: '{val}'".format(
-                        name=image_obj.image_name, attr=attribute, val=getattr(updated_obj, attribute)))
+            inv[image_obj.image_name] += image_obj
 
         return inv
 

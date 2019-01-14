@@ -18,6 +18,7 @@ class ImageData(object):
     DESCRIPTION = 'description'
     DL_STATUS = "dl_status"
     DOWNLOADED_ON = 'downloaded_on'
+    ERROR_INFO = 'error_info'
     FILENAME = 'filename'
     IMAGE_NAME = "image_name"
     LOCATIONS = 'locations'
@@ -28,7 +29,7 @@ class ImageData(object):
 
     # List of the metadata specific to the image
     METADATA = [DL_STATUS, IMAGE_NAME, PAGE_URL, IMAGE_URL, AUTHOR, DESCRIPTION, RESOLUTION, FILENAME, IMAGE_DATE]
-    DL_METADATA = [CLASSIFICATION, DOWNLOADED_ON]
+    DL_METADATA = [CLASSIFICATION, DOWNLOADED_ON, ERROR_INFO]
 
     def __init__(self):
         self.image_name = None
@@ -52,6 +53,17 @@ class ImageData(object):
 
     def __repr__(self):
         return self.__str__()
+
+    def __add__(self, other):
+        default_values = [None, Status.NOT_SET, ModStatus.MOD_NOT_SET, list()]
+        for attribute in ImageData.METADATA + ImageData.DL_METADATA:
+            if (getattr(self, attribute) in default_values and
+                    getattr(self, attribute, None) != getattr(other, attribute, None)):
+
+                setattr(self, attribute, getattr(other, attribute, None))
+                log.debug("JSON: Image {name}: Added Attribute: '{attr}' Value: '{val}'".format(
+                    name=self.image_name, attr=attribute, val=getattr(other, attribute, None)))
+        return self
 
     def to_dict(self):
         """
