@@ -31,6 +31,9 @@ class ImageData(object):
     METADATA = [DL_STATUS, IMAGE_NAME, PAGE_URL, IMAGE_URL, AUTHOR, DESCRIPTION, RESOLUTION, FILENAME, IMAGE_DATE]
     DL_METADATA = [CLASSIFICATION, DOWNLOADED_ON, ERROR_INFO]
 
+    DEFAULT_VALUES = [None, Status.NOT_SET, ModStatus.MOD_NOT_SET, list(), 0]
+    DEBUG_MSG_ADD = "JSON: Image {name}: Added Attribute: '{attr}' Value: '{val}'"
+
     def __init__(self):
         self.image_name = None
         self.description = None
@@ -55,15 +58,28 @@ class ImageData(object):
         return self.__str__()
 
     def __add__(self, other):
-        default_values = [None, Status.NOT_SET, ModStatus.MOD_NOT_SET, list()]
+        # NOTE: Not a commutative operation, obj application order matters
+
         for attribute in ImageData.METADATA + ImageData.DL_METADATA:
-            if (getattr(self, attribute) in default_values and
+            if (getattr(self, attribute) in self.DEFAULT_VALUES and
                     getattr(self, attribute, None) != getattr(other, attribute, None)):
 
                 setattr(self, attribute, getattr(other, attribute, None))
-                log.debug("JSON: Image {name}: Added Attribute: '{attr}' Value: '{val}'".format(
+                log.debug(self.DEBUG_MSG_ADD.format(
                     name=self.image_name, attr=attribute, val=getattr(other, attribute, None)))
         return self
+
+    def combine(self, other):
+        new_obj = self.build_obj(self.to_dict())
+        for attribute in ImageData.METADATA + ImageData.DL_METADATA:
+            this_value = getattr(new_obj, attribute, None)
+            other_value = getattr(other, attribute, None)
+            if this_value in self.DEFAULT_VALUES and other_value != this_value:
+                setattr(new_obj, attribute, other_value)
+                log.debug(self.DEBUG_MSG_ADD.format(
+                    name=new_obj.image_name, attr=attribute, val=other_value))
+
+        return new_obj
 
     def to_dict(self):
         """

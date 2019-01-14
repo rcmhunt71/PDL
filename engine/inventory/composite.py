@@ -26,17 +26,17 @@ class Inventory(object):
         self.complete_inventory = self.json_inv
 
     def _accumulate_inv(self):
-        inv = self.fs_inv
+        total_env = self.fs_inv.copy()
         for image_obj in self.json_inv.keys():
-            if image_obj.image_name not in inv.keys():
+            if image_obj.image_name not in total_env.keys():
                 log.debug("JSON: Image {0} is new to inventory. Added to inventory.".format(image_obj.image_name))
-                inv[image_obj.image_name] = image_obj
+                total_env[image_obj.image_name] = image_obj
                 continue
 
             log.debug("JSON: Image {0} is NOT new to inventory.".format(image_obj.image_name))
-            inv[image_obj.image_name] += image_obj
+            total_env[image_obj.image_name] = total_env[image_obj.image_name].combine(image_obj)
 
-        return inv
+        return total_env
 
     # TODO: Serialize information and write to single, pickled inventory file (for reading later)
     # TODO: Add ability to add/update inventory as needed
