@@ -83,7 +83,18 @@ class ParseDisplayPage(CatalogPage):
         return self._metadata[self.PHOTO][self.DESCRIPTION]
 
     def _get_image_date(self):
-        date = datetime.datetime.fromisoformat(self._metadata[self.PHOTO][self.CREATED_AT])
+        try:
+            # Python 3.x+
+            date = datetime.datetime.fromisoformat(
+                self._metadata[self.PHOTO][self.CREATED_AT])
+        except AttributeError:
+
+            # Python 2.7+
+            # TODO: Verify this format matches what is returned, also update test
+            date = datetime.datetime.strptime(
+                self._metadata[self.PHOTO][self.CREATED_AT],
+                "%Y-%m-%dT%H:%M:%S.%f")
+
         return str(date.isoformat()).split('.')[0]
 
     def _get_filename(self):

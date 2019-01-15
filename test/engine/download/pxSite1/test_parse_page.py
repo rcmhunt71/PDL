@@ -1,3 +1,4 @@
+import datetime
 try:
     from unittest.mock import patch
 except ImportError:
@@ -39,9 +40,23 @@ sample_invalid_html_page = sample_html_page_format.format(
     link='', name='')
 
 mocked_get_response_proper = requests.Response()
-mocked_get_response_proper._content = sample_valid_html_page.encode(encoding='UTF-8', errors='strict')
+mocked_get_response_proper._content = sample_valid_html_page.encode(
+    encoding='UTF-8', errors='strict')
 mocked_get_response_proper.status_code = 200
 mocked_get_response_proper.encoding = 'utf-8'
+
+mocked_metadata_dict = {
+    'photo': {'user': {'username': sample_name},
+              'name': 'image_name',
+              'author': sample_name,
+              'description': 'description',
+              'created_at': str(datetime.datetime.isoformat(datetime.datetime.now())),
+              'filename': sample_link.split('/')[-1],
+              'width': 1600,
+              'height': 1200,
+              'images': [{'size': '1600',
+                          'url': sample_link}]
+              }}
 
 mocked_get_no_response = None
 
@@ -99,22 +114,25 @@ class TestParsePage(object):
         assert_equals(mock_get.call_count, page.ParseDisplayPage.MAX_ATTEMPTS)
 
 # ------------ ParseDisplayPage:parse_page_for_link() ------------
+    @patch(
+        'PDL.engine.download.pxSite1.parse_page.requests.get',
+        return_value=mocked_get_response_proper)
+    @patch(
+        'PDL.engine.download.pxSite1.parse_page.ParseDisplayPage._get_metadata',
+        return_value=mocked_metadata_dict)
+    def test_parse_page_valid_content_for_link(
+            self, mocked_response, mocked_metadata):
 
-    def test_parse_page_valid_content_for_link(self):
         valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
         valid_page.source = sample_valid_html_page.split('\n')
-        link = valid_page.parse_page_for_link()
+        valid_page.get_image_info()
+
+        link = valid_page._get_image_url()
         assert_equals(link, sample_link)
         assert_equals(valid_page.image_info.dl_status,
                       status.DownloadStatus.NOT_SET)
-
-    def test_parse_page_invalid_content_for_link(self):
-        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
-        valid_page.source = sample_invalid_html_page.split('\n')
-        link = valid_page.parse_page_for_link()
-        assert link is None
-        assert_equals(valid_page.image_info.dl_status,
-                      status.DownloadStatus.ERROR)
+        assert_equals(mocked_metadata.call_count, 1)
+        assert_equals(mocked_response.call_count, 1)
 
     def test_parse_page_invalid_url_type(self):
         valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_3)
@@ -130,30 +148,37 @@ class TestParsePage(object):
         assert_equals(link, sample_link)
 
     # TODO: <CODE|TEST> Add test for URL with UNICODE (Translate_unicode_in_link)
+    # TODO: Add test when metadata cannot be downloaded. Verify response.
 
 # ------------ ParseDisplayPage:get_author_name() ------------
-    def test_get_valid_page_with_author(self):
+    @patch(
+        'PDL.engine.download.pxSite1.parse_page.requests.get',
+        return_value=mocked_get_response_proper)
+    @patch(
+        'PDL.engine.download.pxSite1.parse_page.ParseDisplayPage._get_metadata',
+        return_value=mocked_metadata_dict)
+    def test_get_valid_page_with_author(self, mocked_response, mocked_metadata):
         valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
-        valid_page.source = sample_valid_html_page.split('\n')
+        valid_page.get_image_info()
+
         author = valid_page._get_author_name()
         assert_equals(author, sample_name)
-
-    def test_get_valid_page_with_invalid_author(self):
-        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
-        valid_page.source = sample_invalid_html_page.split('\n')
-        author = valid_page._get_author_name()
-        assert_equals(author, page.ParseDisplayPage.NOT_FOUND)
+        assert_equals(mocked_metadata.call_count, 1)
+        assert_equals(mocked_response.call_count, 1)
 
 # ------------ ParseDisplayPage:get_image_info() ------------
     @patch(
         'PDL.engine.download.pxSite1.parse_page.requests.get',
         return_value=mocked_get_response_proper)
-    def test_get_valid_page_info(self, mock_get):
+    @patch(
+        'PDL.engine.download.pxSite1.parse_page.ParseDisplayPage._get_metadata',
+        return_value=mocked_metadata_dict)
+    def test_get_valid_page_info(self, mock_get, mock_metadata):
         valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
         valid_page.get_image_info()
 
         assert_equals(
-            len(valid_page.source), len(sample_valid_html_page.split('\n')))
+            len(valid_page.source_list), len(sample_valid_html_page.split('\n')))
         assert_equals(valid_page.image_info.author, sample_name)
         assert_equals(valid_page.image_info.image_url, sample_link)
         assert_equals(valid_page.image_info.page_url, self.DUMMY_URL_1)

@@ -25,7 +25,7 @@ def import_module(dotted_path_module):
         module = importlib.import_module(name=dotted_path_module)
         log.debug("SUCCESS: Import of '{0}'".format(dotted_path_module))
     except ImportError as exc:
-        msg = "Unable to import: '{module}' --> {exc}".format(module=dotted_path_module, exc=exc.path)
+        msg = "Unable to import: '{module}' --> {exc}".format(module=dotted_path_module, exc=exc)
         log.error(msg)
         log.error(build_stack_trace(inspect.stack()))
 
