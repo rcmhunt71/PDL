@@ -10,6 +10,9 @@ import prettytable
 
 class Logger(object):
 
+    # Enables print statements for issues like double registration of loggers
+    DEBUG_MODULE = False
+
     DEFAULT_PROJECT = 'PDL'
 
     INFO = logging.INFO
@@ -94,8 +97,13 @@ class Logger(object):
 
         root_log = logging.getLogger()
         if self.name != self.ROOT_LOGGER:
+            if self.DEBUG_MODULE:
+                print("Child Logger: {0}".format(self.name))
             self.logger = root_log.getChild(self.name)
+
         else:
+            if self.DEBUG_MODULE:
+                print("Root: {0}".format(self.name))
             self.logger = root_log
             self.logger.setLevel(self.loglevel)
 
