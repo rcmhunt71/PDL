@@ -197,6 +197,7 @@ def execute(num_data_sets, max_records, cfg_file):
 if __name__ == '__main__':
     args = parse_cli()
 
+    # TODO: Figure out what is causing adding second logger (duplicate logs)
     log = Logger(set_root=True,
                  default_level=Logger.DEBUG if args.debug else Logger.INFO)
     log.debug("DEBUG enabled.")
