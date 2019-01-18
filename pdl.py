@@ -62,7 +62,7 @@ class PdlConfig(object):
         dl_drive = self.app_cfg.get(AppCfgFileSections.STORAGE,
                                     AppCfgFileSectionKeys.LOCAL_DRIVE_LETTER)
 
-        if dl_drive is not None:
+        if dl_drive not in [None, '']:
             dl_dir = "{drive}:{dl_dir}".format(
                 drive=dl_drive.strip(':'), dl_dir=dl_dir)
         utils.check_if_location_exists(location=dl_dir, create_dir=True)
@@ -85,7 +85,7 @@ class PdlConfig(object):
                                              AppCfgFileSectionKeys.JSON_FILE_DIR)
         json_drive = self.app_cfg.get(AppCfgFileSections.LOGGING,
                                       AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
-        if json_drive is not None:
+        if json_drive not in [None, '']:
             json_log_location = '{0}:{1}'.format(json_drive.strip(':'), json_log_location)
         utils.check_if_location_exists(location=json_log_location, create_dir=True)
         return json_log_location

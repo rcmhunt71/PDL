@@ -53,7 +53,7 @@ def build_json_log_location(cfg):
                                 AppCfgFileSectionKeys.JSON_FILE_DIR)
     json_drive = cfg.get(AppCfgFileSections.LOGGING,
                          AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
-    if json_drive is not None:
+    if json_drive not in [None, '']:
         json_log_location = '{0}:{1}'.format(
             json_drive.strip(':'), json_log_location)
 
