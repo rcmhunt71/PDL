@@ -66,6 +66,8 @@ class FSInv(BaseInventory):
             log.info("Writing inventory to {0}".format(pickle_fname))
             self.pickle(data=self._inventory, filename=pickle_fname)
 
+            # TODO: Include size of file written
+
     def pickle(self, data, filename):
         log.debug("Pickling inventory to {0}".format(filename))
         with open(filename, "wb") as PICKLE:
