@@ -113,7 +113,8 @@ class ReportingSummary(object):
                 for image in image_obj_list:
                     table.add_row([
                         "{delim}{url}".format(
-                            url='{name}'.format(name=image.filename),
+                            url='{name}'.format(
+                                name=image.filename if image.filename is not None else image.page_url),
                             delim=delimiter),
                         time_format.format(image.download_duration)])
 
@@ -141,6 +142,11 @@ class ReportingSummary(object):
                 x.image_info.dl_status == DownloadStatus.ERROR]
 
         for image in data:
+
+            # For images that could not be DL'd, list parent page
+            if image.image_url is None:
+                image.image_url = image.page_url
+
             table.add_row(
                 [image.name, image.image_info.error_info, image.image_url])
         table.align[image_header] = 'l'

@@ -60,7 +60,12 @@ class ParseDisplayPage(CatalogPage):
         dl_start = datetime.datetime.now()
         if self.source_list is None:
             self.source_list = self.get_page()
-            self._metadata = self._get_metadata()
+            if self.source_list is None:
+                self.image_info.download_duration += (datetime.datetime.now() - dl_start).total_seconds()
+                log.info("Downloaded page in {0:0.3f} seconds.".format(self.image_info.download_duration))
+                return
+
+        self._metadata = self._get_metadata()
 
         self.image_info.page_url = self.page_url
         self.image_info.image_url = self.parse_page_for_link()
@@ -148,12 +153,21 @@ class ParseDisplayPage(CatalogPage):
                 log.warn(conn_err.format(attempt=attempt))
                 time.sleep(self.RETRY_INTERVAL)
 
-        if attempt < self.MAX_ATTEMPTS:
+        if source is not None and int(int(source.status_code)/100) != 2:
+            msg = "Unable to DL primary page '{url}': Received status code: {status}".format(
+                url=self.page_url, status=source.status_code)
+            log.error(msg)
+            self.image_info.page_url = "{0} ({1})".format(self.page_url, source.status_code)
+            self.image_info.error_info = msg
+            self.image_info.dl_status = DownloadStatus.ERROR
+            source = None
+
+        elif attempt < self.MAX_ATTEMPTS:
             log.info("Primary page '{url}' DL'd!".format(url=self.page_url))
 
-        # Split and strip the page into a list (elem per line), based on CR/LF.
-        if source is not None:
-            source = [x.strip() for x in source.text.split('\n')]
+            # Split and strip the page into a list (elem per line), based on CR/LF.
+            if source is not None:
+                source = [x.strip() for x in source.text.split('\n')]
 
         return source
 
