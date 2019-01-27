@@ -15,6 +15,7 @@ from PDL.engine.images.image_info import ImageData
 from PDL.engine.inventory.filesystems.inventory import FSInv
 from PDL.engine.inventory.json.inventory import JsonInventory
 from PDL.engine.module_imports import import_module_class
+from PDL.engine.inventory.composite import Inventory
 from PDL.logger.logger import Logger as Logger
 from PDL.logger.json_log import JsonLog
 from PDL.reporting.summary import ReportingSummary
@@ -45,6 +46,7 @@ class PdlConfig(object):
         self.json_log_location = self._build_json_log_location()
         self.json_logfile = self._build_json_logfile_name()
         self.inv_pickle_file = self._build_pickle_filename()
+        self.temp_storage_path = self._build_temp_storage()
         self.urls = None
         self.image_data = None
 
@@ -122,6 +124,19 @@ class PdlConfig(object):
         utils.check_if_location_exists(location=pickle_location, create_dir=True)
         return pickle_filename
 
+    def _build_temp_storage(self):
+        # ======================
+        # JSON LOGFILE LOCATION
+        # ======================
+        storage_location = self.app_cfg.get(
+            AppCfgFileSections.STORAGE, AppCfgFileSectionKeys.TEMP_STORAGE_PATH)
+        storage_drive = self.app_cfg.get(
+            AppCfgFileSections.STORAGE, AppCfgFileSectionKeys.TEMP_STORAGE_DRIVE)
+        if storage_drive not in [None, '']:
+            storage_location = '{0}:{1}'.format(storage_drive.strip(':'), storage_location)
+        utils.check_if_location_exists(location=storage_location, create_dir=True)
+        return storage_location
+
     def _display_file_locations(self):
         table = prettytable.PrettyTable()
         table.field_names = ['File Type', 'Location']
@@ -132,7 +147,8 @@ class PdlConfig(object):
             ('DL Directory', self.dl_dir),
             ('DL Log File', self.logfile_name),
             ('JSON Data File', self.json_logfile),
-            ('Binary Inv File', self.inv_pickle_file)])
+            ('Binary Inv File', self.inv_pickle_file),
+            ('Temp Storage', self.temp_storage_path)])
         for name, data in setup.items():
             table.add_row([name, data])
         print(table.get_string(title="FILE INFORMATION"))
@@ -286,6 +302,7 @@ def download_images(cfg_obj):
 
     # Get the correct image URL from each catalog Page
     cfg_obj.image_data = list()
+    image_errors = list()
     for index, page_url in enumerate(url_list):
 
         # Parse the primary image page for the image URL and metadata.
@@ -299,6 +316,8 @@ def download_images(cfg_obj):
                 catalog.image_info.image_url.lower().startswith(
                     ArgProcessing.PROTOCOL.lower())):
             cfg_obj.image_data.append(catalog.image_info)
+        else:
+            image_errors.append(catalog.image_info)
 
     # Download each image
     for index, image in enumerate(cfg_obj.image_data):
@@ -306,6 +325,9 @@ def download_images(cfg_obj):
         contact = Contact(image_url=image.image_url, dl_dir=cfg_obj.dl_dir, image_info=image)
         status = contact.download_image()
         log.info('DL STATUS: {0}'.format(status))
+
+    # Add error_info to be included in results
+    cfg_obj.image_data += image_errors
 
     # Log Results
     results = ReportingSummary(cfg_obj.image_data)
@@ -339,11 +361,7 @@ if __name__ == '__main__':
         section=AppCfgFileSections.CLASSIFICATION,
         option=AppCfgFileSectionKeys.TYPES)
 
-    inv = FSInv(
-        base_dir=LOCAL_STORAGE, metadata=metadata,
-        serialization=True, binary_filename=app_config.inv_pickle_file)
-
-    inv.get_inventory(from_file=True, serialize=True, scan_local=True)
+    inv = Inventory(cfg=app_config)
 
     # -----------------------------------------------------------------
     #                      DOWNLOAD
@@ -358,9 +376,9 @@ if __name__ == '__main__':
     # -----------------------------------------------------------------
     elif app_config.cli_args.command == args.ArgSubmodules.DUPLICATES:
         log.debug("Selected args.ArgSubmodules.DUPLICATES")
-        inv.scan_inventory()
-        inv.list_duplicates()
-        log.info(inv.list_inventory())
+        inv.fs_inventory_obj.scan_inventory()
+        inv.fs_inventory_obj.list_duplicates()
+        log.info(inv.fs_inventory_obj.list_inventory())
 
     # -----------------------------------------------------------------
     #                      DATABASE
@@ -382,4 +400,4 @@ if __name__ == '__main__':
         raise args.UnrecognizedModule(app_config.cli_args.command)
 
     log.info("LOGGED TO: {logfile}".format(logfile=app_config.logfile_name))
-    inv.scan_inventory(scan_local=True, from_file=False, serialize=True)
+    inv.fs_inventory_obj.scan_inventory(from_file=False)
