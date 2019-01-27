@@ -13,30 +13,41 @@ class Inventory(object):
             section=AppCfgFileSections.CLASSIFICATION,
             option=AppCfgFileSectionKeys.TYPES)
 
-        self.fs_inventory = FSInv(
+        # Get file system inventory
+        self.fs_inventory_obj = FSInv(
             base_dir=cfg.temp_storage_path, metadata=self.metadata, serialization=True,
             binary_filename=cfg.inv_pickle_file)
-
-        self.fs_inv = self.fs_inventory.get_inventory(
+        self.fs_inv = self.fs_inventory_obj.get_inventory(
             from_file=True, serialize=True, scan_local=True)
 
-        self.json_inventory = JsonInventory(dir_location=cfg.json_log_location)
-        self.json_inv = self.json_inventory.get_inventory()
-        # self.complete_inventory = self._accumulate_inv()
-        self.complete_inventory = self.json_inv
+        # Get JSON listed inventory
+        self.json_inventory_obj = JsonInventory(dir_location=cfg.json_log_location)
+        self.json_inv = self.json_inventory_obj.get_inventory()
+
+        log.info("NUM of FileSystem Records in inventory: {0}".format(len(self.fs_inv.keys())))
+        log.info("NUM of JSON Records in inventory: {0}".format(len(self.json_inv.keys())))
+
+        self.complete_inventory = self._accumulate_inv()
+        self._pickle_()
 
     def _accumulate_inv(self):
         total_env = self.fs_inv.copy()
-        for image_obj in self.json_inv.keys():
-            if image_obj.image_name not in total_env.keys():
+        for image_name, image_obj in self.json_inv.items():
+            if image_name not in total_env.keys():
                 log.debug("JSON: Image {0} is new to inventory. Added to inventory.".format(image_obj.image_name))
-                total_env[image_obj.image_name] = image_obj
+                total_env[image_name] = image_obj
                 continue
 
             log.debug("JSON: Image {0} is NOT new to inventory.".format(image_obj.image_name))
-            total_env[image_obj.image_name] = total_env[image_obj.image_name].combine(image_obj)
+            total_env[image_name] = total_env[image_name].combine(image_obj)
 
         return total_env
 
-    # TODO: Serialize information and write to single, pickled inventory file (for reading later)
+    def _pickle_(self):
+        self.fs_inventory_obj.pickle(data=self.complete_inventory,
+                                     filename=self.fs_inventory_obj.pickle_fname)
+
+    def _unpickle(self):
+        return self.fs_inventory_obj.unpickle(filename=self.fs_inventory_obj.pickle_fname)
+
     # TODO: Add ability to add/update inventory as needed

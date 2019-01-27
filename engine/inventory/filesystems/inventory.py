@@ -56,7 +56,7 @@ class FSInv(BaseInventory):
 
         if from_file:
             log.info("Reading inventory from {0}".format(self.pickle_fname))
-            self._inventory = self._unpickle(filename=pickle_fname)
+            self._inventory = self.unpickle(filename=pickle_fname)
 
         if scan_local:
             log.debug("Scanning local inventory.")
@@ -64,15 +64,15 @@ class FSInv(BaseInventory):
 
         if serialize:
             log.info("Writing inventory to {0}".format(pickle_fname))
-            self._pickle(data=self._inventory, filename=pickle_fname)
+            self.pickle(data=self._inventory, filename=pickle_fname)
 
-    def _pickle(self, data, filename):
+    def pickle(self, data, filename):
         log.debug("Pickling inventory to {0}".format(filename))
         with open(filename, "wb") as PICKLE:
             pickle.dump(data, PICKLE)
         log.debug("Pickling inventory complete")
 
-    def _unpickle(self, filename):
+    def unpickle(self, filename):
         data = dict()
         if os.path.exists(filename):
             with open(filename, "rb") as PICKLE:
@@ -103,7 +103,12 @@ class FSInv(BaseInventory):
         log.debug("Scanning Base Dir: {0}".format(base_dir))
 
         # Get the list of files and directories
-        contents = os.listdir(directory)
+        try:
+            contents = os.listdir(directory)
+        except FileNotFoundError as exc:
+            log.error("Unable to find directory: {0}".format(directory))
+            return
+
         files = [str(x).rstrip(self.INV_FILE_EXT) for x in contents if x.endswith(self.INV_FILE_EXT)]
         directories = [str(x) for x in contents if '.' not in x]
 
