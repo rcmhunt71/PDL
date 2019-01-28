@@ -50,4 +50,23 @@ class Inventory(object):
     def _unpickle(self):
         return self.fs_inventory_obj.unpickle(filename=self.fs_inventory_obj.pickle_fname)
 
-    # TODO: Add ability to add/update inventory as needed
+    def get_list_of_page_urls(self):
+        return self._list_of_attribute_values(attr='page_url')
+
+    def get_list_of_image_urls(self):
+        return self._list_of_attribute_values(attr='image_url')
+
+    def _list_of_attribute_values(self, attr):
+        log.debug("Generating list of '{attr}'s from inventory.".format(attr=attr))
+        return [getattr(x, attr) for x in self.complete_inventory.items()
+                if hasattr(x, attr) and getattr(x, attr) is not None]
+
+    def update_inventory(self, list_image_data_objs):
+        for image_obj in list_image_data_objs:
+            image_name = image_obj.image_name
+            if image_name in self.complete_inventory.keys():
+                log.debug("Updating data for {0}".format(image_name))
+                self.complete_inventory[image_name].combine(image_obj)
+            else:
+                log.debug("Adding data for {0}".format(image_name))
+                self.complete_inventory[image_name] = image_obj
