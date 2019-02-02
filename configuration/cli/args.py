@@ -26,12 +26,12 @@ class ArgSubmodules(object):
     INFO = 'info'
 
     @classmethod
-    def _get_const_values(cls):
+    def get_const_values(cls):
         return [val for key, val in cls.__dict__.items()
                 if not key.startswith('_')]
 
     @classmethod
-    def _get_const_names(cls):
+    def get_const_names(cls):
         return [key for key, val in cls.__dict__.items()
                 if not key.startswith('_')]
 
@@ -118,7 +118,7 @@ class CLIArgs(object):
         :return: List of strings (names of the submodules)
 
         """
-        modules = ArgSubmodules._get_const_values()
+        modules = ArgSubmodules.get_const_values()
         log.debug("Request for module names: {0}".format(
             pprint.pformat(modules)))
         return modules
