@@ -37,6 +37,9 @@ if __name__ == '__main__':
     # Store the last url. Used to verify if copy buffer has changed
     last_url = None
 
+    # Counter for number of URLs written
+    num_urls = 0
+
     # Open file, and keep polling copy buffer. If data is found, verify it has not been recorded in last loop
     # and it is a URL. If so, write to file. Wait for Ctrl-C (Keyboard Interrupt) to exit.
     with open(filename, "w+") as FILE:
@@ -50,8 +53,9 @@ if __name__ == '__main__':
 
                     # Write the URL and store the link in the last_buffer
                     FILE.write('{0}\n'.format(buffer.strip()))
+                    num_urls += 1
                     last_url = buffer
-                    print(f"Copied '{buffer}' to {filename}")
+                    print(f"({num_urls}) Copied '{buffer}' to {filename}")
 
                 # Give user to collect another url
                 time.sleep(0.5)
@@ -61,4 +65,4 @@ if __name__ == '__main__':
                 break
 
     # Bye Felicia!
-    print("Done.")
+    print(f"Done. {num_urls} written.")
