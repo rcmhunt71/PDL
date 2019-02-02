@@ -201,12 +201,12 @@ class TestCommandLine(object):
 
     def test__get_module_names(self):
         names = dict([(mod, getattr(ArgSubmodules, mod)) for mod in self.MODULES])
-        name_list = ArgSubmodules._get_const_names()
+        name_list = ArgSubmodules.get_const_names()
         assert_equals(set(name_list), set(names.keys()))
 
     def test__get_module_values(self):
         names = dict([(mod, getattr(ArgSubmodules, mod)) for mod in self.MODULES])
-        value_list = ArgSubmodules._get_const_values()
+        value_list = ArgSubmodules.get_const_values()
         assert_equals(set(value_list), set(names.values()))
 
     def test_get_module_names(self):

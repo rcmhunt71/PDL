@@ -3,6 +3,7 @@
 from collections import OrderedDict
 import os
 import pprint
+import time
 
 import PDL.configuration.cli.args as args
 import PDL.logger.json_log as json_logger
@@ -21,6 +22,7 @@ from PDL.logger.json_log import JsonLog
 from PDL.reporting.summary import ReportingSummary
 
 import prettytable
+import pyperclip
 
 DEFAULT_ENGINE_CONFIG = 'pdl.cfg'
 DEFAULT_APP_CONFIG = None
@@ -220,6 +222,49 @@ class AppLogging(object):
         return logger
 
 
+def is_url(target_string):
+    """
+    Verify target_string is a URL
+    :param target_string: String to test
+    :return: (Boolean) Is a URL? T/F
+    """
+    return target_string.lstrip().lower().startswith('http')
+
+
+def read_from_buffer(read_delay=0.5):
+    """
+    Read URLs from OS copy/paste buffer.
+    :param read_delay: Amount of time between each polling of the buffer.
+    :return: list of URLs
+
+    """
+    last_url = None
+    url_list = list()
+    log.info("Press CTRL-C to stop buffer scanning.")
+    while True:
+        try:
+            # Read buffer
+            buffer = pyperclip.paste()
+
+            # If URL and buffer does not match previous iteration...
+            if is_url(buffer) and buffer != last_url:
+                # Append the URL in the list and store the link in the last_buffer
+                url_list.append(buffer.strip())
+                last_url = buffer
+                log.info(f"({len(url_list)}) Copied '{buffer}'")
+
+            # Give user time to collect another url
+            time.sleep(read_delay)
+
+        except KeyboardInterrupt:
+            # Control-C detected, break out of loop. Context manager will close file.
+            break
+
+    # Bye Felicia!
+    log.debug(f"Done. {len(url_list)} URLs copied.")
+    return url_list
+
+
 def process_and_record_urls(cfg_obj):
     url_file = UrlFile()
 
@@ -231,13 +276,20 @@ def process_and_record_urls(cfg_obj):
         log.debug("URL list from CLI is empty.")
 
         # Check for URL file
-        url_file_name = getattr(cfg_obj.cli_args, args.ArgOptions.FILE, None)
-        if url_file_name is None:
-            log.debug("No URL file was specified on the CLI.")
-            raise NoURLsProvided()
+        url_file_name = getattr(
+            cfg_obj.cli_args, args.ArgOptions.FILE, None)
 
-        url_file_name = os.path.abspath(url_file_name)
-        raw_url_list = url_file.read_file(url_file_name)
+        if url_file_name is not None:
+            url_file_name = os.path.abspath(url_file_name)
+            raw_url_list = url_file.read_file(url_file_name)
+
+        elif getattr(cfg_obj.cli_args, args.ArgOptions.BUFFER, False):
+            raw_url_list = read_from_buffer()
+
+        else:
+            log.info(cfg_obj.cli_args)
+            log.debug("No URL file was specified on the CLI, nor reading from buffer.")
+            raise NoURLsProvided()
 
     # Determine the supported URL domains (to remove junk/unexpected URLs)
     url_domains = cfg_obj.app_cfg.get_list(

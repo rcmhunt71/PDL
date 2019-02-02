@@ -42,6 +42,7 @@ class ArgOptions(object):
     sub-modules.
     """
 
+    BUFFER = 'buffer'
     CFG = 'cfg'
     COMMAND = 'command'
     DRY_RUN = 'dryrun'
@@ -59,6 +60,7 @@ class ArgOptions(object):
     URLS = 'urls'
 
     SHORTCUTS = {
+        BUFFER: "b",
         CFG: "c",
         DEBUG: "d",
         DETAILS: "d",
@@ -208,7 +210,15 @@ class CLIArgs(object):
             metavar="<DL_FILE>"
         )
 
-        # FILE TO READ URLS
+        # READ URLS FROM OS COPY/PASTE BUFFER
+        dl_args.add_argument(
+            self.get_shortcut(ArgOptions.BUFFER),
+            '--{0}'.format(ArgOptions.BUFFER),
+            help="Read list from copy/paste buffer",
+            action='store_true'
+        )
+
+        # ALLOW DUPLICATES URLS ALREADY IN THE INVENTORY
         dl_args.add_argument(
             self.get_shortcut(ArgOptions.IGNORE_DUPS),
             '--{0}'.format(ArgOptions.IGNORE_DUPS),
