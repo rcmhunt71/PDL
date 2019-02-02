@@ -3,7 +3,7 @@ import time
 import pyperclip
 
 FILENAME = 'filename'
-
+SLEEP_DELAY = 0.5
 
 def get_cli_args():
     """
@@ -58,7 +58,7 @@ if __name__ == '__main__':
                     print(f"({num_urls}) Copied '{buffer}' to {filename}")
 
                 # Give user to collect another url
-                time.sleep(0.5)
+                time.sleep(SLEEP_DELAY)
 
             except KeyboardInterrupt:
                 # Control-C detected, break out of loop. Context manager will close file.
