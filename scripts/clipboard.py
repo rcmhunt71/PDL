@@ -65,4 +65,4 @@ if __name__ == '__main__':
                 break
 
     # Bye Felicia!
-    print(f"Done. {num_urls} written.")
+    print(f"Done. {num_urls} URLs written.")
