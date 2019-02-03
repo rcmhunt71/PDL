@@ -35,6 +35,8 @@ LOCAL_STORAGE = ""
 class NoURLsProvided(Exception):
     pass
 
+# TODO: Move logic into separate file
+
 
 class PdlConfig(object):
     def __init__(self):
@@ -426,7 +428,8 @@ if __name__ == '__main__':
         section=AppCfgFileSections.CLASSIFICATION,
         option=AppCfgFileSectionKeys.TYPES)
 
-    app_config.inventory = Inventory(cfg=app_config, force_scan=True)
+    app_config.inventory = Inventory(
+        cfg=app_config, force_scan=getattr(app_config.cli_args, args.ArgOptions.FORCE_SCAN))
 
     # -----------------------------------------------------------------
     #                      DOWNLOAD
@@ -471,4 +474,4 @@ if __name__ == '__main__':
         raise args.UnrecognizedModule(app_config.cli_args.command)
 
     log.info("LOGGED TO: {logfile}".format(logfile=app_config.logfile_name))
-    app_config.inventory.fs_inventory_obj.scan_inventory(from_file=False)
+    # app_config.inventory.fs_inventory_obj.scan_inventory(from_file=False)

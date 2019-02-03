@@ -86,6 +86,8 @@ class JsonInventory(BaseInventory):
         for images_info in content_list:
             for image_name, image_info in images_info.items():
                 image_obj = ImageData.build_obj(image_info)
+                if image_name.endswith('jpg'):
+                    image_name = image_name.split(".")[0]
 
                 # If the image name is not in the inventory...
                 if image_name not in inv.keys():

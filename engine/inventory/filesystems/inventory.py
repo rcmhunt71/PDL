@@ -24,20 +24,20 @@ class FSInv(BaseInventory):
     INV_FILE_EXT = ".jpg"
     DATA_FILE_EXT = ".dat"
 
-    def __init__(self, base_dir, metadata=None, serialization=False, binary_filename=None, scan=False):
+    def __init__(self, base_dir, metadata=None, serialization=False, binary_filename=None, force_scan=False):
         self.base_dir = base_dir
         self.metadata = metadata
         self.pickle_fname = binary_filename
         self.serialize = serialization
-        self._scan = scan
+        self._scan = force_scan
         super(FSInv, self).__init__()
 
-    def get_inventory(self, from_file=None, serialize=None, scan_local=True, scan=False):
+    def get_inventory(self, from_file=None, serialize=None, scan_local=True, force_scan=False):
         serialize = self.serialize if serialize is None else serialize
         from_file = self.serialize if from_file is None else from_file
 
-        if not self._inventory or scan or self._scan:
-            if scan or self._scan:
+        if not self._inventory or force_scan or self._scan:
+            if force_scan or self._scan:
                 log.info("Forcing filesystem scan.")
             self.scan_inventory(serialize=serialize, from_file=from_file, scan_local=scan_local)
 
@@ -66,16 +66,17 @@ class FSInv(BaseInventory):
             self._scan_(base_dir=self.base_dir)
 
         if serialize:
-            log.info("Writing inventory to {0}".format(pickle_fname))
+            log.info("Writing inventory to {0}. Includes new local inventory".format(pickle_fname))
             self.pickle(data=self._inventory, filename=pickle_fname)
 
             # TODO: Include size of file written
 
-    def pickle(self, data, filename):
+    @staticmethod
+    def pickle(data, filename):
         log.debug("Pickling inventory to {0}".format(filename))
         with open(filename, "wb") as PICKLE:
             pickle.dump(data, PICKLE)
-        log.debug("Pickling inventory complete")
+        log.info(f"Pickling inventory complete. {len(data.keys())} records written.")
 
     def unpickle(self, filename):
         data = dict()

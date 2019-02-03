@@ -51,6 +51,7 @@ class ArgOptions(object):
     ENGINE = 'engine'
     FILE = 'file'
     FILE_SPEC = 'filespec'
+    FORCE_SCAN = 'force_scan'
     GENERAL = 'general'
     IGNORE_DUPS = 'ignore_dups'
     IMAGE = 'image'
@@ -68,6 +69,7 @@ class ArgOptions(object):
         ENGINE: "e",
         FILE: "f",
         FILE_SPEC: "f",
+        FORCE_SCAN: "f",
         IGNORE_DUPS: "i",
         RECORDS: "r",
         REMOVE_DUPS: "x",
@@ -184,6 +186,13 @@ class CLIArgs(object):
             self.get_shortcut(ArgOptions.ENGINE),
             '--{0}'.format(ArgOptions.ENGINE),
             help="Specify engine configuration file")
+
+        # FORCE SCAN
+        self.parser.add_argument(
+            self.get_shortcut(ArgOptions.FORCE_SCAN),
+            '--{0}'.format(ArgOptions.FORCE_SCAN),
+            help="Force inventory scan",
+            action='store_true')
 
     def _downloads(self):
         """

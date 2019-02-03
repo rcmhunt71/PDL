@@ -9,6 +9,7 @@ log = Logger()
 class Inventory(object):
     def __init__(self, cfg, force_scan=False):
 
+        self.force_scan = force_scan
         self.metadata = cfg.app_cfg.get_list(
             section=AppCfgFileSections.CLASSIFICATION,
             option=AppCfgFileSectionKeys.TYPES)
@@ -16,7 +17,7 @@ class Inventory(object):
         # Get file system inventory
         self.fs_inventory_obj = FSInv(
             base_dir=cfg.temp_storage_path, metadata=self.metadata, serialization=True,
-            binary_filename=cfg.inv_pickle_file, scan=force_scan)
+            binary_filename=cfg.inv_pickle_file, force_scan=self.force_scan)
         self.fs_inv = self.fs_inventory_obj.get_inventory(
             from_file=True, serialize=True, scan_local=True)
 
@@ -24,28 +25,39 @@ class Inventory(object):
         self.json_inventory_obj = JsonInventory(dir_location=cfg.json_log_location)
         self.json_inv = self.json_inventory_obj.get_inventory()
 
-        log.info("NUM of FileSystem Records in inventory: {0}".format(len(self.fs_inv.keys())))
-        log.info("NUM of JSON Records in inventory: {0}".format(len(self.json_inv.keys())))
+        log.info(f"NUM of FileSystem Records in inventory: {len(self.fs_inv.keys())}")
+        log.info(f"NUM of JSON Records in inventory: {len(self.json_inv.keys())}")
+        log.info(f"Force Inventory Scan: {self.force_scan}")
 
         self.inventory = self._accumulate_inv()
         self._pickle_()
 
     def _accumulate_inv(self):
-        total_env = self.fs_inv.copy()
-        for image_name, image_obj in self.json_inv.items():
-            if image_name not in total_env.keys():
-                log.debug("JSON: Image {0} is new to inventory. Added to inventory.".format(image_obj.image_name))
-                total_env[image_name] = image_obj
-                continue
+        if self.force_scan:
+            total_env = self.fs_inv.copy()
+            log.info("Accumulating inventory from file system and JSON logs")
 
-            log.debug("JSON: Image {0} is NOT new to inventory.".format(image_obj.image_name))
-            total_env[image_name] = total_env[image_name].combine(image_obj)
+            for image_name, image_obj in self.json_inv.items():
+                if image_name not in total_env.keys():
+                    log.debug(f"JSON: Image {image_obj.image_name} is new to inventory. Added to inventory.")
+                    total_env[image_name] = image_obj
+                    continue
 
+                log.debug("JSON: Image {0} is NOT new to inventory.".format(image_obj.image_name))
+                total_env[image_name] = total_env[image_name].combine(image_obj)
+            total_env = self._make_inv_consistent(data_dict=total_env)
+        else:
+            log.info(f"Reading from {self.fs_inventory_obj.pickle_fname}")
+            total_env = self._unpickle()
+            log.info(f"Total of {len(total_env.keys())} read from file.")
+
+        log.info("Accumulation complete.")
         return total_env
 
-    def _pickle_(self):
-        self.fs_inventory_obj.pickle(data=self.inventory,
-                                     filename=self.fs_inventory_obj.pickle_fname)
+    def _pickle_(self, data=None):
+        if data is None:
+            data = self.inventory
+        self.fs_inventory_obj.pickle(data=data, filename=self.fs_inventory_obj.pickle_fname)
 
     def _unpickle(self):
         return self.fs_inventory_obj.unpickle(filename=self.fs_inventory_obj.pickle_fname)
@@ -73,3 +85,15 @@ class Inventory(object):
             else:
                 log.debug("Adding data for {0}".format(image_name))
                 self.inventory[image_name] = image_obj
+
+    @staticmethod
+    def _make_inv_consistent(data_dict):
+        log.info("Making inventory consistent...")
+        new_inv = dict()
+        for image_name, image_obj in data_dict.items():
+            image_name = image_name.split('.')[0].lower()
+            if image_name in new_inv.keys():
+                new_inv[image_name].combine(image_obj)
+            else:
+                new_inv[image_name] = image_obj
+        return new_inv
