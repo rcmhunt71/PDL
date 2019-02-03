@@ -1,10 +1,10 @@
-from pprint import pformat
-
 from PDL.engine.images.status import (
     DownloadStatus as Status,
     ImageDataModificationStatus as ModStatus
 )
 from PDL.logger.logger import Logger
+
+import prettytable
 
 log = Logger()
 
@@ -52,7 +52,7 @@ class ImageData(object):
         self.error_info = None
 
     def __str__(self):
-        return pformat(self.to_dict())
+        return f"\n{self.table()}"
 
     def __repr__(self):
         return self.__str__()
@@ -80,6 +80,18 @@ class ImageData(object):
                     name=new_obj.image_name, attr=attribute, val=other_value))
 
         return new_obj
+
+    def table(self):
+        attribute = 'Attribute'
+        value = 'Value'
+
+        table = prettytable.PrettyTable()
+        table.field_names = [attribute, value]
+        for attrib in sorted(self._list_attributes()):
+            table.add_row([attrib, getattr(self, attrib)])
+        table.align[attribute] = 'l'
+        table.align[value] = 'l'
+        return table.get_string(title=self.image_name)
 
     def to_dict(self):
         """
