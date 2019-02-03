@@ -1,10 +1,5 @@
+from configparser import ConfigParser, NoSectionError, NoOptionError
 import os
-try:
-    # Python 2.x
-    from ConfigParser import ConfigParser, NoSectionError, NoOptionError
-except ModuleNotFoundError:
-    # Python 3.x
-    from configparser import ConfigParser, NoSectionError, NoOptionError
 
 from PDL.logger.logger import Logger
 
@@ -131,8 +126,8 @@ class AppConfig(ConfigParser):
     """
     Config Parser for the application, plus a few helper routines
     (primarily for debugging)
-    """
 
+    """
     def __init__(self, cfg_file, test=False):
         ConfigParser.__init__(self)
         self.cfg_file = cfg_file
@@ -144,17 +139,16 @@ class AppConfig(ConfigParser):
             # Check to see if config file exists. If so, read it, otherwise
             # throw an exception
             if self.cfg_file is not None and os.path.exists(self.cfg_file):
-                log.debug('Reading: {cfg}'.format(cfg=self.cfg_file))
+                log.debug(f'Reading: {self.cfg_file}')
                 self.config = self.read(self.cfg_file)
 
             else:
-                log.error('Unable to read cfg file: {cfg}'.format(
-                    cfg=self.cfg_file))
+                log.error(f'Unable to read cfg file: {self.cfg_file}')
                 raise CfgFileDoesNotExist(cfg_file=self.cfg_file)
 
         # For testing, read specified file, without checking for existence
         else:
-            log.debug('Reading: {cfg}'.format(cfg=self.cfg_file))
+            log.debug(f'Reading: {self.cfg_file}')
             self.config = self.read(self.cfg_file)
 
     def get_options(self, section):
@@ -170,8 +164,7 @@ class AppConfig(ConfigParser):
         if self.has_section(section=section):
             options = self.options(section)
             log.debug("Options for {section}:\n{option_list}".format(
-                section=section, option_list=["\t{opt}\n".format(opt=opt)
-                                              for opt in options]))
+                section=section, option_list=[f"\t{opt}\n" for opt in options]))
             return options
 
         raise ConfigSectionDoesNotExist(section=section, cfg_file=self.cfg_file)
@@ -186,6 +179,7 @@ class AppConfig(ConfigParser):
         :param api_name: (str) Parser API (get, set, etc.)
 
         :return: (str) Raw returned value from API
+
         """
         if self.has_section(section=section):
             if self.has_option(section=section, option=option):
