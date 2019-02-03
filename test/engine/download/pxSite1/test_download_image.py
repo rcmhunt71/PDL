@@ -1,10 +1,4 @@
-try:
-    # Python 2.7+
-    from unittest.mock import patch, create_autospec
-except ImportError:
-    from mock import patch, create_autospec
-
-
+from mock import patch, create_autospec
 import os
 import requests
 import tempfile
@@ -13,6 +7,7 @@ import PDL.engine.download.pxSite1.download_image as dl
 import PDL.engine.images.image_info as imageinfo
 import PDL.engine.images.status as status
 
+from unittest.case import SkipTest
 from nose.tools import assert_equals
 
 
@@ -123,6 +118,11 @@ class TestDownloadPX(object):
     @patch('PDL.engine.download.pxSite1.download_image.shutil.copyfileobj',
            return_value=mocked_shutils_copyfileobj)
     def test_dl_via_requests_200(self, copyfileobj, requests_get):
+
+        if os.name.lower() in ['nt']:
+            # Unable to get permission to write/access file in Windows, so don't bother...
+            print(f'OS: {os.name.lower()}')
+            raise SkipTest()
 
         temp_file = tempfile.NamedTemporaryFile(mode='r', delete=True)
         print("Created temp file: {0}".format(temp_file.name))
