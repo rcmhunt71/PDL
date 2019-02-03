@@ -7,7 +7,7 @@ log = Logger()
 
 
 class Inventory(object):
-    def __init__(self, cfg):
+    def __init__(self, cfg, force_scan=False):
 
         self.metadata = cfg.app_cfg.get_list(
             section=AppCfgFileSections.CLASSIFICATION,
@@ -16,7 +16,7 @@ class Inventory(object):
         # Get file system inventory
         self.fs_inventory_obj = FSInv(
             base_dir=cfg.temp_storage_path, metadata=self.metadata, serialization=True,
-            binary_filename=cfg.inv_pickle_file)
+            binary_filename=cfg.inv_pickle_file, scan=force_scan)
         self.fs_inv = self.fs_inventory_obj.get_inventory(
             from_file=True, serialize=True, scan_local=True)
 
@@ -27,7 +27,7 @@ class Inventory(object):
         log.info("NUM of FileSystem Records in inventory: {0}".format(len(self.fs_inv.keys())))
         log.info("NUM of JSON Records in inventory: {0}".format(len(self.json_inv.keys())))
 
-        self.complete_inventory = self._accumulate_inv()
+        self.inventory = self._accumulate_inv()
         self._pickle_()
 
     def _accumulate_inv(self):
@@ -44,7 +44,7 @@ class Inventory(object):
         return total_env
 
     def _pickle_(self):
-        self.fs_inventory_obj.pickle(data=self.complete_inventory,
+        self.fs_inventory_obj.pickle(data=self.inventory,
                                      filename=self.fs_inventory_obj.pickle_fname)
 
     def _unpickle(self):
@@ -56,17 +56,20 @@ class Inventory(object):
     def get_list_of_image_urls(self):
         return self._list_of_attribute_values(attr='image_url')
 
+    def get_list_of_images(self):
+        return self.inventory.keys()
+
     def _list_of_attribute_values(self, attr):
         log.debug("Generating list of '{attr}'s from inventory.".format(attr=attr))
-        return [getattr(x, attr) for x in self.complete_inventory.items()
+        return [getattr(x, attr) for x in self.inventory.items()
                 if hasattr(x, attr) and getattr(x, attr) is not None]
 
     def update_inventory(self, list_image_data_objs):
         for image_obj in list_image_data_objs:
             image_name = image_obj.image_name
-            if image_name in self.complete_inventory.keys():
+            if image_name in self.inventory.keys():
                 log.debug("Updating data for {0}".format(image_name))
-                self.complete_inventory[image_name].combine(image_obj)
+                self.inventory[image_name].combine(image_obj)
             else:
                 log.debug("Adding data for {0}".format(image_name))
-                self.complete_inventory[image_name] = image_obj
+                self.inventory[image_name] = image_obj

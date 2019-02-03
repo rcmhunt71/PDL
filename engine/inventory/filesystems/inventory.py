@@ -24,18 +24,21 @@ class FSInv(BaseInventory):
     INV_FILE_EXT = ".jpg"
     DATA_FILE_EXT = ".dat"
 
-    def __init__(self, base_dir, metadata=None, serialization=False, binary_filename=None):
+    def __init__(self, base_dir, metadata=None, serialization=False, binary_filename=None, scan=False):
         self.base_dir = base_dir
         self.metadata = metadata
         self.pickle_fname = binary_filename
         self.serialize = serialization
+        self._scan = scan
         super(FSInv, self).__init__()
 
-    def get_inventory(self, from_file=None, serialize=None, scan_local=True):
+    def get_inventory(self, from_file=None, serialize=None, scan_local=True, scan=False):
         serialize = self.serialize if serialize is None else serialize
         from_file = self.serialize if from_file is None else from_file
 
-        if not self._inventory:
+        if not self._inventory or scan or self._scan:
+            if scan or self._scan:
+                log.info("Forcing filesystem scan.")
             self.scan_inventory(serialize=serialize, from_file=from_file, scan_local=scan_local)
 
         return self._inventory

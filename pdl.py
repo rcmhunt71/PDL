@@ -13,10 +13,10 @@ from PDL.configuration.cli.urls import UrlArgProcessing as ArgProcessing
 from PDL.configuration.properties.app_cfg import (
     AppConfig, AppCfgFileSections, AppCfgFileSectionKeys, ProjectCfgFileSectionKeys, ProjectCfgFileSections)
 from PDL.engine.images.image_info import ImageData
-from PDL.engine.inventory.filesystems.inventory import FSInv
+from PDL.engine.images.status import DownloadStatus as Status
 from PDL.engine.inventory.json.inventory import JsonInventory
 from PDL.engine.module_imports import import_module_class
-from PDL.engine.inventory.composite import Inventory
+from PDL.engine.inventory.inventory_composite import Inventory
 from PDL.logger.logger import Logger as Logger
 from PDL.logger.json_log import JsonLog
 from PDL.reporting.summary import ReportingSummary
@@ -51,11 +51,9 @@ class PdlConfig(object):
         self.temp_storage_path = self._build_temp_storage()
         self.urls = None
         self.image_data = None
-
         self._display_file_locations()
 
-        # Get Inventory (This is a temp solution until a DB is in place)
-        self.inventory = JsonInventory(dir_location=self.json_log_location).get_inventory()
+        self.inventory = None
 
     def _build_image_download_dir(self):
         # =========================
@@ -231,7 +229,7 @@ def is_url(target_string):
     return target_string.lstrip().lower().startswith('http')
 
 
-def read_from_buffer(read_delay=0.5):
+def read_from_buffer(read_delay=0.25):
     """
     Read URLs from OS copy/paste buffer.
     :param read_delay: Amount of time between each polling of the buffer.
@@ -319,7 +317,7 @@ def process_and_record_urls(cfg_obj):
 
 
 def remove_duplicate_urls_from_inv(cfg_obj):
-    page_urls_in_inv = [getattr(image_obj, ImageData.PAGE_URL) for image_obj in cfg_obj.inventory.values()]
+    page_urls_in_inv = [getattr(image_obj, ImageData.PAGE_URL) for image_obj in cfg_obj.inventory.inventory.values()]
     orig_urls = set(cfg_obj.urls.copy())
 
     cfg_obj.urls = [url for url in cfg_obj.urls if url not in page_urls_in_inv]
@@ -371,11 +369,26 @@ def download_images(cfg_obj):
         else:
             image_errors.append(catalog.image_info)
 
+    downloaded_image_urls = cfg_obj.inventory.get_list_of_image_urls()
+    downloaded_images = cfg_obj.inventory.get_list_of_images()
+    log.debug(f"Have {len(downloaded_image_urls)} URLs in inventory.")
+
     # Download each image
     for index, image in enumerate(cfg_obj.image_data):
         log.info("{index:>3}: {url}".format(index=index + 1, url=image.image_url))
         contact = Contact(image_url=image.image_url, dl_dir=cfg_obj.dl_dir, image_info=image)
-        status = contact.download_image()
+        if image.image_url not in downloaded_image_urls and image.image_name not in downloaded_images:
+            status = contact.download_image()
+        else:
+            image_metadata = None
+            if image.image_url in downloaded_image_urls:
+                image_metadata = image.image_url
+            elif image.image_name in downloaded_images:
+                image_metadata = image.image_name
+            log.info(f"Found image url that exists in metadata: {image_metadata}")
+            status = Status.EXISTS
+            contact.status = status
+            contact.image_info.dl_status = status
         log.info('DL STATUS: {0}'.format(status))
 
     # Add error_info to be included in results
@@ -413,7 +426,7 @@ if __name__ == '__main__':
         section=AppCfgFileSections.CLASSIFICATION,
         option=AppCfgFileSectionKeys.TYPES)
 
-    inv = Inventory(cfg=app_config)
+    app_config.inventory = Inventory(cfg=app_config, force_scan=True)
 
     # -----------------------------------------------------------------
     #                      DOWNLOAD
@@ -428,9 +441,8 @@ if __name__ == '__main__':
     # -----------------------------------------------------------------
     elif app_config.cli_args.command == args.ArgSubmodules.DUPLICATES:
         log.debug("Selected args.ArgSubmodules.DUPLICATES")
-        inv.fs_inventory_obj.scan_inventory()
-        inv.fs_inventory_obj.list_duplicates()
-        log.info(inv.fs_inventory_obj.list_inventory())
+        app_config.inventory.fs_inventory_obj.list_duplicates()
+        log.info(app_config.inventory.fs_inventory_obj.list_inventory())
 
     # -----------------------------------------------------------------
     #                      DATABASE
@@ -443,6 +455,13 @@ if __name__ == '__main__':
     # -----------------------------------------------------------------
     elif app_config.cli_args.command == args.ArgSubmodules.INFO:
         log.debug("Selected args.ArgSubmodules.INFO")
+        image = getattr(app_config.cli_args, args.ArgOptions.IMAGE, None).lower()
+        if image.lower().endswith('jpg'):
+            image = image.split('.')[0]
+        if image.lower() in app_config.inventory.inventory.keys():
+            log.info(app_config.inventory.inventory[image])
+        else:
+            log.info(f"Image '{image}' not found.")
 
     # -----------------------------------------------------------------
     #                UNRECOGNIZED SUB-COMMAND
@@ -452,4 +471,4 @@ if __name__ == '__main__':
         raise args.UnrecognizedModule(app_config.cli_args.command)
 
     log.info("LOGGED TO: {logfile}".format(logfile=app_config.logfile_name))
-    inv.fs_inventory_obj.scan_inventory(from_file=False)
+    app_config.inventory.fs_inventory_obj.scan_inventory(from_file=False)
