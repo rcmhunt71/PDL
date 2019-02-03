@@ -28,12 +28,12 @@ class ArgSubmodules(object):
     @classmethod
     def get_const_values(cls):
         return [val for key, val in cls.__dict__.items()
-                if not key.startswith('_')]
+                if not key.startswith('_') and key.upper() == key]
 
     @classmethod
     def get_const_names(cls):
         return [key for key, val in cls.__dict__.items()
-                if not key.startswith('_')]
+                if not key.startswith('_') and key.upper() == key]
 
 
 class ArgOptions(object):
