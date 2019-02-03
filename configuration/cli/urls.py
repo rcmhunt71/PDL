@@ -5,6 +5,15 @@ log = pdl_log.Logger()
 
 class UrlArgProcessing(object):
 
+    """
+    Purpose: A series of utilities (static methods) to take a list of
+    potential URL strings, and remove:
+      + duplicates,
+      + non-URL strings
+      + Multiple URLs that are concatenated
+        + https://foo.com/index.htmlhttp://foo.com/index2.html = 2 URLs
+
+    """
     REDUCED_LIST = 'reduced_list'
     TOTAL_DUP_LIST = 'total_dup_list'
     UNIQUE_DUP_LIST = 'unique_dup_list'
@@ -23,7 +32,7 @@ class UrlArgProcessing(object):
         :return: List of valid, unique URLs
 
         """
-        log.info("Number of entries (URLs) in list: {0}".format(len(url_list)))
+        log.info(f"Number of entries (URLs) in list: {len(url_list)}")
 
         domains = domains or list()
 
@@ -53,17 +62,16 @@ class UrlArgProcessing(object):
         unique_counts = UrlArgProcessing.counts_of_each_dup(total_dups)
         unique_dups = unique_counts.keys()
 
-        log.info("Number of URLs in list: {0}".format(len(url_list)))
-        log.info("Number of Unique URLs:  {0}".format(len(reduced_list)))
-        log.info("Number of Duplicates:   {0}".format(len(total_dups)))
-        log.info("Number of Unique Duplicates:  {0}".format(len(unique_dups)))
+        log.info(f"Number of URLs in list: {len(url_list)}")
+        log.info(f"Number of Unique URLs:  {len(reduced_list)}")
+        log.info(f"Number of Duplicates:   {len(total_dups)}")
+        log.info(f"Number of Unique Duplicates:  {len(unique_dups)})")
 
         # Log counts of duplicates per duplicate URL
         if len(total_dups) > 0:
             log.debug("Count of Each Unique Duplicate:")
             for url, count in unique_counts.items():
-                log.debug("DUP: {url}: Count:  {count}".format(
-                    url=url, count=count))
+                log.debug(f"DUP: {url}: Count:  {count}")
 
         return {cls.REDUCED_LIST: reduced_list,
                 cls.TOTAL_DUP_LIST: total_dups,
@@ -96,15 +104,15 @@ class UrlArgProcessing(object):
         # Rejoin with space delimiter (concatenated entries are now separate)
         url_temp = ' {0}'.format(delimiter).join(url_concat.split(delimiter))
         if url_concat != url_temp:
-            msg = "Concatenated URL Found (Delimiter: {delim}) - Fixed"
-            log.debug(msg.format(delim=delimiter))
+            msg = f"Concatenated URL Found (Delimiter: {delimiter}) - Fixed"
+            log.debug(msg)
 
         # Ignore '' urls, they are not valid, and the splitting generates a ''
         # at the front of each element in a split list.
         url_temp_list = [url for url in url_temp.split(' ') if url != '']
 
-        log.info("Number of concatenations: {0}".format(
-            len(url_temp_list) - num_urls_init))
+        diff = len(url_temp_list) - num_urls_init
+        log.info(f"Number of concatenations: {diff}")
 
         # Check the validity of all existing URLs and classify based on validity
         urls = {cls.VALID: list(),
@@ -114,10 +122,8 @@ class UrlArgProcessing(object):
             urls[UrlArgProcessing.validate_url(
                 url, domains=domains)].append(url)
 
-        log.info("Number of VALID URLs in list: {0}".format(
-            len(urls[cls.VALID])))
-        log.info("Number of INVALID URLs in list: {0}".format(
-            len(urls[cls.INVALID])))
+        log.info(f"Number of VALID URLs in list: {len(urls[cls.VALID])}")
+        log.info(f"Number of INVALID URLs in list: {len(urls[cls.INVALID])}")
 
         return urls[cls.VALID]
 
@@ -135,15 +141,15 @@ class UrlArgProcessing(object):
         """
         domains = domains or list()
 
-        log.debug('Checking for domains: {0}'.format(domains))
+        log.debug(f'Checking for domains: {domains}')
 
         valid = (url.lower().startswith(protocol.lower()) and
                  url.lower() != protocol.lower())
 
         if not valid:
-            msg = ("Invalid URL: '{0}'. "
-                   "Did not match expected protocol(s): '{1}'")
-            log.warn(msg.format(url.lower(), protocol.lower()))
+            msg = (f"Invalid URL: '{url.lower()}'. "
+                   f"Did not match expected protocol(s): '{protocol.lower()}'")
+            log.warn(msg)
 
         # Filter out 'None' domains... it is an invalid domain.
         domains = [x for x in domains if x is not None]

@@ -123,8 +123,7 @@ class CLIArgs(object):
 
         """
         modules = ArgSubmodules.get_const_values()
-        log.debug("Request for module names: {0}".format(
-            pprint.pformat(modules)))
+        log.debug(f"Request for module names: {pprint.pformat(modules)}")
         return modules
 
     @staticmethod
@@ -136,8 +135,8 @@ class CLIArgs(object):
 
         """
         if option in ArgOptions.SHORTCUTS.keys():
-            return "-{0}".format(ArgOptions.SHORTCUTS[option])
-        log.error('No shortcut registered for "{0}".'.format(option))
+            return f"-{ArgOptions.SHORTCUTS[option]}"
+        log.error(f'No shortcut registered for "{option}".')
         return None
 
     def parse_args(self, test_args_list=None):
@@ -150,7 +149,7 @@ class CLIArgs(object):
         log.debug("Parsing command line args.")
         if test_args_list is not None:
             log.debug(
-                "Args passed in for testing:\n\t{0}".format(test_args_list))
+                f"Args passed in for testing:\n\t{test_args_list}")
         return (self.parser.parse_args() if test_args_list is None else
                 self.parser.parse_args(test_args_list))
 
@@ -164,33 +163,33 @@ class CLIArgs(object):
         # GLOBAL DEBUG FLAG
         self.parser.add_argument(
             self.get_shortcut(ArgOptions.DEBUG),
-            '--{0}'.format(ArgOptions.DEBUG),
+            f'--{ArgOptions.DEBUG}',
             help="Enable debug flag for logging and reporting",
             action='store_true')
 
         # DRY RUN
         self.parser.add_argument(
             self.get_shortcut(ArgOptions.DRY_RUN),
-            '--{0}'.format(ArgOptions.DRY_RUN),
+            f'--{ArgOptions.DRY_RUN}',
             help="Enable flag for dry-run. See what happens without taking action",
             action='store_true')
 
         # USER/APP CFG FILE
         self.parser.add_argument(
             self.get_shortcut(ArgOptions.CFG),
-            '--{0}'.format(ArgOptions.CFG),
+            f'--{ArgOptions.CFG}',
             help="Specify application configuration file")
 
         # ENGINE CFG FILE
         self.parser.add_argument(
             self.get_shortcut(ArgOptions.ENGINE),
-            '--{0}'.format(ArgOptions.ENGINE),
+            f'--{ArgOptions.ENGINE}',
             help="Specify engine configuration file")
 
         # FORCE SCAN
         self.parser.add_argument(
             self.get_shortcut(ArgOptions.FORCE_SCAN),
-            '--{0}'.format(ArgOptions.FORCE_SCAN),
+            f'--{ArgOptions.FORCE_SCAN}',
             help="Force inventory scan",
             action='store_true')
 
@@ -214,7 +213,7 @@ class CLIArgs(object):
         # FILE TO READ URLS
         dl_args.add_argument(
             self.get_shortcut(ArgOptions.FILE),
-            '--{0}'.format(ArgOptions.FILE),
+            f'--{ArgOptions.FILE}',
             help="Download PLAY file from a previous execution",
             metavar="<DL_FILE>"
         )
@@ -222,7 +221,7 @@ class CLIArgs(object):
         # READ URLS FROM OS COPY/PASTE BUFFER
         dl_args.add_argument(
             self.get_shortcut(ArgOptions.BUFFER),
-            '--{0}'.format(ArgOptions.BUFFER),
+            f'--{ArgOptions.BUFFER}',
             help="Read list from copy/paste buffer",
             action='store_true'
         )
@@ -230,7 +229,7 @@ class CLIArgs(object):
         # ALLOW DUPLICATES URLS ALREADY IN THE INVENTORY
         dl_args.add_argument(
             self.get_shortcut(ArgOptions.IGNORE_DUPS),
-            '--{0}'.format(ArgOptions.IGNORE_DUPS),
+            f'--{ArgOptions.IGNORE_DUPS}',
             help="Allow duplicate DLs (DL even if DL'd previously)",
             action='store_true'
         )
@@ -251,7 +250,7 @@ class CLIArgs(object):
         # DATABASE SYNC
         mutex.add_argument(
             self.get_shortcut(ArgOptions.SYNC),
-            '--{0}'.format(ArgOptions.SYNC),
+            f'--{ArgOptions.SYNC}',
             help="Scan inventory and update DB based on findings.",
             action="store_true"
         )
@@ -259,7 +258,7 @@ class CLIArgs(object):
         # RECORDS
         mutex.add_argument(
             self.get_shortcut(ArgOptions.RECORDS),
-            '--{0}'.format(ArgOptions.RECORDS),
+            f'--{ArgOptions.RECORDS}',
             help="Display database summary.",
             action='store_true'
         )
@@ -267,7 +266,7 @@ class CLIArgs(object):
         # FILESPEC
         db_args.add_argument(
             self.get_shortcut(ArgOptions.FILE_SPEC),
-            '--{0}'.format(ArgOptions.FILE_SPEC),
+            f'--{ArgOptions.FILE_SPEC}',
             help=("File spec to list information about images, requires "
                   "--records option and can be combined with --details."),
             metavar="<FILE SPEC>"
@@ -276,7 +275,7 @@ class CLIArgs(object):
         # DETAILS
         db_args.add_argument(
             self.get_shortcut(ArgOptions.DETAILS),
-            '--{0}'.format(ArgOptions.DETAILS),
+            f'--{ArgOptions.DETAILS}',
             help=("Display detailed summary of database contents or details of "
                   "selected <filespec>."),
             action='store_true'
@@ -295,7 +294,7 @@ class CLIArgs(object):
         # REMOVE DUPLICATES
         dup_args.add_argument(
             self.get_shortcut(ArgOptions.REMOVE_DUPS),
-            '--{0}'.format(ArgOptions.REMOVE_DUPS),
+            f'--{ArgOptions.REMOVE_DUPS}',
             help="Remove duplicate for duplicate images",
             action='store_true',
         )
@@ -324,9 +323,9 @@ class CLIArgs(object):
         """
         args = ''
         for arg, val in sorted(vars(self.args).items()):
-            args += "\t{arg}: {value}\n".format(arg=arg, value=val)
+            args += f"\t{arg}: {val}\n"
 
-        log.debug("Command Line Args:\n{args}".format(args=args))
+        log.debug(f"Command Line Args:\n{args}")
         return args
 
     def get_opt_args_states(self):
@@ -338,15 +337,15 @@ class CLIArgs(object):
         msg = '\nGLOBAL FLAGS:\n'
         option_keys = [ArgSubmodules.GENERAL, self.args.command]
         for key in option_keys:
-            log.debug("OPTION KEY: {0}".format(key))
-            log.debug("OPTIONS: {0}".format(self.FLAGS[key]))
+            log.debug(f"OPTION KEY: {key}")
+            log.debug(f"OPTIONS: {self.FLAGS[key]}")
             if key != ArgSubmodules.GENERAL:
-                msg += "\nMODULE: {0}\n".format(key)
+                msg += f"\nMODULE: {key}\n"
             for flag in self.FLAGS[key]:
                 if hasattr(self.args, flag):
                     setting = "ENABLED" if getattr(self.args, flag) else "DISABLED"
-                    log.debug("Flag: {0} --> {1}".format(flag, setting))
-                    msg += "--> {0} {1} <<--\n".format(flag, setting)
+                    log.debug(f"Flag: {flag} --> {setting}")
+                    msg += f"--> {flag} {setting} <<--\n"
         return msg
 
 
@@ -354,8 +353,7 @@ class CLIArgs(object):
 # (e.g.- things not easily validated though automation)
 if __name__ == '__main__':  # pragma: no cover
     filename = 'args.test.log'
-    # log = PDL_log(filename=filename)
     parser = CLIArgs()
     log.debug(parser.args)
-    log.info("Modules: {0}".format(parser.get_module_names()))
+    log.info(f"Modules: {parser.get_module_names()}")
     parser.get_args_str()

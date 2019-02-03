@@ -28,7 +28,6 @@ class UrlFile(object):
         :return: (str) Name and path to file
 
         """
-
         # Check if location exists, create if requested
         if not utils.check_if_location_exists(
                 location=location, create_dir=create_dir):
@@ -37,22 +36,19 @@ class UrlFile(object):
         # Create file name
         if filename is None:
             timestamp = datetime.datetime.now().strftime(self.TIMESTAMP)
-            filename = '{0}.{1}'.format(timestamp, self.EXTENSION)
+            filename = f'{timestamp}.{self.EXTENSION}'
         filespec = os.path.abspath(os.path.join(location, filename))
 
         # Write URLs to file
-        log.debug("Writing url input to file: {loc}".format(loc=filespec))
+        log.debug(f"Writing url input to file: {filespec}")
         with open(filespec, 'w') as FILE:
             FILE.write("URL LIST:\n")
             for index, url in enumerate(urls):
-                FILE.write("{index:>3}) {url}\n".format(
-                    index=index + 1, url=url))
-            FILE.write("\n{url_list_delim}:\n".format(
-                url_list_delim=self.URL_LIST_DELIM))
-            FILE.write("{0}\n".format(self.URL_DELIM.join(urls)))
+                FILE.write(f"{index + 1:>3}) {url}\n")
+            FILE.write(f"\n{self.URL_LIST_DELIM}:\n")
+            FILE.write(f"{self.URL_DELIM.join(urls)}\n")
 
-        log.info("Wrote urls to the input file: {loc} --> ({num} urls) ".format(
-            loc=filespec, num=len(urls)))
+        log.info(f"Wrote urls to the input file: {filespec} --> ({len(urls)} urls)")
 
         return filespec
 
@@ -64,14 +60,13 @@ class UrlFile(object):
         :return: (list) List of URLs
 
         """
-
         # Check if file exists, return empty list if it does not.
         if not os.path.exists(os.path.abspath(filename)):
-            log.error("Unable to find input file: {0}".format(filename))
+            log.error(f"Unable to find input file: {filename}")
             return list()
 
         # Read file
-        log.info('Reading url file: {0}'.format(filename))
+        log.info(f'Reading url file: {filename}')
         with open(filename, "r") as FILE:
             lines = FILE.readlines()
 
@@ -81,5 +76,6 @@ class UrlFile(object):
             if line.strip().startswith(UrlArgProcessing.PROTOCOL):
                 url_list.extend([x.strip() for x in line.split(self.URL_DELIM)])
 
-        log.debug("URLs Found in File:\n{0}".format(pprint.pformat(url_list)))
+        urls = pprint.pformat(url_list)
+        log.debug(f"URLs Found in File:\n{urls}")
         return url_list
