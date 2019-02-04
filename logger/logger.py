@@ -9,12 +9,32 @@ import prettytable
 
 
 class Logger(object):
+    """
+    Creates a logging facility that can be used by any module.
+    Import the loggeer and instantiate in module:
+
+    log = Logger()
+
+    In the main application, instantiate the logger, but
+    set `set_root` to True. This will reset all of the loggers to
+    the correct level, and set the destination file. (Since they were
+    instantiated when the module was loaded, additional updates
+    are not applied.
+
+    By setting `set_root` to True:
+    * it removes and stores the handlers
+    * updates the root logger with the desired level and target files
+    * reapplies the handlers to the root, which will cause the handlers
+        to adopt the updated root logger properties.
+
+    """
 
     # Enables print statements for issues like double registration of loggers
     DEBUG_MODULE = False
 
     DEFAULT_PROJECT = 'PDL'
 
+    # Quick macros for convenience
     INFO = logging.INFO
     WARN = logging.WARN
     FATAL = logging.FATAL
@@ -29,19 +49,36 @@ class Logger(object):
                   'info': INFO,
                   'debug': DEBUG}
 
+    # Reverse lookups: logging.LEVEL are integers, and this creates
+    # a quick lookup: given a value, what is the corresponding string
+    # e.g. = 40 --> INFO
     VAL_TO_STR = dict([(value, text) for text, value in STR_TO_VAL.items()])
 
+    # Logging statement format
     LOG_FORMAT = (r'[%(asctime)-15s][%(pid)s][%(levelname)-5s]'
                   r'[%(file_name)s:%(routine)s|%(linenum)d] - %(message)s')
     DATE_FORMAT = r'%m%d%y-%T'
 
+    # Depth: Actual stack level calling log (there are two additional levels
+    # within the logging module that if referenced, would always be reported
+    # as the calling routine = not helpful.)
     DEFAULT_STACK_DEPTH = 3
     ROOT_LOGGER = 'root'
 
     def __init__(
             self, filename=None, default_level=None, added_depth=0,
             project=None, set_root=False, test_name=None):
+        """
+        :param filename: Filename to write logs to...
+        :param default_level: Default stack level (default = DEFAULT_STACK_DEPTH)
+        :param added_depth: Added_depth - in case a different stack level is required
+                   (not commonly used)
+        :param project: Name of project
+        :param set_root: Boolean (set root, see class description for information)
+        :param test_name: Used for testing... allows setting of specific name
+                    in log preamable for validation
 
+        """
         self.filename = filename
         self.loglevel = default_level or self.DEFAULT_LOG_LEVEL
         self.depth = self.DEFAULT_STACK_DEPTH + int(added_depth)
@@ -54,14 +91,23 @@ class Logger(object):
         # re-add the handlers after updating the root logger config.
         # Reason: Updating the config with handlers attached is a 'no-op'
         if self.root:
+
+            # Store (copy) the list of handlers associated with the root handler
             handlers = logging.root.handlers[:]
 
+            # Remove the handlers from the root
             for handler in handlers:
                 logging.root.removeHandler(handler)
+
+            # Initialize the root handler
             self._start_logger()
+
+            # Re-associate the handlers to the root handler
             for handler in handlers:
                 logging.root.addHandler(handler)
+
         else:
+            # Start the logger for the given module.
             self._start_logger()
 
     def _start_logger(self):
@@ -84,6 +130,7 @@ class Logger(object):
             default_config['filename'] = self.filename
         logging.basicConfig(**default_config)
 
+        # Set the name if it is not defined
         if self.name is None:
             self.name = (
                 self._get_module_name() if __name__ != '__main__' else
@@ -92,18 +139,22 @@ class Logger(object):
         if self.root:
             self.name = self.ROOT_LOGGER
 
+        # If no filename is specified, add the console as the logger
         if self.filename is not None:
             self._add_console()
 
         root_log = logging.getLogger()
+
+        # Get the correct child logger
         if self.name != self.ROOT_LOGGER:
             if self.DEBUG_MODULE:
-                print("Child Logger: {0}".format(self.name))
+                print(f"Child Logger: {self.name}")
             self.logger = root_log.getChild(self.name)
 
+        # Get the root logger
         else:
             if self.DEBUG_MODULE:
-                print("Root: {0}".format(self.name))
+                print(f"Root: {self.name}")
             self.logger = root_log
             self.logger.setLevel(self.loglevel)
 
@@ -128,7 +179,7 @@ class Logger(object):
         """
         frame_info = inspect.stack()[self.depth]
         filename = os.path.abspath(frame_info[1]).split(
-            '{0}{1}'.format(self.project, os.path.sep))[-1]
+            f'{self.project}{os.path.sep}')[-1]
 
         return self._translate_to_dotted_lib_path(filename)
 
@@ -155,10 +206,10 @@ class Logger(object):
         :return: List of tuples (logger instance name, log_level (int))
 
         """
-        logger_info = [self._get_logger_info('root')]
+        logger_info = [self._get_logger_info(self.ROOT_LOGGER)]
 
         for logger_name in sorted(logging.getLogger().manager.loggerDict.keys()):
-            if logger_name != 'root':
+            if logger_name != self.ROOT_LOGGER:
                 logger_info.append(self._get_logger_info(logger_name))
         return logger_info
 
@@ -196,6 +247,13 @@ class Logger(object):
 
     @staticmethod
     def _translate_to_dotted_lib_path(path):
+        """
+        Create a python import path from a filesystem path by replacing the '/' (os.path.sep) with '.'
+        :param path: path of module
+
+        :return: (str) dotted module path
+
+        """
         return str(path.split('.')[0]).replace(os.path.sep, ".")
 
     def _method(self):
@@ -218,6 +276,11 @@ class Logger(object):
                 'routine': frame_info[3],
                 'pid': os.getpid()}
 
+    # Quick class level references to logger methods.
+    # ------------------------------------------------------------------
+    # ==> Simplification from obj.log.log_level() to obj.log_level()
+    # ------------------------------------------------------------------
+
     def fatal(self, msg):
         self._log_level(level='FATAL', msg=msg)
 
@@ -238,6 +301,9 @@ class Logger(object):
 
 
 # FOR VISUAL/MANUAL TESTING PURPOSES
+#   - Need to be executed explicitly.
+#   - pragma = not monitored by coverage tool
+
 if __name__ == '__main__':  # pragma: no cover
 
     def test_routine(logger, level, msg):

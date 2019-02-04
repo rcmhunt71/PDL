@@ -3,9 +3,9 @@ import os
 
 import PDL.logger.logger as logger
 
-DEFAULT_EXTENSION = 'log'
-DELIMITER = '_'
-TIMESTAMP = r'%y%m%dT%H%M%S'
+DEFAULT_EXTENSION = 'log'      # Used for finding log files
+DELIMITER = '_'                # Delimiter for file naming convention
+TIMESTAMP = r'%y%m%dT%H%M%S'   # Timestamnp: YYYYMMDDThhmmss
 
 log = logger.Logger()
 
@@ -41,28 +41,25 @@ def datestamp_filename(prefix=None, suffix=None, extension=DEFAULT_EXTENSION,
 
     # Create prefix
     if prefix is not None:
-        filename = "{prefix}{delim}".format(prefix=prefix, delim=DELIMITER)
+        filename = f"{prefix}{DELIMITER}"
 
     # Add timestamp
     filename += timestamp
 
     # Add suffix
     if suffix is not None:
-        filename = "{filename}{delim}{suffix}".format(
-            filename=filename, suffix=suffix, delim=DELIMITER)
+        filename = f"{filename}{DELIMITER}{suffix}"
 
     # Add extension
-    filename += "{delim}{loglevel}.{ext}".format(
-        ext=extension, loglevel=log_level.upper(), delim=DELIMITER)
+    filename += f"{DELIMITER}{log_level.upper()}.{extension}"
 
-    log.debug("RAW LOG FILENAME: {0}".format(filename))
+    log.debug(f"RAW LOG FILENAME: {filename}")
 
     # Build drive specification (if drive letter is provided)
     if drive_letter is not None and drive_letter != '':
-        directory = "{drive}:{directory}".format(
-            drive=drive_letter, directory=directory)
+        directory = f"{drive_letter}:{directory}"
 
-    log.debug("DIRECTORY: {0}".format(directory))
+    log.debug(f"DIRECTORY: {directory}")
 
     # Join the path and filename
     filename = os.path.sep.join([directory, filename])
@@ -71,7 +68,7 @@ def datestamp_filename(prefix=None, suffix=None, extension=DEFAULT_EXTENSION,
     if drive_letter is None:
         filename = os.path.abspath(filename)
 
-    log.debug("FINAL LOG FILENAME: {0}".format(filename))
+    log.debug(f"FINAL LOG FILENAME: {filename}")
 
     return filename
 
@@ -87,6 +84,7 @@ def check_if_location_exists(location, create_dir):
     :return: (bool) Does path exist (or was it created, if requested)
 
     """
+    # If the path does not exist...
     if not os.path.exists(location):
         if create_dir:
             try:
@@ -97,22 +95,22 @@ def check_if_location_exists(location, create_dir):
                 result = False
                 log.exception(exc)
 
+            # Directories created
             else:
                 result = True
-                msg = "Created URL save directory: '{0}'"
-                log.debug(msg.format(location))
+                log.debug(f"Created URL save directory: '{location}'")
 
         # Path does not exist, but not asked to create it.
         else:
             result = False
-            msg = ("URL save file directory does not exist ('{loc}'), and "
-                   "was not configured to create dir.")
-            log.error(msg.format(loc=location))
+            msg = (f"URL save file directory does not exist "
+                   f"('{location}'), and was not configured "
+                   f"to create dir.")
+            log.error(msg)
 
     # Path exists
     else:
         result = True
-        log.debug("URL save file directory exists ('{loc}')".format(
-            loc=location))
+        log.debug(f"URL save file directory exists ('{location}')")
 
     return result
