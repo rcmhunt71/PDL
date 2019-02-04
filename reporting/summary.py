@@ -9,6 +9,13 @@ log = Logger()
 
 class ReportingSummary(object):
 
+    """
+    Builds various reports for DL'd images, leveraging the data in
+    the ImageData objects.
+    """
+
+    # Used for initializing a dictionary with values of <type>
+    # Allows to dynamically set the expected value type
     INT_VALUE_TYPE = 'int'
     LIST_VALUE_TYPE = 'list'
     DICT_VALUE_TYPE = 'dict'
@@ -23,28 +30,43 @@ class ReportingSummary(object):
 
     @staticmethod
     def _log_table(table):
+        """
+        Break table into separate log lines.
+
+        :param table: Multi-line text table (delimiter = \n)
+        :return:
+        """
         for line in table.split('\n'):
             log.info(line)
 
     # ------------------- BASIC RESULT TABLE STRUCTURE -------------------
 
     def init_status_dict_(self, value_type=DEFAULT_VALUE_TYPE):
+        """
+        Initialize a dictionary with values of a specific type
+
+        :param value_type: One of INT_VALUE_TYPE, LIST_VALUE_TYPE, DICT_VALUE_TYPE
+
+        :return: Dictionary
+
+        """
         init_dict = dict()
         debug_msg = "Creating status dict with '{type_}' value structure."
 
+        # Get a list of all the possible statuses
         statuses = DownloadStatus.get_statuses_()
 
-        # INTEGER
+        # Value Type = INTEGER
         if value_type.lower() == self.INT_VALUE_TYPE:
             log.debug(debug_msg.format(type_=self.INT_VALUE_TYPE))
             init_dict = dict([(getattr(DownloadStatus, status), 0) for status in statuses])
 
-        # LIST
+        # Value Type = LIST
         elif value_type.lower() == self.LIST_VALUE_TYPE:
             log.debug(debug_msg.format(type_=self.LIST_VALUE_TYPE))
             init_dict = dict([(getattr(DownloadStatus, status), list()) for status in statuses])
 
-        # DICTIONARY
+        # Value Type = DICTIONARY
         elif value_type.lower() == self.DICT_VALUE_TYPE:
             log.debug(debug_msg.format(type_=self.DICT_VALUE_TYPE))
             init_dict = dict([(getattr(DownloadStatus, status), dict()) for status in statuses])
@@ -54,43 +76,109 @@ class ReportingSummary(object):
     # ------------------- DOWNLOAD STATUS RESULTS -------------------
 
     def tally_status_results(self):
+        """
+        Tally the counts of DLs based on the status
+
+        :return: Dictionary (key: status type, value: total count)
+
+        """
         log.debug("Tallying Download Status results.")
         status_tally = self.init_status_dict_(value_type=self.INT_VALUE_TYPE)
+
+        # Iterate through all ImageData objects, and
+        # add to the tally based on the ImageData.dl_status
         for image in self.data:
             status_tally[image.dl_status] += 1
+
         return status_tally
 
     def status_table(self, recalculate=False):
+        """
+        Generate a table based on the tallied status
+
+        :param recalculate: Recalculate tally before building table (DEFAULT: False)
+
+        :return: (Str) Table of status + count
+
+        +==========+=======+
+        |  STATUS  | COUNT |
+        +==========+=======+
+        | Status 1 |   8   |
+        | Status 2 |   2   |
+        |   ...    |   .   |
+        +==========+=======+
+
+        """
         status_header = 'Status'
         count_header = 'Count'
 
+        # Define table and headers
         table = prettytable.PrettyTable()
         table.field_names = [status_header, count_header]
 
+        # Recalculate if needed or requested
         if self.status_tally is None or recalculate:
             self.status_tally = self.tally_status_results()
 
+        # Populate table
         log.debug("Building Download Status Results table.")
         for status, count in self.status_tally.items():
             table.add_row([status.upper(), count])
 
+        # Format table...
         table.sortby = status_header
         table.reversesort = False
         table.align[count_header] = 'r'
         table.align[status_header] = 'l'
+
+        # Return string representation of table
         return table.get_string(title='Download Status')
 
     def log_download_status_results_table(self, recalculate=False):
+        """
+        Generate results table and display/log the table.
+        :param recalculate: Recalculate tally before building table (DEFAULT: False)
+        :return: None
+
+        """
         self._log_table(table=self.status_table(recalculate=recalculate))
 
     # ------------------- URL RESULTS -------------------
 
     def detailed_download_results_table(self, specific_status=None):
+        """
+        Generates a table of download statuses, and the DL'd links for each status
 
+        :param specific_status: Generate the table for a specific status
+
+        :return: (Str) Table of status + count + links/statur
+
+        +==================+============+
+        |  STATUS/LINKS    |  Duration  |
+        +==================+============+
+        | Status 1  (2)    |            |
+        |    - link1       | 0.250 sec  |
+        |    - link2       | 0.500 sec  |
+        |                  | 0.750 sec  |
+        |                  |            |
+        | Status 2  (4)    |            |
+        |    - link3       | 0.750 sec  |
+        |    - link4       | 1.250 sec  |
+        |    - link5       | 0.500 sec  |
+        |    - link6       | 0.750 sec  |
+        |                  | 3.250 sec  |
+        |                  |            |
+        | ...              | ...        |
+        +==================+============+
+        """
+
+        # Define various aspects of the table
         delimiter = '   - '
         image_header = "Image"
         time_format = "{0:0.3f} sec"
         duration_header = "Duration"
+
+        # Define table, headers, and format
         table = prettytable.PrettyTable()
         table.field_names = [image_header, duration_header]
         table.align[image_header] = 'l'
@@ -100,16 +188,21 @@ class ReportingSummary(object):
         for image in self.data:
             data_dict[image.dl_status].append(image)
 
-        log.debug("Displaying specific status: '{0}'".format(str(specific_status).upper()))
+        if specific_status is not None:
+            log.debug(f"Displaying specific status: '{str(specific_status).upper()}'")
 
         log.debug("Building URL results table.")
         total_dur = 0.0
+
+        # Iterate through data, scanning for status types and corresponding links
         for status, image_obj_list in sorted(data_dict.items()):
+
+            # Develop the status header... (either specific one (filter) or all (specific=None)
             if specific_status is None or specific_status.lower() == status.lower():
-                table.add_row([
-                    "{status} ({count})".format(status=status.upper(), count=len(image_obj_list)),
-                    ''])
+                table.add_row([f"{status.upper()} ({len(image_obj_list)})", ''])
                 status_dur = 0.0
+
+                # Add each link and DL duration that corresponds to the status
                 for image in image_obj_list:
                     table.add_row([
                         "{delim}{url}".format(
@@ -127,33 +220,69 @@ class ReportingSummary(object):
         return table.get_string(title='URL Status')
 
     def log_detailed_download_results_table(self, specific_status=None):
+        """
+        Generate the detailed results table, and log to file.
+
+        :param specific_status: Specific status to summarize
+              (DEFAULT = None, implying summarize all statuses)
+
+        :return: None
+
+        """
         self._log_table(
             table=self.detailed_download_results_table(specific_status=specific_status))
 
     def error_table(self):
+        """
+        Build a table listing all DL errors
+
+        :return:   (Str) Table of Image + URL + Error
+
+        +===============+==========================+======================+
+        |  Image Name   | URL                      | Error                |
+        +===============+==========================+======================+
+        |  image1.jpg   | www.foo.com/image1.html  | 404 - File Not Found |
+        |  image2.jpg   | www.foo.com/image2.html  | 401 - Not Authorized |
+        +===============+==========================+======================+
+
+        """
         image_header = "Image Name"
         url_header = "URL"
         status_header = "Error"
 
+        # Define table
         table = prettytable.PrettyTable()
         table.field_names = [image_header, status_header, url_header]
+        table.align[image_header] = 'l'
+        table.align[status_header] = 'l'
+        table.align[url_header] = 'l'
 
+        # Collect all ImageData objects that have a dl_status of ERROR.
         data = [x for x in self.data if
                 x.image_info.dl_status == DownloadStatus.ERROR]
 
+        # Populate table
         for image in data:
 
             # For images that could not be DL'd, list parent page
             if image.image_url is None:
                 image.image_url = image.page_url
 
+            # Add the current error to the table
             table.add_row(
                 [image.name, image.image_info.error_info, image.image_url])
-        table.align[image_header] = 'l'
-        table.align[status_header] = 'l'
-        table.align[url_header] = 'l'
+
         return table.get_string(title='Download Errors')
 
 
 # ------------------- TODOs -------------------
 # TODO: <code> Create JSON report of DL'd info.
+#
+#        EXAMPLE:
+#        +===============+==========================+===========+===========+===========+
+#        |  Image Name   | URL                      | Metadata1 | Metadata2 | Metadata3 |
+#        +===============+==========================+===========+===========+===========+
+#        |  image1.jpg   | www.foo.com/image1.html  | foo       | wooba     | lalala    |
+#        |  image2.jpg   | www.foo.com/image2.html  | doo       | shooba    | falala    |
+#        +===============+==========================+===========+===========+===========+
+#
