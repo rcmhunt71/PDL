@@ -17,6 +17,10 @@ log = Logger()
 
 
 class DownloadPX(DownloadImage):
+    """
+    Used for DL'ing images from PX site. Scrapes metadata from contact sheet,
+    DL's image, uses/generates ImageData object for the image info.
+    """
 
     EXTENSION = 'jpg'  # Default Extension
 
@@ -62,7 +66,7 @@ class DownloadPX(DownloadImage):
 
     def parse_image_info(self):
         """
-        Get and build all relevant information required for the download.
+        Scrape and store relevant storage information required for the download.
 
         :return: None
 
@@ -78,34 +82,41 @@ class DownloadPX(DownloadImage):
         up to the maximum number of attempts.
 
         :return: dl_status (see PDL.engine.images.status),
-                dl_duration (in seconds)
+                 dl_duration (in seconds)
 
         """
-        log.debug("Image URL: {url}".format(url=self.image_url))
-        log.debug("DL Directory: {dl_dir}".format(dl_dir=self.dl_dir))
+        log.debug(f"Image URL: {self.image_url}")
+        log.debug(f"DL Directory: {self.dl_dir}")
 
         # Try to download image
         attempts = 0
-        log.debug("Image Status: {0}".format(self.status))
-        start_dl = datetime.datetime.now()
+        log.debug(f"Image Status: {self.status}")
+
+        # Set DL and image status
         db_status = ModStatus.MOD_NOT_SET
         exists = self._file_exists()
 
+        # Start timer
+        start_dl = datetime.datetime.now()
+
+        # If image is PENDING and DNE
         if not exists and self.status == Status.PENDING:
+
+            # Try to DL
             while (attempts < self.MAX_ATTEMPTS and
                    self.status != Status.DOWNLOADED):
                 attempts += 1
 
-                log.debug("({attempt}/{max}): Attempting to DL '{url}'".format(
-                    attempt=attempts, max=self.MAX_ATTEMPTS, url=self.image_url)
-                )
+                log.debug(f"({attempts}/{self.MAX_ATTEMPTS}): Attempting to DL '{self.image_url}'")
 
-                # Download the image
+                # DL the image
                 self.status = self._dl_via_wget() if self.use_wget else self._dl_via_requests()
 
+                # Wait a little bit if the image was not DL'd.
                 if self.status != Status.DOWNLOADED:
                     time.sleep(self.RETRY_DELAY)
 
+            # Adjust image status metadata if DL'd
             if self.status == Status.DOWNLOADED:
                 db_status = ModStatus.NEW
 
@@ -113,22 +124,23 @@ class DownloadPX(DownloadImage):
             # Depends if it exists in the DB, but for now, unchanged
             db_status = ModStatus.UNCHANGED
 
+        # Calculate time to DL
         dl_duration = (datetime.datetime.now() - start_dl).total_seconds()
 
+        # Update image metadata
         # TODO: Display dl_on based on UTC (not local)
         self.image_info.downloaded_on = str(datetime.datetime.now().isoformat()).split('.')[0]
         self.image_info.download_duration += dl_duration
         self.image_info.mod_status = db_status
         self.image_info.locations.append(self.dl_dir)
 
+        # Log status
         log.info("Downloaded in {0:0.3f} seconds.".format(dl_duration))
-        log.info("{url} --> {status}".format(
-            url=self.image_info.page_url, status=self.status.upper()))
+        log.info(f"{self.image_info.page_url} --> {self.status.upper()}")
 
         return self.status
 
-    def get_image_name(self, image_url=None, delimiter_key=None,
-                       use_wget=False):
+    def get_image_name(self, image_url=None, delimiter_key=None, use_wget=False):
         """
         Builds image name from URL
 
@@ -144,7 +156,7 @@ class DownloadPX(DownloadImage):
         image_url = image_url or self.image_url
         delimiter_key = delimiter_key or self.url_split_token
 
-        log.debug("Image URL: {0}".format(image_url))
+        log.debug(f"Image URL: {image_url}")
         if image_url is None:
             msg = 'Image Url is None.'
             self.status = Status.ERROR
@@ -156,7 +168,6 @@ class DownloadPX(DownloadImage):
         sig_comp = re.compile(delimiter_key)
 
         # Check if url has key (try two different ways)
-
         match = sig_comp.search(image_url)
         if match is not None and not use_wget:
             log.debug("Image name found via regex")
@@ -169,17 +180,16 @@ class DownloadPX(DownloadImage):
 
         # Didn't find the url or something bad happened
         if image_name is None:
-            msg = "Unable to get image_name from url: {url}".format(
-                url=image_url)
+            msg = f"Unable to get image_name from url: {image_url}"
             self.status = Status.ERROR
             self.image_info.error_info = msg
             log.error(msg)
 
         # Append the extension
         else:
-            image_name += '.{0}'.format(self.EXTENSION)
+            image_name += f'.{self.EXTENSION}'
 
-        log.debug("Image Name: {image_name}".format(image_name=image_name))
+        log.debug(f"Image Name: {image_name}")
 
         return image_name
 
@@ -197,13 +207,15 @@ class DownloadPX(DownloadImage):
         dl_dir = dl_dir or self.dl_dir
         file_spec = None
 
+        # Check data prerequisites are met.
         if image_name is None or dl_dir is None:
-            msg = ('No image name ({image}) or base_dir ({base}) was'
-                   ' provided.'.format(image=image_name, base=dl_dir))
+            msg = (f'No image name ({image_name}) or base_dir ({dl_dir}) was'
+                   ' provided.')
             self.status = Status.ERROR
             self.image_info.error_info = msg
             log.error(msg)
 
+        # Build filespec
         else:
             file_spec = os.path.join(dl_dir, image_name)
 
@@ -213,28 +225,32 @@ class DownloadPX(DownloadImage):
         """
         Check to see if file exists. If it does, set status to prevent DL.
 
-        :return: (bool) Does file exist?
+        :return: (bool) Does file exist? T/F
 
         """
         exists = False
 
+        # Check data prerequisites are met.
         if self.dl_file_spec is None or self.dl_file_spec == '':
-            msg = "No File Location set. Status set to '{0}'.".format(
-                self.status)
+            msg = f"No File Location set. Status set to '{self.status}'."
             self.status = Status.ERROR
             self.image_info.error_info = msg
             log.error(msg)
 
+        # Check to see if specified file exists, if so, set metadata data
+        # and log results
         elif os.path.exists(self.dl_file_spec):
             self.status = Status.EXISTS
-            log.debug("File '{0}' already exists. Set status to '{1}'".format(
-                self.dl_file_spec, self.status))
+            log.debug(f"File '{self.dl_file_spec}' already exists. "
+                      f"Set status to '{self.status}'")
             exists = True
 
+        # File does not exist. Set metadata and log results
         else:
-            log.debug("File does not exist. {0}\nStatus set to '{1}'".format(
-                self.dl_file_spec, self.status))
+            log.debug(f"File does not exist. {self.dl_file_spec}\n"
+                      f"Status set to '{self.status}'")
 
+        # Return results
         return exists
 
     def _dl_via_wget(self):
@@ -250,7 +266,6 @@ class DownloadPX(DownloadImage):
         :return: status (refer to PDL.engine.images.status)
 
         """
-
         # Messages
         retry_msg = "Issue Retrieving File. Retrying in {0} seconds".format(
             self.RETRY_DELAY)
@@ -289,8 +304,7 @@ class DownloadPX(DownloadImage):
 
                     if file_size < self.MIN_KB * self.KILOBYTES:
                         self.status = Status.ERROR
-                        error_msg = "Incorrect filesize: {0}".format(
-                            file_size)
+                        error_msg = f"Incorrect filesize: {file_size}"
                         self.image_info.error_info = error_msg
                         log.warn(error_msg)
                         log.warn(retry_msg)
@@ -317,13 +331,13 @@ class DownloadPX(DownloadImage):
         Download the image via the requests module
 
         :return: status (refer to PDL.engine.images.status)
-        """
 
+        """
         # Download the image
         image = requests.get(self.image_url, stream=True)
 
-        status_msg = "File: {0} --> DL STATUS CODE: {1}".format(
-                self.dl_file_spec, image.status_code)
+        status_msg = (f"File: {self.dl_file_spec} --> "
+                      f"DL STATUS CODE: {image.status_code}")
 
         # If the return code was SUCCESSFUL (200):
         if image.status_code == 200:
@@ -342,4 +356,5 @@ class DownloadPX(DownloadImage):
             self.status = Status.ERROR
             self.image_info.error_info = status_msg
 
+        # Return result of DL
         return self.status
