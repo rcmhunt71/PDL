@@ -67,8 +67,7 @@ class PdlConfig(object):
                                     AppCfgFileSectionKeys.LOCAL_DRIVE_LETTER)
 
         if dl_drive not in [None, '']:
-            dl_dir = "{drive}:{dl_dir}".format(
-                drive=dl_drive.strip(':'), dl_dir=dl_dir)
+            dl_dir = f"{dl_drive.strip(':')}:{dl_dir}"
         utils.check_if_location_exists(location=dl_dir, create_dir=True)
         return dl_dir
 
@@ -90,7 +89,7 @@ class PdlConfig(object):
         json_drive = self.app_cfg.get(AppCfgFileSections.LOGGING,
                                       AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
         if json_drive not in [None, '']:
-            json_log_location = '{0}:{1}'.format(json_drive.strip(':'), json_log_location)
+            json_log_location = f"{json_drive.strip(':')}:{json_log_location}"
         utils.check_if_location_exists(location=json_log_location, create_dir=True)
         return json_log_location
 
@@ -135,7 +134,7 @@ class PdlConfig(object):
         storage_drive = self.app_cfg.get(
             AppCfgFileSections.STORAGE, AppCfgFileSectionKeys.TEMP_STORAGE_DRIVE)
         if storage_drive not in [None, '']:
-            storage_location = '{0}:{1}'.format(storage_drive.strip(':'), storage_location)
+            storage_location = f"{storage_drive.strip(':')}:{storage_location}"
         utils.check_if_location_exists(location=storage_location, create_dir=True)
         return storage_location
 
@@ -215,7 +214,7 @@ class AppLogging(object):
                         set_root=True)
 
         # Show defined loggers and log levels
-        logger.debug("Log File: {0}".format(app_cfg_obj.logfile_name))
+        logger.debug(f"Log File: {app_cfg_obj.logfile_name}")
         for line in logger.list_loggers().split('\n'):
             logger.debug(line)
 
@@ -308,8 +307,8 @@ def process_and_record_urls(cfg_obj):
     url_file_drive = cfg_obj.app_cfg.get(AppCfgFileSections.LOGGING,
                                          AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
     if url_file_drive is not None:
-        url_file_dir = "{drive}:{dl_dir}".format(drive=url_file_drive, dl_dir=url_file_dir)
-        log.debug("Updated URL File directory for drive letter: {0}".format(url_file_dir))
+        url_file_dir = f"{url_file_drive}:{url_file_dir}"
+        log.debug(f"Updated URL File directory for drive letter: {url_file_dir}")
 
     if len(cfg_obj.urls) > 0:
         url_file.write_file(urls=cfg_obj.urls, create_dir=True, location=url_file_dir)
@@ -319,7 +318,8 @@ def process_and_record_urls(cfg_obj):
 
 
 def remove_duplicate_urls_from_inv(cfg_obj):
-    page_urls_in_inv = [getattr(image_obj, ImageData.PAGE_URL) for image_obj in cfg_obj.inventory.inventory.values()]
+    page_urls_in_inv = [getattr(image_obj, ImageData.PAGE_URL) for
+                        image_obj in cfg_obj.inventory.inventory.values()]
     orig_urls = set(cfg_obj.urls.copy())
 
     cfg_obj.urls = [url for url in cfg_obj.urls if url not in page_urls_in_inv]
@@ -328,11 +328,10 @@ def remove_duplicate_urls_from_inv(cfg_obj):
 
     log.info("Removing URLs from existing inventory: Found {dups} duplicates.".format(
         dups=len(orig_urls)-len(new_urls)))
-    log.info("URLs for downloading: {dl}.".format(
-        dl=len(new_urls)))
+    log.info(f"URLs for downloading: {len(new_urls)}")
 
     for dup in duplicates:
-        log.info("Duplicate: {0}".format(dup))
+        log.info(f"Duplicate: {dup}")
 
     return cfg_obj.urls
 
@@ -350,7 +349,7 @@ def download_images(cfg_obj):
         cfg_obj.app_cfg.get(AppCfgFileSections.PROJECT,
                             AppCfgFileSectionKeys.IMAGE_CONTACT_PARSE))
 
-    log.info("URL LIST:\n{0}".format(ArgProcessing.list_urls(url_list=url_list)))
+    log.info(f"URL LIST:\n{ArgProcessing.list_urls(url_list=url_list)}")
 
     # Get the correct image URL from each catalog Page
     cfg_obj.image_data = list()
@@ -359,8 +358,7 @@ def download_images(cfg_obj):
 
         # Parse the primary image page for the image URL and metadata.
         catalog = Catalog(page_url=page_url)
-        log.info("({index}/{total}) Retrieving URL: {url}".format(
-            index=index + 1, total=len(url_list), url=page_url))
+        log.info(f"({index + 1}/{len(url_list)}) Retrieving URL: {page_url}")
         catalog.get_image_info()
 
         # If parsing was successful, store the image URL
@@ -391,7 +389,7 @@ def download_images(cfg_obj):
             status = Status.EXISTS
             contact.status = status
             contact.image_info.dl_status = status
-        log.info('DL STATUS: {0}'.format(status))
+        log.info(f'DL STATUS: {status}')
 
     # Add error_info to be included in results
     cfg_obj.image_data += image_errors
@@ -473,5 +471,4 @@ if __name__ == '__main__':
         # Should never get here, argparse should prevent it...
         raise args.UnrecognizedModule(app_config.cli_args.command)
 
-    log.info("LOGGED TO: {logfile}".format(logfile=app_config.logfile_name))
-    # app_config.inventory.fs_inventory_obj.scan_inventory(from_file=False)
+    log.info(f"LOGGED TO: {app_config.logfile_name}")
