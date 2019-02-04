@@ -69,7 +69,7 @@ class ArgOptions(object):
         ENGINE: "e",
         FILE: "f",
         FILE_SPEC: "f",
-        FORCE_SCAN: "f",
+        FORCE_SCAN: "s",
         IGNORE_DUPS: "i",
         RECORDS: "r",
         REMOVE_DUPS: "x",

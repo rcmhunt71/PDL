@@ -411,7 +411,7 @@ def download_images(cfg_obj):
     if cfg_obj.image_data:
         json_logger.JsonLog(
             image_obj_list=cfg_obj.image_data,
-            logfile_name=cfg_obj.json_logfile).write_json()
+            log_filespec=cfg_obj.json_logfile).write_json()
     else:
         log.info("No images DL'd. No JSON file created.")
 
