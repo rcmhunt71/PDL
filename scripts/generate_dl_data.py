@@ -63,15 +63,13 @@ def build_json_log_location(cfg):
     json_drive = cfg.get(AppCfgFileSections.LOGGING,
                          AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
     if json_drive not in [None, '']:
-        json_log_location = '{0}:{1}'.format(
-            json_drive.strip(':'), json_log_location)
+        json_log_location = f"{json_drive.strip(':')}:{json_log_location}"
 
     # Verify directory exists
-    log.info("Checking directory: {0}".format(json_log_location))
+    log.info(f"Checking directory: {json_log_location}")
     if not utils.check_if_location_exists(
             location=json_log_location, create_dir=True):
-        log.error("Unable to find source directory: {0}".format(
-            json_log_location))
+        log.error(f"Unable to find source directory: {json_log_location}")
         exit()
 
     return json_log_location
@@ -86,17 +84,17 @@ def build_data_element(index):
     :return: Instantiated ImageData Object
 
     """
-    log.debug("Building dataset #:{index}".format(index=index))
-    metadata = ["category_{0}".format(x) for x in range(1, 7)]
+    log.debug(f"Building dataset #:{index}")
+    metadata = [f"category_{x}" for x in range(1, 7)]
 
     return ImageData.build_obj({
-        'image_name': "image_{0}".format(index),
-        'description': "Mock Image Data - {0}".format(index),
+        'image_name': f"image_{index}",
+        'description': f"Mock Image Data - {index}",
         'page_url': 'http://foo.com/page/{0:<16}'.format(
             str(index) * 8).strip(),
         'image_url': 'http://foo.com/image/{0:<16}'.format(
             str(index) * 8).strip(),
-        'author': "Picasso{0}".format(index),
+        'author': f"Picasso{index}",
         'filename': 'test_data_{0}.jpg'.format(index),
         'image_date': "01/{0:02d}/19".format(index % 31),
         'resolution': "1600x7{0:02d}".format(index),
@@ -129,13 +127,13 @@ def generate_data(num_data_sets, max_num_recs_per_file):
 
     data_sets = dict()
 
-    log.info("Generating {0} data sets.".format(num_data_sets))
+    log.info(f"Generating {num_data_sets} data sets.")
     for number in range(num_data_sets):
         filename = filename_fmt.format(number + 1)
         data_sets[filename] = dict()
 
         num_records = randint(1, max_num_recs_per_file)
-        log.info("Data set has {0} records.".format(num_records))
+        log.info(f"Data set has {num_records} records.")
 
         for data_set in range(num_records):
             record = build_data_element(data_set)
@@ -171,7 +169,7 @@ def execute(num_data_sets, max_records, cfg_file):
     # Determine the number of records generated
     actual_count = sum([len(x.keys()) for x in data.values()])
     max_count = int(num_data_sets) * int(max_records)
-    log.info("Count: {0} (MAX: {1})".format(actual_count, max_count))
+    log.info(f"Count: {actual_count} (MAX: {max_count})")
 
     # Write the dictionary to JSON files in the predetermined directory
     gen_files = []
@@ -188,7 +186,7 @@ def execute(num_data_sets, max_records, cfg_file):
         # Write the data to file.
         with open(filepath, "w") as DATA_FILE:
             DATA_FILE.write(json.dumps(data))
-        log.info("Wrote data to '{filespec}'.".format(filespec=filepath))
+        log.info(f"Wrote data to '{filepath}'.")
 
     log.info("Done")
     return gen_files

@@ -1,10 +1,4 @@
 import argparse
-try:
-    # Python 2.x
-    from ConfigParser import ConfigParser, NoSectionError, NoOptionError
-except ModuleNotFoundError:
-    # Python 3.x
-    from configparser import ConfigParser, NoSectionError, NoOptionError
 import json
 import os
 import pprint
@@ -64,12 +58,12 @@ def build_json_log_location(cfg):
     json_drive = cfg.get(AppCfgFileSections.LOGGING,
                          AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
     if json_drive is not None:
-        json_log_location = '{0}:{1}'.format(json_drive.strip(':'), json_log_location)
+        json_log_location = f"{json_drive.strip(':')}:{json_log_location}"
 
     # Verify directory exists
-    log.info("Checking directory: {0}".format(json_log_location))
+    log.info(f"Checking directory: {json_log_location}")
     if not utils.check_if_location_exists(location=json_log_location, create_dir=False):
-        log.error("Unable to find source directory: {0}".format(json_log_location))
+        log.error(f"Unable to find source directory: {json_log_location}")
         exit()
 
     return json_log_location
@@ -89,13 +83,16 @@ def read_files(files):
     num_raw_recs = 0
     num_dl_recs = 0
 
+    # Iterate through the files
     for json_file in files:
+
+        # Read JSON contents and convert into python structure
         with open(json_file, "r") as JSON:
             lines = "\n".join(JSON.readlines())
         raw_data = json.loads(lines)
         num_raw_recs += len(raw_data.keys())
 
-        log.info("Reading JSON File: {0}".format(json_file))
+        log.info(f"Reading JSON File: {json_file}")
 
         # Filter out non-DOWNLOAD'ed records
         dl_images = get_downloads_only(raw_data)
@@ -104,7 +101,7 @@ def read_files(files):
         # Add entries to dictionary
         data.update(dl_images)
 
-    log.info("RAW RECORDS: {0}  DOWNLOADED: {1}".format(num_raw_recs, num_dl_recs))
+    log.info(f"RAW RECORDS: {num_raw_recs}  DOWNLOADED: {num_dl_recs}")
     log.debug(pprint.pformat(data))
     return data
 
@@ -134,17 +131,22 @@ def determine_consolidate_file_name(files, target_dir):
 
     """
     last_index = 0
+
+    # Get all file names from list of files provided
     file_names = [x.split(os.path.sep)[-1] for x in files]
+
+    # Keep only the consolidated files (starts with BASE_FILE_NAME)
     file_names = [x for x in file_names if x.startswith(BASE_FILE_NAME)]
 
+    # If there are CONSOLIDATED_x.json files, get the index of the last file (CONSOLIDATE_X.json)
     if file_names:
         file_names = [x.split('.')[0] for x in file_names]
         last_index = sorted([int(x.split('_')[-1]) for x in file_names])[-1]
-        log.info("Last Index Found: {0}".format(last_index))
+        log.info(f"Last Index Found: {last_index}")
     else:
         log.warn("CONSOLIDATED FILE NOT FOUND.")
 
-    filename = '{0}{1}.{2}'.format(BASE_FILE_NAME, last_index + 1, EXTENSION)
+    filename = f'{BASE_FILE_NAME}{last_index + 1}.{EXTENSION}'
     return os.path.abspath(os.path.sep.join([target_dir, filename]))
 
 
@@ -159,7 +161,7 @@ def write_json_file(filename, data):
     """
     with open(filename, "w") as FILE:
         FILE.write(json.dumps(data))
-    log.info("Wrote data to {0}".format(filename))
+    log.info(f"Wrote data to: {filename}")
 
 
 def read_json_file(filename):
@@ -174,7 +176,7 @@ def read_json_file(filename):
     data = dict()
     with open(filename, "r") as FILE:
         data.update(json.loads('\n'.join(FILE.readlines())))
-    log.info("Read data from {0}".format(filename))
+    log.info(f"Read data from: {filename}")
     return data
 
 
@@ -192,15 +194,16 @@ def verify_records_match(original, consolidated):
 
     # Convert to sets to do easy comparison of keys
     orig = set(original.keys())
-    consol = set(consolidated.keys())
+    consolid = set(consolidated.keys())
 
     # If the sets are not equal... something did not copy correctly.
-    if orig != consol:
+    if orig != consolid:
         errors = True
+        diff = orig - consolid
+
         log.error("*** Missing records!!!")
-        diff = orig - consol
         for rec in diff:
-            log.error("+ Did not find: {0}".format(rec))
+            log.error(f"+ Did not find: {rec}")
 
     # Dictionaries match!
     else:
@@ -213,7 +216,7 @@ if __name__ == '__main__':
 
     # Parse CLI for specified config file
     cfg_name = parse_cli().cfg
-    log.info("Using cfg: {0}".format(cfg_name))
+    log.info(f"Using cfg: {cfg_name}")
 
     # Determine the JSON log directory from the config file
     log_location = build_json_log_location(cfg=AppConfig(cfg_file=cfg_name))
@@ -229,7 +232,7 @@ if __name__ == '__main__':
 
     # Determine name and location of where CONSOLIDATED JSON file
     consolidated_log = determine_consolidate_file_name(files=json_files, target_dir=log_location)
-    log.info("Consolidating to: {0}".format(consolidated_log))
+    log.info(f"Consolidating to: {consolidated_log}")
 
     # Create the CONSOLIDATED JSON file
     write_json_file(data=records, filename=consolidated_log)
@@ -245,7 +248,7 @@ if __name__ == '__main__':
         # Delete files
         for data_file in data_files:
             os.remove(data_file)
-            log.info("Deleted {0}".format(data_file))
+            log.info(f"Deleted {data_file}")
 
         # Get updated list of JSON files in the directory
         json_files = inv.get_json_files()
@@ -255,6 +258,6 @@ if __name__ == '__main__':
         if data_files:
             log.error("JSON data files NOT deleted:")
             for data_file in data_files:
-                log.error("+ {0}".format(data_file))
+                log.error(f"+ {data_file}")
         else:
-            log.info("Consolidation successful. {0}".format(consolidated_log))
+            log.info(f"Consolidation successful. {consolidated_log}")
