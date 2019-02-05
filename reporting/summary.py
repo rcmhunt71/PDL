@@ -29,7 +29,7 @@ class ReportingSummary(object):
     # ------------------- GENERAL METHODS -------------------
 
     @staticmethod
-    def _log_table(table):
+    def _log_table(table: str) -> None:
         """
         Break table into separate log lines.
 
@@ -41,7 +41,7 @@ class ReportingSummary(object):
 
     # ------------------- BASIC RESULT TABLE STRUCTURE -------------------
 
-    def init_status_dict_(self, value_type=DEFAULT_VALUE_TYPE):
+    def init_status_dict_(self, value_type: str = DEFAULT_VALUE_TYPE) -> dict:
         """
         Initialize a dictionary with values of a specific type
 
@@ -75,7 +75,7 @@ class ReportingSummary(object):
 
     # ------------------- DOWNLOAD STATUS RESULTS -------------------
 
-    def tally_status_results(self):
+    def tally_status_results(self) -> dict:
         """
         Tally the counts of DLs based on the status
 
@@ -92,7 +92,7 @@ class ReportingSummary(object):
 
         return status_tally
 
-    def status_table(self, recalculate=False):
+    def status_table(self, recalculate: bool = False) -> str:
         """
         Generate a table based on the tallied status
 
@@ -134,7 +134,7 @@ class ReportingSummary(object):
         # Return string representation of table
         return table.get_string(title='Download Status')
 
-    def log_download_status_results_table(self, recalculate=False):
+    def log_download_status_results_table(self, recalculate: bool = False) -> None:
         """
         Generate results table and display/log the table.
         :param recalculate: Recalculate tally before building table (DEFAULT: False)
@@ -145,7 +145,7 @@ class ReportingSummary(object):
 
     # ------------------- URL RESULTS -------------------
 
-    def detailed_download_results_table(self, specific_status=None):
+    def detailed_download_results_table(self, specific_status: str = None) -> str:
         """
         Generates a table of download statuses, and the DL'd links for each status
 
@@ -219,7 +219,7 @@ class ReportingSummary(object):
         table.add_row(["TOTAL DURATION", time_format.format(total_dur)])
         return table.get_string(title='URL Status')
 
-    def log_detailed_download_results_table(self, specific_status=None):
+    def log_detailed_download_results_table(self, specific_status: str = None) -> None:
         """
         Generate the detailed results table, and log to file.
 
@@ -232,7 +232,7 @@ class ReportingSummary(object):
         self._log_table(
             table=self.detailed_download_results_table(specific_status=specific_status))
 
-    def error_table(self):
+    def error_table(self) -> str:
         """
         Build a table listing all DL errors
 
