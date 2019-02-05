@@ -22,7 +22,7 @@ class UrlArgProcessing(object):
     INVALID = False
 
     @classmethod
-    def process_url_list(cls, url_list, domains=None):
+    def process_url_list(cls, url_list: list, domains: list = None) -> list:
         """
         Split any combined URLs, verify all URLs are valid, and remove any duplicates
 
@@ -46,7 +46,7 @@ class UrlArgProcessing(object):
         return url_dict[cls.REDUCED_LIST]
 
     @classmethod
-    def reduce_url_list(cls, url_list):
+    def reduce_url_list(cls, url_list: list) -> dict:
         """
         Remove any duplicates from the list. Log all duplicates (debug).
 
@@ -78,12 +78,18 @@ class UrlArgProcessing(object):
                 cls.UNIQUE_DUP_LIST: unique_dups}
 
     @classmethod
-    def counts_of_each_dup(cls, duplicates):
+    def counts_of_each_dup(cls, duplicates: list) -> dict:
+        """
+        Tally the counts of each unique duplicate.
+        :param duplicates: list of duplicate URLs
+        :return: dictionary of tallied urls (k: unique_urls, v: count)
+
+        """
         return dict([(url, duplicates.count(url)) for url in
                      list(set(duplicates))])
 
     @classmethod
-    def split_urls(cls, url_list, domains=None, delimiter=PROTOCOL):
+    def split_urls(cls, url_list: list, domains: list = None, delimiter: str = PROTOCOL) -> list:
         """
         Check for URLs that are not space delimited from the CLI. If found,
         split the URL into two URLs and add to the list.
@@ -128,7 +134,7 @@ class UrlArgProcessing(object):
         return urls[cls.VALID]
 
     @classmethod
-    def validate_url(cls, url, domains=None, protocol=PROTOCOL):
+    def validate_url(cls, url: str, domains: list = None, protocol: str = PROTOCOL):
         """
         Verify URL starts with delimited, and has additional URL info.
 
@@ -170,7 +176,7 @@ class UrlArgProcessing(object):
         return valid
 
     @classmethod
-    def list_urls(cls, url_list):
+    def list_urls(cls, url_list: list) -> str:
         """
         Generate multi-line string of URLs in list
         :param url_list: List of URLs

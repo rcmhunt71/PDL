@@ -26,12 +26,12 @@ class ArgSubmodules(object):
     INFO = 'info'
 
     @classmethod
-    def get_const_values(cls):
+    def get_const_values(cls) -> list:
         return [val for key, val in cls.__dict__.items()
                 if not key.startswith('_') and key.upper() == key]
 
     @classmethod
-    def get_const_names(cls):
+    def get_const_names(cls) -> list:
         return [key for key, val in cls.__dict__.items()
                 if not key.startswith('_') and key.upper() == key]
 
@@ -103,7 +103,8 @@ class CLIArgs(object):
         ArgSubmodules.INFO: [],
     }
 
-    def __init__(self, test_args_list=None):
+    def __init__(self, test_args_list: list = None) -> None:
+
         self.parser = argparse.ArgumentParser(description=self.PURPOSE)
         self.subparsers = self.parser.add_subparsers(dest=ArgOptions.COMMAND)
 
@@ -116,7 +117,7 @@ class CLIArgs(object):
         self.args = self.parse_args(test_args_list)
 
     @staticmethod
-    def get_module_names():
+    def get_module_names() -> list:
         """
         Lists all of the submodules available as part of the application
         :return: List of strings (names of the submodules)
@@ -127,7 +128,7 @@ class CLIArgs(object):
         return modules
 
     @staticmethod
-    def get_shortcut(option):
+    def get_shortcut(option: str) -> str:
         """
         Gets the single letter representation of the option
         :param option: Name of the option
@@ -137,9 +138,9 @@ class CLIArgs(object):
         if option in ArgOptions.SHORTCUTS.keys():
             return f"-{ArgOptions.SHORTCUTS[option]}"
         log.error(f'No shortcut registered for "{option}".')
-        return None
+        return ''
 
-    def parse_args(self, test_args_list=None):
+    def parse_args(self, test_args_list: list = None) -> argparse.Namespace:
         """
         Parses CLI, but allows injection of arguments for testing purposes
         :param test_args_list:
@@ -153,7 +154,7 @@ class CLIArgs(object):
         return (self.parser.parse_args() if test_args_list is None else
                 self.parser.parse_args(test_args_list))
 
-    def _define_standard_args(self):
+    def _define_standard_args(self) -> None:
         """
         Standard Args (not specific to any given action)
         :param self: Automatically provided.
@@ -193,7 +194,7 @@ class CLIArgs(object):
             help="Force inventory scan",
             action='store_true')
 
-    def _downloads(self):
+    def _downloads(self) -> None:
         """
         Args associated with downloading images
         :param self: Automatically provided.
@@ -234,7 +235,7 @@ class CLIArgs(object):
             action='store_true'
         )
 
-    def _database(self):
+    def _database(self) -> None:
         """
         Args associated with database management
         :param self: Automatically provided.
@@ -281,7 +282,7 @@ class CLIArgs(object):
             action='store_true'
         )
 
-    def _duplicates(self):
+    def _duplicates(self) -> None:
         """
         Args associated with managing duplicate images
         :param self: Automatically provided.
@@ -299,7 +300,7 @@ class CLIArgs(object):
             action='store_true',
         )
 
-    def _image_info(self):
+    def _image_info(self) -> None:
         """
         Args associated with querying info about a specific image
         :param self: Automatically provided.
@@ -315,7 +316,7 @@ class CLIArgs(object):
             help="Image Name to query",
             metavar="<IMAGE_NAME>")
 
-    def get_args_str(self):
+    def get_args_str(self) -> str:
         """
         Returns concatenated string of configured arguments
         (primary purpose is debugging)
@@ -328,7 +329,7 @@ class CLIArgs(object):
         log.debug(f"Command Line Args:\n{args}")
         return args
 
-    def get_opt_args_states(self):
+    def get_opt_args_states(self) -> str:
         """
         Build string for CLI Args flag states. (For logging to file)
         :return: Multi-line string of flag states

@@ -1,4 +1,5 @@
 import datetime
+import datetime
 import os
 import pprint
 
@@ -16,7 +17,8 @@ class UrlFile(object):
     URL_DELIM = ' '
     EXTENSION = 'urls'
 
-    def write_file(self, urls, location, filename=None, create_dir=False):
+    def write_file(self, urls: list, location: str, filename: str = None,
+                   create_dir: bool = False) -> str:
         """
         Write the URL list to file. Human readable, but machine parse-able.
         :param urls: (list) List of URLs to record
@@ -31,7 +33,7 @@ class UrlFile(object):
         # Check if location exists, create if requested
         if not utils.check_if_location_exists(
                 location=location, create_dir=create_dir):
-            return None
+            return ''
 
         # Create file name
         if filename is None:
@@ -52,7 +54,7 @@ class UrlFile(object):
 
         return filespec
 
-    def read_file(self, filename):
+    def read_file(self, filename: str) -> list:
         """
         Read URL save file into list
         :param filename: (str) path and name of file.
