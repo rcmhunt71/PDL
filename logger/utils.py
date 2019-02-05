@@ -10,9 +10,10 @@ TIMESTAMP = r'%y%m%dT%H%M%S'   # Timestamnp: YYYYMMDDThhmmss
 log = logger.Logger()
 
 
-def datestamp_filename(prefix=None, suffix=None, extension=DEFAULT_EXTENSION,
-                       drive_letter=None, directory='.',
-                       timestamp_format=TIMESTAMP, log_level='INFO'):
+def datestamp_filename(prefix: str = None, suffix: str = None,
+                       extension: str = DEFAULT_EXTENSION, drive_letter: str = None,
+                       directory: str = '.', timestamp_format: str = TIMESTAMP,
+                       log_level: str = 'INFO') -> str:
 
     """
     Creates the full path and filename to the log file. Implemented to support
@@ -73,13 +74,13 @@ def datestamp_filename(prefix=None, suffix=None, extension=DEFAULT_EXTENSION,
     return filename
 
 
-def check_if_location_exists(location, create_dir):
+def check_if_location_exists(location: str, create_dir: bool = False) -> bool:
     """
     If the save_url directory path does not exist... Create target
     directory & all intermediate directories if 'create_dir' is True
 
     :param location: (str) directory path
-    :param create_dir: (bool) - Create path if it does not exist
+    :param create_dir: (bool) - Create path if it does not exist, DEFAULT=False
 
     :return: (bool) Does path exist (or was it created, if requested)
 

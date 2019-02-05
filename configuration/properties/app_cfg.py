@@ -85,7 +85,7 @@ class ConfigSectionDoesNotExist(Exception):
 
     msg_fmt = "Section '{section}' is not defined in '{cfg_file}'"
 
-    def __init__(self, section, cfg_file):
+    def __init__(self, section: str, cfg_file: str) -> None:
         self.message = self.msg_fmt.format(section=section, cfg_file=cfg_file)
 
 
@@ -95,7 +95,7 @@ class OptionDoesNotExist(Exception):
     msg_fmt = ("Option '{option}' in section '{section}' "
                "is not defined in '{cfg_file}'")
 
-    def __init__(self, section, option, cfg_file):
+    def __init__(self, section: str, option: str, cfg_file: str) -> None:
         self.message = self.msg_fmt.format(
             section=section, option=option, cfg_file=cfg_file)
 
@@ -108,7 +108,7 @@ class CannotCastValueToType(Exception):
     msg_fmt = ("Option '{option}' in section '{section}' "
                "cannot be cast to '{type_}'in '{cfg_file}'")
 
-    def __init__(self, section, option, cfg_file, type_):
+    def __init__(self, section: str, option: str, cfg_file: str, type_: str) -> None:
         self.message = self.msg_fmt.format(
             section=section, option=option, cfg_file=cfg_file, type_=type_)
 
@@ -118,7 +118,7 @@ class CfgFileDoesNotExist(Exception):
 
     msg_fmt = "Config file '{cfg_file}' was not found or does not exist."
 
-    def __init__(self, cfg_file):
+    def __init__(self, cfg_file: str) -> None:
         self.message = self.msg_fmt.format(cfg_file=cfg_file)
 
 
@@ -128,7 +128,7 @@ class AppConfig(ConfigParser):
     (primarily for debugging)
 
     """
-    def __init__(self, cfg_file, test=False):
+    def __init__(self, cfg_file: str, test: bool = False) -> None:
         ConfigParser.__init__(self)
         self.cfg_file = cfg_file
 
@@ -138,20 +138,23 @@ class AppConfig(ConfigParser):
 
             # Check to see if config file exists. If so, read it, otherwise
             # throw an exception
-            if self.cfg_file is not None and os.path.exists(self.cfg_file):
-                log.debug(f'Reading: {self.cfg_file}')
-                self.config = self.read(self.cfg_file)
-
+            if self.cfg_file is not None:
+                if os.path.exists(self.cfg_file):
+                    log.debug(f'Reading: {self.cfg_file}')
+                    self.config = self.read(self.cfg_file)
+                else:
+                    log.error(f'Unable to read cfg file: {self.cfg_file}')
+                    raise CfgFileDoesNotExist(cfg_file=self.cfg_file)
             else:
-                log.error(f'Unable to read cfg file: {self.cfg_file}')
-                raise CfgFileDoesNotExist(cfg_file=self.cfg_file)
+                log.error(f"No config file was provided: '{str(cfg_file)}'.")
+                raise CfgFileDoesNotExist(cfg_file=str(cfg_file))
 
         # For testing, read specified file, without checking for existence
         else:
             log.debug(f'Reading: {self.cfg_file}')
             self.config = self.read(self.cfg_file)
 
-    def get_options(self, section):
+    def get_options(self, section: str) -> list:
         """
         Get the list of options within a section, and log as debug (if log level
         enabled). If the section does not exist, throw an exception.
@@ -169,7 +172,7 @@ class AppConfig(ConfigParser):
 
         raise ConfigSectionDoesNotExist(section=section, cfg_file=self.cfg_file)
 
-    def _get_raw_option(self, section, option, api_name):
+    def _get_raw_option(self, section: str, option: str, api_name: str) -> str:
         """
         Designed to get raw option data and return it to the calling function,
         but will check if the section exists.
@@ -188,7 +191,7 @@ class AppConfig(ConfigParser):
             raise NoOptionError(section, option)
         raise NoSectionError(section)
 
-    def get_list(self, section, option, delimiter=','):
+    def get_list(self, section: str, option: str, delimiter: str = ',') -> list:
         """
         Gets delimited option value, splits into list, and returns list.
 

@@ -11,7 +11,7 @@ log = PDL_log()
 class UnrecognizedModule(Exception):
     msg_fmt = "Unrecognized module: '{module}'"
 
-    def __init__(self, module):
+    def __init__(self, module: str) -> None:
         self.message = self.msg_fmt.format(module=module)
 
 

@@ -16,7 +16,7 @@ class JsonLog(object):
     """
     EXTENSION = 'json'
 
-    def __init__(self, image_obj_list, log_filespec):
+    def __init__(self, image_obj_list: list, log_filespec: str) -> None:
         """
         Create the log object
 
@@ -27,7 +27,7 @@ class JsonLog(object):
         self.image_obj_list = image_obj_list
         self.logfile_name = log_filespec
 
-    def write_json(self):
+    def write_json(self) -> None:
         """
         Write image_obj_list to file in JSON format.
         Converts list of objects into a dictionary, where

@@ -66,8 +66,8 @@ class Logger(object):
     ROOT_LOGGER = 'root'
 
     def __init__(
-            self, filename=None, default_level=None, added_depth=0,
-            project=None, set_root=False, test_name=None):
+            self, filename: str = None, default_level: str = None, added_depth: int = 0,
+            project: str = None, set_root : bool = False, test_name: str = None) -> None:
         """
         :param filename: Filename to write logs to...
         :param default_level: Default stack level (default = DEFAULT_STACK_DEPTH)
@@ -110,7 +110,7 @@ class Logger(object):
             # Start the logger for the given module.
             self._start_logger()
 
-    def _start_logger(self):
+    def _start_logger(self) -> None:
         """
         Define the logger for the current context.
           + Set the default logging level
@@ -158,7 +158,7 @@ class Logger(object):
             self.logger = root_log
             self.logger.setLevel(self.loglevel)
 
-    def _add_console(self):
+    def _add_console(self) -> None:
         """
         Enables a stream handler for logging to the console (STDOUT).
         This is used when a log file is specified, because all log output is
@@ -171,7 +171,7 @@ class Logger(object):
         console.setFormatter(logging.Formatter(self.LOG_FORMAT))
         logging.getLogger(self.ROOT_LOGGER).addHandler(console)
 
-    def _get_module_name(self):
+    def _get_module_name(self) -> str:
         """
         Gets stack information, determines package, and creates dotted path
 
@@ -183,13 +183,13 @@ class Logger(object):
 
         return self._translate_to_dotted_lib_path(filename)
 
-    def _log_level(self, level, msg, prefix=''):
+    def _log_level(self, level: str, msg: str, prefix: str = '') -> None:
         """
         Determine and use the proper logging level (abstracted to expose logging
         routines at class level; also reduces the dotted path when invoking in
         code.
 
-        :param level: logging.LEVEL (or corresponding integer value)
+        :param level: logging.LEVEL
         :param msg: message to log
         :param prefix: If preamble needs an additional internal prefix.
 
@@ -198,7 +198,7 @@ class Logger(object):
         log_routine = getattr(self.logger, level.lower())
         log_routine(str(prefix) + str(msg), extra=self._method())
 
-    def _list_loggers(self):
+    def _list_loggers(self) -> list:
         """
         Lists all child loggers defined under the root logger, and effective
         logging levels
@@ -213,7 +213,7 @@ class Logger(object):
                 logger_info.append(self._get_logger_info(logger_name))
         return logger_info
 
-    def list_loggers(self):
+    def list_loggers(self) -> str:
         """
         Lists all loggers (root + children) and their corresponding log level
 
@@ -235,7 +235,7 @@ class Logger(object):
             table.add_row(data)
         return table.get_string(title='Loggers')
 
-    def _get_logger_info(self, name):
+    def _get_logger_info(self, name: str) -> list:
         """
         Gets the effective log level for the given name
         :param name: Name of the logging facility/child
@@ -246,7 +246,7 @@ class Logger(object):
         return [name, self.VAL_TO_STR[child.getEffectiveLevel()].upper()]
 
     @staticmethod
-    def _translate_to_dotted_lib_path(path):
+    def _translate_to_dotted_lib_path(path: str) -> str:
         """
         Create a python import path from a filesystem path by replacing the '/' (os.path.sep) with '.'
         :param path: path of module
@@ -256,7 +256,7 @@ class Logger(object):
         """
         return str(path.split('.')[0]).replace(os.path.sep, ".")
 
-    def _method(self):
+    def _method(self) -> dict:
         """
         Get calling frame's basic info
         + File name relative to project name
@@ -268,8 +268,8 @@ class Logger(object):
 
         """
         frame_info = inspect.stack()[self.depth]
-        filename = os.path.abspath(frame_info[1]).split(
-            '{0}{1}'.format(self.project, os.path.sep))[-1]
+        filename = str(os.path.abspath(frame_info[1]).split(
+            '{0}{1}'.format(self.project, os.path.sep))[-1])
 
         return {'file_name': self._translate_to_dotted_lib_path(path=filename),
                 'linenum': frame_info[2],
@@ -281,22 +281,22 @@ class Logger(object):
     # ==> Simplification from obj.log.log_level() to obj.log_level()
     # ------------------------------------------------------------------
 
-    def fatal(self, msg):
+    def fatal(self, msg: str) -> None:
         self._log_level(level='FATAL', msg=msg)
 
-    def error(self, msg):
+    def error(self, msg: str) -> None:
         self._log_level(level='ERROR', msg=msg)
 
-    def warn(self, msg):
+    def warn(self, msg: str) -> None:
         self._log_level(level='WARN', msg=msg)
 
-    def info(self, msg):
+    def info(self, msg: str) -> None:
         self._log_level(level='INFO', msg=msg)
 
-    def debug(self, msg):
+    def debug(self, msg: str) -> None:
         self._log_level(level='DEBUG', msg=msg)
 
-    def exception(self, msg):
+    def exception(self, msg: str) -> None:
         self._log_level(level='EXCEPTION', msg=msg)
 
 
@@ -306,11 +306,11 @@ class Logger(object):
 
 if __name__ == '__main__':  # pragma: no cover
 
-    def test_routine(logger, level, msg):
+    def test_routine(logger: logging.Logger, level: str, msg: str) -> None:
         test_log = getattr(logger, level.lower())
         test_log(msg)
 
-    def test_logging():
+    def test_logging() -> None:
         test_routine(log, 'info', 'TEST')
         test_routine(log, 'debug', 'TEST2')
 
