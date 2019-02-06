@@ -2,13 +2,16 @@ import time
 
 import PDL.logger.logger as logger
 
+BASE = 10.0
 PRECISION = 4
-MULTIPLIER = pow(10.0, PRECISION)
+MULTIPLIER = pow(BASE, PRECISION)
 
 log = logger.Logger()
 
 
-def measure_elapsed_time(event, test=False):
+# TODO: Look up and Add unknown return type
+
+def measure_elapsed_time(event: str, test: bool = False):
     """
     Decorator for measuring the execution time of a specific call
 
