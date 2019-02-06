@@ -1,4 +1,5 @@
 import argparse
+import configparser
 import json
 import os
 import pprint
@@ -29,7 +30,7 @@ EXTENSION = "json"
 log = Logger()
 
 
-def parse_cli():
+def parse_cli() -> argparse.Namespace:
     """
     Define basic CLI arguments
 
@@ -41,7 +42,7 @@ def parse_cli():
     return parser.parse_args()
 
 
-def build_json_log_location(cfg):
+def build_json_log_location(cfg: configparser.ConfigParser) -> str:
     """
     Build the location of the JSON files from the configuration file.
 
@@ -69,7 +70,7 @@ def build_json_log_location(cfg):
     return json_log_location
 
 
-def read_files(files):
+def read_files(files: list) -> dict:
     """
     Read list of <data>.json files into a common dictionary. All keeps stats about how many records were found,
     and how many were dl_status == DOWNLOAD.
@@ -106,7 +107,7 @@ def read_files(files):
     return data
 
 
-def get_downloads_only(json_dict):
+def get_downloads_only(json_dict: dict) -> dict:
     """
     Filter out records from dictionary, where the record does not have dl_status == DOWNLOAD.
 
@@ -119,7 +120,7 @@ def get_downloads_only(json_dict):
                  data[ImageData.DL_STATUS] == DownloadStatus.DOWNLOADED])
 
 
-def determine_consolidate_file_name(files, target_dir):
+def determine_consolidate_file_name(files: list, target_dir: str) -> str:
     """
     Determine what that last index of the CONSOLIDATED json files are, and increment by 1.
 
@@ -150,7 +151,7 @@ def determine_consolidate_file_name(files, target_dir):
     return os.path.abspath(os.path.sep.join([target_dir, filename]))
 
 
-def write_json_file(filename, data):
+def write_json_file(filename: str, data: dict) -> None:
     """
     Write data to filename (in json format)
 
@@ -164,7 +165,7 @@ def write_json_file(filename, data):
     log.info(f"Wrote data to: {filename}")
 
 
-def read_json_file(filename):
+def read_json_file(filename: str) -> dict:
     """
     Read data from filename (in json format)
 
@@ -180,7 +181,7 @@ def read_json_file(filename):
     return data
 
 
-def verify_records_match(original, consolidated):
+def verify_records_match(original: dict, consolidated: dict) -> bool:
     """
     Verify dictionaries are identical (in key names only)
 

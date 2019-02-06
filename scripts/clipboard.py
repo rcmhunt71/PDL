@@ -5,7 +5,8 @@ import pyperclip
 FILENAME = 'filename'
 SLEEP_DELAY = 0.5
 
-def get_cli_args():
+
+def get_cli_args() -> argparse.Namespace:
     """
     Setup argparse. Simple arg list - filename to record data.
 
@@ -17,7 +18,7 @@ def get_cli_args():
     return parser.parse_args()
 
 
-def is_url(target_string):
+def is_url(target_string: str) -> bool:
     """
     Verify target_string is a URL
 

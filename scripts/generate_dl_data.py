@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import configparser
 import json
 import os
 import pprint
@@ -31,7 +32,7 @@ Can be used as a module or as a stand-alone script.
 """
 
 
-def parse_cli():
+def parse_cli() -> argparse.Namespace:
     """
     Define basic CLI arguments
 
@@ -49,7 +50,7 @@ def parse_cli():
     return parser.parse_args()
 
 
-def build_json_log_location(cfg):
+def build_json_log_location(cfg: configparser.ConfigParser) -> str:
     """
     Build the location of the JSON files from the configuration file.
 
@@ -75,7 +76,7 @@ def build_json_log_location(cfg):
     return json_log_location
 
 
-def build_data_element(index):
+def build_data_element(index: int) -> ImageData:
     """
     Builds artificial ImageData object based on index
 
@@ -109,7 +110,7 @@ def build_data_element(index):
     })
 
 
-def generate_data(num_data_sets, max_num_recs_per_file):
+def generate_data(num_data_sets: int, max_num_recs_per_file: int) -> dict:
     """
     Builds dictionary of data_sets for each filename
 
@@ -142,7 +143,7 @@ def generate_data(num_data_sets, max_num_recs_per_file):
     return data_sets
 
 
-def execute(num_data_sets, max_records, cfg_file):
+def execute(num_data_sets: int, max_records: int, cfg_file: str) -> list:
     """
 
     Given the parameters, generate the requested data files in the specified directory. The number of
