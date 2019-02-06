@@ -1,5 +1,6 @@
 from configparser import ConfigParser, NoSectionError, NoOptionError
 import os
+from typing import List
 
 from PDL.logger.logger import Logger
 
@@ -154,7 +155,7 @@ class AppConfig(ConfigParser):
             log.debug(f'Reading: {self.cfg_file}')
             self.config = self.read(self.cfg_file)
 
-    def get_options(self, section: str) -> list:
+    def get_options(self, section: str) -> List[str]:
         """
         Get the list of options within a section, and log as debug (if log level
         enabled). If the section does not exist, throw an exception.
@@ -191,7 +192,7 @@ class AppConfig(ConfigParser):
             raise NoOptionError(section, option)
         raise NoSectionError(section)
 
-    def get_list(self, section: str, option: str, delimiter: str = ',') -> list:
+    def get_list(self, section: str, option: str, delimiter: str = ',') -> List[str]:
         """
         Gets delimited option value, splits into list, and returns list.
 

@@ -1,6 +1,7 @@
 import inspect
 import logging
 import os
+from typing import List
 
 import prettytable
 
@@ -67,7 +68,7 @@ class Logger(object):
 
     def __init__(
             self, filename: str = None, default_level: str = None, added_depth: int = 0,
-            project: str = None, set_root : bool = False, test_name: str = None) -> None:
+            project: str = None, set_root: bool = False, test_name: str = None) -> None:
         """
         :param filename: Filename to write logs to...
         :param default_level: Default stack level (default = DEFAULT_STACK_DEPTH)
@@ -178,8 +179,8 @@ class Logger(object):
         :return: string - dotted path lib
         """
         frame_info = inspect.stack()[self.depth]
-        filename = os.path.abspath(frame_info[1]).split(
-            f'{self.project}{os.path.sep}')[-1]
+        filename = str(os.path.abspath(frame_info[1]).split(
+            f'{self.project}{os.path.sep}')[-1])
 
         return self._translate_to_dotted_lib_path(filename)
 
@@ -198,7 +199,7 @@ class Logger(object):
         log_routine = getattr(self.logger, level.lower())
         log_routine(str(prefix) + str(msg), extra=self._method())
 
-    def _list_loggers(self) -> list:
+    def _list_loggers(self) -> List[List[str]]:
         """
         Lists all child loggers defined under the root logger, and effective
         logging levels
@@ -235,7 +236,7 @@ class Logger(object):
             table.add_row(data)
         return table.get_string(title='Loggers')
 
-    def _get_logger_info(self, name: str) -> list:
+    def _get_logger_info(self, name: str) -> List[str]:
         """
         Gets the effective log level for the given name
         :param name: Name of the logging facility/child
