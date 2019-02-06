@@ -29,8 +29,7 @@ def measure_elapsed_time(event: str, test: bool = False):
             start = time.time()
             f(*args, **kwargs)
             elapsed = int((time.time() - start) * MULTIPLIER) / MULTIPLIER
-            msg = ("[{event}]: Elapsed Time: {elapsed} s".format(
-                elapsed=elapsed, event=event.upper()))
+            msg = f"[{event.upper()}]: Elapsed Time: {elapsed} s"
             log.info(msg)
             if test:
                 return elapsed
