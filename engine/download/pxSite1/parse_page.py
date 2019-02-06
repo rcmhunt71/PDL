@@ -3,6 +3,7 @@ import json
 import pprint
 import re
 import time
+from typing import List
 import unicodedata
 
 import requests
@@ -182,7 +183,7 @@ class ParseDisplayPage(CatalogPage):
 
         return target_url
 
-    def get_page(self) -> list:
+    def get_page(self) -> List[str]:
         """
         Get url source code
 
