@@ -3,6 +3,7 @@ import configparser
 import json
 import os
 import pprint
+from typing import Dict, List
 
 from PDL.configuration.properties.app_cfg import (
     AppConfig, AppCfgFileSections, AppCfgFileSectionKeys)
@@ -70,7 +71,7 @@ def build_json_log_location(cfg: configparser.ConfigParser) -> str:
     return json_log_location
 
 
-def read_files(files: list) -> dict:
+def read_files(files: List[str]) -> Dict[str, ImageData]:
     """
     Read list of <data>.json files into a common dictionary. All keeps stats about how many records were found,
     and how many were dl_status == DOWNLOAD.
@@ -107,7 +108,7 @@ def read_files(files: list) -> dict:
     return data
 
 
-def get_downloads_only(json_dict: dict) -> dict:
+def get_downloads_only(json_dict: Dict[str, ImageData]) -> Dict[str, ImageData]:
     """
     Filter out records from dictionary, where the record does not have dl_status == DOWNLOAD.
 
@@ -120,7 +121,7 @@ def get_downloads_only(json_dict: dict) -> dict:
                  data[ImageData.DL_STATUS] == DownloadStatus.DOWNLOADED])
 
 
-def determine_consolidate_file_name(files: list, target_dir: str) -> str:
+def determine_consolidate_file_name(files: List[str], target_dir: str) -> str:
     """
     Determine what that last index of the CONSOLIDATED json files are, and increment by 1.
 

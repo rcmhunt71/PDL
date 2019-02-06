@@ -6,6 +6,7 @@ import json
 import os
 import pprint
 from random import choice, choices, randint
+from typing import Dict, List
 
 from PDL.configuration.properties.app_cfg import (
     AppConfig, AppCfgFileSections, AppCfgFileSectionKeys)
@@ -110,7 +111,7 @@ def build_data_element(index: int) -> ImageData:
     })
 
 
-def generate_data(num_data_sets: int, max_num_recs_per_file: int) -> dict:
+def generate_data(num_data_sets: int, max_num_recs_per_file: int) -> Dict[str, Dict[str, ImageData]]:
     """
     Builds dictionary of data_sets for each filename
 
@@ -143,7 +144,7 @@ def generate_data(num_data_sets: int, max_num_recs_per_file: int) -> dict:
     return data_sets
 
 
-def execute(num_data_sets: int, max_records: int, cfg_file: str) -> list:
+def execute(num_data_sets: int, max_records: int, cfg_file: str) -> List[str]:
     """
 
     Given the parameters, generate the requested data files in the specified directory. The number of
