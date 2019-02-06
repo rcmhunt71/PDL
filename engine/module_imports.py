@@ -7,32 +7,36 @@ log = Logger()
 
 
 class ClassNotFoundInImportedModule(Exception):
-    def __init__(self, module, klass):
-        self.message = "Class '{klass}' not found in module {module}".format(
-            klass=klass, module=module)
+    def __init__(self, module: str, klass: str) -> None:
+        self.message = f"Class '{klass}' not found in module {module}"
 
 
-def import_module(dotted_path_module):
+# TODO: Add docstrings
+# TODO: Look up and add return type of unknown module
+
+def import_module(dotted_path_module: str):
     """
     Imports a module into memory.
     :param dotted_path_module: from.here.you.can.find.the.module
     :return: Reference to the imported module
 
     """
-    log.debug("Attempting to import module '{0}' into memory.".format(dotted_path_module))
+    log.debug(f"Attempting to import module '{dotted_path_module}' into memory.")
     module = None
     try:
         module = importlib.import_module(name=dotted_path_module)
-        log.debug("SUCCESS: Import of '{0}'".format(dotted_path_module))
+        log.debug(f"SUCCESS: Import of '{dotted_path_module}'")
     except ImportError as exc:
-        msg = "Unable to import: '{module}' --> {exc}".format(module=dotted_path_module, exc=exc)
+        msg = f"Unable to import: '{dotted_path_module}' --> {exc}"
         log.error(msg)
         log.error(build_stack_trace(inspect.stack()))
 
     return module
 
 
-def import_module_class(dotted_path_class):
+# TODO: Look up and add return type of unknown class
+
+def import_module_class(dotted_path_class: str):
     """
     Imports the class from the module. Given a module reference, get the class.
 
@@ -40,7 +44,7 @@ def import_module_class(dotted_path_class):
     :return: Reference to the class
 
     """
-    log.debug("Attempting to import class '{0}' into memory.".format(dotted_path_class))
+    log.debug(f"Attempting to import class '{dotted_path_class}' into memory.")
 
     parts = dotted_path_class.split('.')
     klass = parts[-1]
@@ -49,8 +53,7 @@ def import_module_class(dotted_path_class):
     module = import_module(dotted_path_module=path)
 
     if klass not in dir(module):
-        log.error("Class ({klass}) not found in module: {module}".format(
-            klass=klass, module=path))
+        log.error(f"Class ({klass}) not found in module: {path}")
         msg = ("Available classes, routines, and variables available in "
                "{module}:\n{avail}")
         log.debug(msg.format(module=path, avail=', '.join(
@@ -58,9 +61,11 @@ def import_module_class(dotted_path_class):
 
         raise ClassNotFoundInImportedModule(klass=klass, module=path)
 
-    log.debug("Returning requested imported class '{0}'.".format(klass))
+    log.debug(f"Returning requested imported class '{klass}'.")
     return getattr(module, klass, None)
 
+
+# TODO: Look up and add return type for trace
 
 def build_stack_trace(trace):
     stack_fmt = "\n{path}:L{lineno}\n\tROUTINE: {routine}\n\tCODE: {code}\n"
