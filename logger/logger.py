@@ -270,7 +270,7 @@ class Logger(object):
         """
         frame_info = inspect.stack()[self.depth]
         filename = str(os.path.abspath(frame_info[1]).split(
-            '{0}{1}'.format(self.project, os.path.sep))[-1])
+            f'{self.project}{os.path.sep}')[-1])
 
         return {'file_name': self._translate_to_dotted_lib_path(path=filename),
                 'linenum': frame_info[2],

@@ -94,7 +94,7 @@ class TestParsePage(object):
     def test_get_page_with_no_content(self, mock_get):
         valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
         page_content = valid_page.get_page()
-        print("PAGE CONTENT:\n{0}".format(page_content))
+        print(f"PAGE CONTENT:\n{page_content}")
         assert page_content is None
         assert_equals(mock_get.call_count, page.ParseDisplayPage.MAX_ATTEMPTS)
 
@@ -109,7 +109,7 @@ class TestParsePage(object):
         valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
         valid_page.RETRY_INTERVAL = 0  # No need to wait, since it is mocked
         page_content = valid_page.get_page()
-        print("PAGE CONTENT:\n{0}".format(page_content))
+        print(f"PAGE CONTENT:\n{page_content}")
         assert page_content is None
         assert_equals(mock_get.call_count, page.ParseDisplayPage.MAX_ATTEMPTS)
 

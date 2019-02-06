@@ -111,7 +111,7 @@ class UrlArgProcessing(object):
 
         # Split on delimiter (Catches concatenated http entries)
         # Rejoin with space delimiter (concatenated entries are now separate)
-        url_temp = ' {0}'.format(delimiter).join(url_concat.split(delimiter))
+        url_temp = f' {delimiter}'.join(url_concat.split(delimiter))
         if url_concat != url_temp:
             msg = f"Concatenated URL Found (Delimiter: {delimiter}) - Fixed"
             log.debug(msg)

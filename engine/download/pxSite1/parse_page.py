@@ -81,7 +81,7 @@ class ParseDisplayPage(CatalogPage):
             # Page info was not downloaded
             if self.source_list is None:
                 self.image_info.download_duration += (datetime.datetime.now() - dl_start).total_seconds()
-                log.info("Downloaded page in {0:0.3f} seconds.".format(self.image_info.download_duration))
+                log.info(f"Downloaded page in {self.image_info.download_duration:0.3f} seconds.")
                 return
 
         # Using the page source, scrape and store the metadata (as a dictionary)
@@ -89,7 +89,7 @@ class ParseDisplayPage(CatalogPage):
 
         # Calculation download duration
         self.image_info.download_duration += (datetime.datetime.now() - dl_start).total_seconds()
-        log.info("Downloaded page in {0:0.3f} seconds.".format(self.image_info.download_duration))
+        log.info(f"Downloaded page in {self.image_info.download_duration:0.3f} seconds.")
 
         # Store the scraped metadata into the ImageData object
         self.image_info.page_url = self.page_url
@@ -190,9 +190,8 @@ class ParseDisplayPage(CatalogPage):
         :return: list of source code (line by line)
 
         """
-        conn_err = ("{{attempt}}/{max}: Connection Error --> Trying again in "
-                    "{delay} seconds".format(delay=self.RETRY_INTERVAL,
-                                             max=self.MAX_ATTEMPTS))
+        conn_err = (f"{{attempt}}/{self.MAX_ATTEMPTS}: Connection Error --> Trying again in "
+                    f"{self.RETRY_INTERVAL} seconds")
 
         attempt = 0
         source = None

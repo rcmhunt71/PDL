@@ -66,8 +66,7 @@ class DownloadPX(DownloadImage):
 
     @status.setter
     def status(self, new_status: str) -> None:
-        log.debug("Setting status from '{orig}' to '{to}' for {image}".format(
-            orig=self._status, to=new_status, image=self.image_url))
+        log.debug(f"Setting status from '{self._status}' to '{new_status}' for {self.image_url}")
         self._status = new_status
         self.image_info.dl_status = new_status
 
@@ -142,7 +141,7 @@ class DownloadPX(DownloadImage):
         self.image_info.locations.append(self.dl_dir)
 
         # Log status
-        log.info("Downloaded in {0:0.3f} seconds.".format(dl_duration))
+        log.info(f"Downloaded in {dl_duration:0.3f} seconds.")
         log.info(f"{self.image_info.page_url} --> {self.status.upper()}")
 
         return self.status
@@ -276,8 +275,7 @@ class DownloadPX(DownloadImage):
 
         """
         # Messages
-        retry_msg = "Issue Retrieving File. Retrying in {0} seconds".format(
-            self.RETRY_DELAY)
+        retry_msg = f"Issue Retrieving File. Retrying in {self.RETRY_DELAY} seconds"
         conn_err_fmt = ("Attempt {attempts} of {max}: Connection Error --> "
                         "Trying again in {delay} seconds")
 

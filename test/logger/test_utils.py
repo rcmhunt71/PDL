@@ -76,8 +76,7 @@ class TestLogUtils(object):
                                     prefix=self.EXPECTED_PREFIX,
                                     suffix=self.EXPECTED_SUFFIX,
                                     extension=DEFAULT_EXTENSION,
-                                    log_dir="{0}:{1}".format(
-                                        drive_letter, log_path),
+                                    log_dir=f"{drive_letter}:{log_path}",
                                     is_windows=True)
 
     def _validate_filename(self,
