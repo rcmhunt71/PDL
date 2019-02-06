@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from collections import OrderedDict
+import configparser
 import os
 import pprint
 import time
@@ -14,7 +15,6 @@ from PDL.configuration.properties.app_cfg import (
     AppConfig, AppCfgFileSections, AppCfgFileSectionKeys, ProjectCfgFileSectionKeys, ProjectCfgFileSections)
 from PDL.engine.images.image_info import ImageData
 from PDL.engine.images.status import DownloadStatus as Status
-from PDL.engine.inventory.json.inventory import JsonInventory
 from PDL.engine.module_imports import import_module_class
 from PDL.engine.inventory.inventory_composite import Inventory
 from PDL.logger.logger import Logger as Logger
@@ -29,6 +29,7 @@ DEFAULT_APP_CONFIG = None
 PICKLE_EXT = ".dat"
 
 # TODO: Add docstrings and inline comments
+
 LOCAL_STORAGE = ""
 
 
@@ -39,7 +40,7 @@ class NoURLsProvided(Exception):
 
 
 class PdlConfig(object):
-    def __init__(self):
+    def __init__(self) -> None:
         self.cli_args = args.CLIArgs().args
         self.app_cfg = AppConfig(self.cli_args.cfg or DEFAULT_APP_CONFIG)
         self.engine_cfg = AppConfig(self.cli_args.engine or DEFAULT_ENGINE_CONFIG)
@@ -57,7 +58,7 @@ class PdlConfig(object):
 
         self.inventory = None
 
-    def _build_image_download_dir(self):
+    def _build_image_download_dir(self) -> str:
         # =========================
         # IMAGE DOWNLOAD DIRECTORY
         # =========================
@@ -71,7 +72,7 @@ class PdlConfig(object):
         utils.check_if_location_exists(location=dl_dir, create_dir=True)
         return dl_dir
 
-    def _build_logfile_name(self):
+    def _build_logfile_name(self) -> str:
         # ================================
         # LOGFILE NAME
         # ================================
@@ -80,7 +81,7 @@ class PdlConfig(object):
         utils.check_if_location_exists(location=log_dir, create_dir=True)
         return logfile_name
 
-    def _build_json_log_location(self):
+    def _build_json_log_location(self) -> str:
         # ======================
         # JSON LOGFILE LOCATION
         # ======================
@@ -93,7 +94,7 @@ class PdlConfig(object):
         utils.check_if_location_exists(location=json_log_location, create_dir=True)
         return json_log_location
 
-    def _build_json_logfile_name(self):
+    def _build_json_logfile_name(self) -> str:
         # Get logging prefix and suffix
         add_ons = [self.app_cfg.get(AppCfgFileSections.LOGGING,
                                     AppCfgFileSectionKeys.PREFIX),
@@ -114,7 +115,7 @@ class PdlConfig(object):
         filename = os.path.sep.join([self.json_log_location, filename])
         return filename
 
-    def _build_pickle_filename(self):
+    def _build_pickle_filename(self) -> str:
         # ==========================
         # INVENTORY PICKLE FILE
         # ==========================
@@ -125,7 +126,7 @@ class PdlConfig(object):
         utils.check_if_location_exists(location=pickle_location, create_dir=True)
         return pickle_filename
 
-    def _build_temp_storage(self):
+    def _build_temp_storage(self) -> str:
         # ======================
         # JSON LOGFILE LOCATION
         # ======================
@@ -138,7 +139,7 @@ class PdlConfig(object):
         utils.check_if_location_exists(location=storage_location, create_dir=True)
         return storage_location
 
-    def _display_file_locations(self):
+    def _display_file_locations(self) -> None:
         table = prettytable.PrettyTable()
         table.field_names = ['File Type', 'Location']
         for col in table.field_names:
@@ -158,7 +159,7 @@ class PdlConfig(object):
 class AppLogging(object):
 
     @staticmethod
-    def build_logfile_name(cfg_info):
+    def build_logfile_name(cfg_info: configparser.ConfigParser):
         """
         Builds the logfile name and path for each invocation of the application.
         The name is built based on information within the application configuration
@@ -192,7 +193,7 @@ class AppLogging(object):
         return utils.datestamp_filename(**logfile_info)
 
     @classmethod
-    def configure_logging(cls, app_cfg_obj):
+    def configure_logging(cls, app_cfg_obj: PdlConfig) -> Logger:
         # Set log level (CLI overrides the config file)
         log_level = app_cfg_obj.app_cfg.get(
             AppCfgFileSections.LOGGING,
@@ -221,7 +222,7 @@ class AppLogging(object):
         return logger
 
 
-def is_url(target_string):
+def is_url(target_string: str) -> bool:
     """
     Verify target_string is a URL
     :param target_string: String to test
@@ -230,7 +231,7 @@ def is_url(target_string):
     return target_string.lstrip().lower().startswith('http')
 
 
-def read_from_buffer(read_delay=0.25):
+def read_from_buffer(read_delay: float = 0.25) -> list:
     """
     Read URLs from OS copy/paste buffer.
     :param read_delay: Amount of time between each polling of the buffer.
@@ -264,7 +265,7 @@ def read_from_buffer(read_delay=0.25):
     return url_list
 
 
-def process_and_record_urls(cfg_obj):
+def process_and_record_urls(cfg_obj: PdlConfig) -> list:
     url_file = UrlFile()
 
     # Check for URLs on the CLI
@@ -317,7 +318,7 @@ def process_and_record_urls(cfg_obj):
     return cfg_obj.urls
 
 
-def remove_duplicate_urls_from_inv(cfg_obj):
+def remove_duplicate_urls_from_inv(cfg_obj: PdlConfig) -> list:
     page_urls_in_inv = [getattr(image_obj, ImageData.PAGE_URL) for
                         image_obj in cfg_obj.inventory.inventory.values()]
     orig_urls = set(cfg_obj.urls.copy())
@@ -336,7 +337,7 @@ def remove_duplicate_urls_from_inv(cfg_obj):
     return cfg_obj.urls
 
 
-def download_images(cfg_obj):
+def download_images(cfg_obj: PdlConfig) -> None:
     # Process the urls and return the final list to download
     url_list = process_and_record_urls(cfg_obj=cfg_obj)
 
