@@ -16,6 +16,9 @@ for _ in range(num_data):
 
 
 class TestReportingSummary(object):
+
+    # TODO: Shouldn't there be a test method? Look into this...
+
     summary = ReportingSummary(image_data=data)
     results = summary.tally_status_results()
 
