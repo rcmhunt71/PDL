@@ -7,7 +7,7 @@ class DownloadStatus(object):
     ERROR = 'Error'
 
     @staticmethod
-    def get_statuses_():
+    def get_statuses_() -> list:
         return [x for x in dir(DownloadStatus) if (
             (not x.startswith('_') or not x.endswith('_')) and x.lower() != x)]
 

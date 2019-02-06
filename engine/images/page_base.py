@@ -1,3 +1,6 @@
+from typing import NoReturn
+
+
 class NotImplementedMethod(Exception):
     """
     Needed to implement a "dumb" class so that nose could test DownloadImage
@@ -8,14 +11,14 @@ class NotImplementedMethod(Exception):
 
     msg = "Method: {0} not implemented."
 
-    def __init__(self, routine):
+    def __init__(self, routine: str) -> None:
         self.message = self.msg.format(routine)
 
 
 class ParsePage(object):
     """ Generic object for tracking page parsing actions. """
 
-    def __init__(self, page_url):
+    def __init__(self, page_url: str) -> None:
         """
         Instantiates new ParsePage object
 
@@ -25,7 +28,7 @@ class ParsePage(object):
         self.page_contents = None
         self.image_pages = list()
 
-    def get_image_info(self):
+    def get_image_info(self) -> NoReturn:
         """
         Find and store source page and image metadata.
 
@@ -34,7 +37,7 @@ class ParsePage(object):
         """
         raise NotImplementedMethod('get_image_info')
 
-    def get_page(self):
+    def get_page(self) -> NoReturn:
         """
         Download the page (page_url) and store the html contents.
         Does not process page.
@@ -43,7 +46,7 @@ class ParsePage(object):
         """
         raise NotImplementedMethod('get_page')
 
-    def parse_page_for_link(self):
+    def parse_page_for_link(self) -> NoReturn:
         """
         Routine for parsing page for sub-pages.
 
@@ -67,7 +70,7 @@ class ImageContactPage(ParsePage):
     Return: List of ImageData objects
     """
 
-    def __init__(self, page_url, image_urls=None):
+    def __init__(self, page_url: str, image_urls: list = None) -> None:
         # Using python2.x super() call.
         super(ImageContactPage, self).__init__(page_url)
         self.image_urls = image_urls or list()

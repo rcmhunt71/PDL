@@ -9,6 +9,9 @@ import prettytable
 log = Logger()
 
 
+# TODO: Add docstrings
+
+
 class ImageData(object):
     """ Image Metadata Storage Object """
 
@@ -53,13 +56,13 @@ class ImageData(object):
 
         # TODO: Add self.filesize + calc during DL or Inv.
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"\n{self.table()}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def __add__(self, other):
+    def __add__(self, other: "ImageData") -> "ImageData":
         # NOTE: Not a commutative operation, obj application order matters
 
         for attribute in ImageData.METADATA + ImageData.DL_METADATA:
@@ -71,7 +74,7 @@ class ImageData(object):
                     name=self.image_name, attr=attribute, val=getattr(other, attribute, None)))
         return self
 
-    def combine(self, other):
+    def combine(self, other: "ImageData") -> "ImageData":
         new_obj = self.build_obj(self.to_dict())
         for attribute in ImageData.METADATA + ImageData.DL_METADATA:
             this_value = getattr(new_obj, attribute, None)
@@ -85,7 +88,7 @@ class ImageData(object):
 
         return new_obj
 
-    def table(self):
+    def table(self) -> str:
         attribute = 'Attribute'
         value = 'Value'
 
@@ -97,7 +100,7 @@ class ImageData(object):
         table.align[value] = 'l'
         return table.get_string(title=self.image_name)
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         """
         Convert the object to a dictionary representation.
 
@@ -108,7 +111,7 @@ class ImageData(object):
         attr_dict = dict([(key, getattr(self, key)) for key in attributes])
         return attr_dict
 
-    def _list_attributes(self):
+    def _list_attributes(self) -> list:
         """
         List of all object attributes:
           * not callable,
@@ -121,7 +124,7 @@ class ImageData(object):
                 and x.lower() == x and not callable(getattr(self, x))]
 
     @classmethod
-    def build_obj(cls, dictionary):
+    def build_obj(cls, dictionary: dict) -> "ImageData":
         """
         Builds an object from a dictionary implementation
         :param dictionary: Dictionary representation of the ImageData object
