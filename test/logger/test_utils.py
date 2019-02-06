@@ -1,9 +1,4 @@
-try:
-    # Python 2.7+
-    from unittest.mock import patch, create_autospec
-except ImportError:
-    from mock import patch, create_autospec
-
+from mock import patch
 import os
 import re
 
@@ -86,10 +81,9 @@ class TestLogUtils(object):
                                     is_windows=True)
 
     def _validate_filename(self,
-                           filename, prefix=None, suffix=None, log_level=LOG_LEVEL,
-                           extension=DEFAULT_EXTENSION,
-                           log_dir=DEFAULT_LOG_DIR,
-                           is_windows=False):
+                           filename: str, prefix: str = None, suffix: str = None, log_level: str = LOG_LEVEL,
+                           extension: str = DEFAULT_EXTENSION, log_dir: str = DEFAULT_LOG_DIR,
+                           is_windows: bool = False) -> None:
         """
         General routine to validate the entire filespec, based on the provided
         parameters.
@@ -131,15 +125,15 @@ class TestLogUtils(object):
             log_dir = os.path.abspath(log_dir)
             path_str = os.path.abspath(path_str)
 
-        print("LOG DIR STRING:  %s" % log_dir)
-        print("PARSED PATH STR: %s" % path_str)
+        print(f"LOG DIR STRING:  {log_dir}")
+        print(f"PARSED PATH STR: {path_str}")
         assert_equals(log_dir, path_str)
 
         # Filename parts can consist of prefix, TIMESTAMP, suffix, LOG_LEVEL, EXTENSION
         # (CAPITALIZED = MANDATORY, lowercase = optional)
 
         # Validate extension
-        assert_equals(filename_parts[-1], ".{0}".format(extension))
+        assert_equals(filename_parts[-1], f".{extension}")
         del filename_parts[-1]
 
         # Validate log_level

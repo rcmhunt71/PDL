@@ -34,10 +34,9 @@ class TestLogger(object):
 
         # Print state (for debugging on failure)
         print(root.list_loggers())
-        print("\nACTUAL NAMES: {0}".format(actual_child_names))
-        print("\nEXPECTED NAMES: {0}".format(expected_names))
-        print("\nINTERSECTION: {0}".format(
-            actual_child_names.intersection(expected_names)))
+        print(f"\nACTUAL NAMES: {actual_child_names}")
+        print(f"\nEXPECTED NAMES: {expected_names}")
+        print(f"\nINTERSECTION: {actual_child_names.intersection(expected_names)}")
 
         # The length of the set intersection should be the same length as
         # the expected names.
@@ -51,10 +50,8 @@ class TestLogger(object):
 
             if expected_level is not None:
                 expected_level = Logger.VAL_TO_STR[expected_level].upper()
-                print("\nName: {name}\nExpected Value: {exp}\nActual Value: "
-                      "{act}".format(name=name,
-                                     exp=expected_level,
-                                     act=actual_level))
+                print(f"\nName: {name}\nExpected Value: {expected_level}"
+                      f"\nActual Value: {actual_level}")
 
                 assert_equals(actual_level, expected_level)
 
@@ -66,5 +63,5 @@ class TestLogger(object):
 
         log_1 = Logger(added_depth=-2)
         reported_module_path = log_1._get_module_name()
-        print("Module Name: {0}".format(reported_module_path))
+        print(f"Module Name: {reported_module_path}")
         assert_equals(expected_module_path, reported_module_path)
