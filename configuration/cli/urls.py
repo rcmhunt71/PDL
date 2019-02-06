@@ -1,3 +1,5 @@
+from typing import Dict, List
+
 import PDL.logger.logger as pdl_log
 
 log = pdl_log.Logger()
@@ -22,7 +24,7 @@ class UrlArgProcessing(object):
     INVALID = False
 
     @classmethod
-    def process_url_list(cls, url_list: list, domains: list = None) -> list:
+    def process_url_list(cls, url_list: List[str], domains: List[str] = None) -> List[str]:
         """
         Split any combined URLs, verify all URLs are valid, and remove any duplicates
 
@@ -46,7 +48,7 @@ class UrlArgProcessing(object):
         return url_dict[cls.REDUCED_LIST]
 
     @classmethod
-    def reduce_url_list(cls, url_list: list) -> dict:
+    def reduce_url_list(cls, url_list: List[str]) -> Dict[str, List[str]]:
         """
         Remove any duplicates from the list. Log all duplicates (debug).
 
@@ -78,7 +80,7 @@ class UrlArgProcessing(object):
                 cls.UNIQUE_DUP_LIST: unique_dups}
 
     @classmethod
-    def counts_of_each_dup(cls, duplicates: list) -> dict:
+    def counts_of_each_dup(cls, duplicates: List[str]) -> Dict[str, int]:
         """
         Tally the counts of each unique duplicate.
         :param duplicates: list of duplicate URLs
@@ -89,7 +91,8 @@ class UrlArgProcessing(object):
                      list(set(duplicates))])
 
     @classmethod
-    def split_urls(cls, url_list: list, domains: list = None, delimiter: str = PROTOCOL) -> list:
+    def split_urls(cls, url_list: List[str], domains: List[str] = None,
+                   delimiter: str = PROTOCOL) -> List[str]:
         """
         Check for URLs that are not space delimited from the CLI. If found,
         split the URL into two URLs and add to the list.
@@ -134,7 +137,7 @@ class UrlArgProcessing(object):
         return urls[cls.VALID]
 
     @classmethod
-    def validate_url(cls, url: str, domains: list = None, protocol: str = PROTOCOL):
+    def validate_url(cls, url: str, domains: List[str] = None, protocol: str = PROTOCOL):
         """
         Verify URL starts with delimited, and has additional URL info.
 
@@ -176,7 +179,7 @@ class UrlArgProcessing(object):
         return valid
 
     @classmethod
-    def list_urls(cls, url_list: list) -> str:
+    def list_urls(cls, url_list: List[str]) -> str:
         """
         Generate multi-line string of URLs in list
         :param url_list: List of URLs

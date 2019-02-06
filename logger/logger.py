@@ -281,22 +281,22 @@ class Logger(object):
     # ==> Simplification from obj.log.log_level() to obj.log_level()
     # ------------------------------------------------------------------
 
-    def fatal(self, msg: str) -> None:
+    def fatal(self, msg) -> None:
         self._log_level(level='FATAL', msg=msg)
 
-    def error(self, msg: str) -> None:
+    def error(self, msg) -> None:
         self._log_level(level='ERROR', msg=msg)
 
-    def warn(self, msg: str) -> None:
+    def warn(self, msg) -> None:
         self._log_level(level='WARN', msg=msg)
 
-    def info(self, msg: str) -> None:
+    def info(self, msg) -> None:
         self._log_level(level='INFO', msg=msg)
 
-    def debug(self, msg: str) -> None:
+    def debug(self, msg) -> None:
         self._log_level(level='DEBUG', msg=msg)
 
-    def exception(self, msg: str) -> None:
+    def exception(self, msg) -> None:
         self._log_level(level='EXCEPTION', msg=msg)
 
 

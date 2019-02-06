@@ -1,5 +1,6 @@
 import argparse
 import pprint
+from typing import List
 
 # Argparse docs: https://docs.python.org/3/library/argparse.html
 
@@ -26,12 +27,12 @@ class ArgSubmodules(object):
     INFO = 'info'
 
     @classmethod
-    def get_const_values(cls) -> list:
+    def get_const_values(cls) -> List[str]:
         return [val for key, val in cls.__dict__.items()
                 if not key.startswith('_') and key.upper() == key]
 
     @classmethod
-    def get_const_names(cls) -> list:
+    def get_const_names(cls) -> List[str]:
         return [key for key, val in cls.__dict__.items()
                 if not key.startswith('_') and key.upper() == key]
 
@@ -103,7 +104,7 @@ class CLIArgs(object):
         ArgSubmodules.INFO: [],
     }
 
-    def __init__(self, test_args_list: list = None) -> None:
+    def __init__(self, test_args_list: List[str] = None) -> None:
 
         self.parser = argparse.ArgumentParser(description=self.PURPOSE)
         self.subparsers = self.parser.add_subparsers(dest=ArgOptions.COMMAND)
@@ -117,7 +118,7 @@ class CLIArgs(object):
         self.args = self.parse_args(test_args_list)
 
     @staticmethod
-    def get_module_names() -> list:
+    def get_module_names() -> List[str]:
         """
         Lists all of the submodules available as part of the application
         :return: List of strings (names of the submodules)
@@ -140,7 +141,7 @@ class CLIArgs(object):
         log.error(f'No shortcut registered for "{option}".')
         return ''
 
-    def parse_args(self, test_args_list: list = None) -> argparse.Namespace:
+    def parse_args(self, test_args_list: List[str] = None) -> argparse.Namespace:
         """
         Parses CLI, but allows injection of arguments for testing purposes
         :param test_args_list:
