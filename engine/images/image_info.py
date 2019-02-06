@@ -51,6 +51,8 @@ class ImageData(object):
         self.mod_status = ModStatus.MOD_NOT_SET
         self.error_info = None
 
+        # TODO: Add self.filesize + calc during DL or Inv.
+
     def __str__(self):
         return f"\n{self.table()}"
 
