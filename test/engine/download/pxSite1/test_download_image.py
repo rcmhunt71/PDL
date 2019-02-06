@@ -74,8 +74,7 @@ class TestDownloadPX(object):
                                  url_split_token=None,
                                  dl_dir='/tmp')
         name = image_dl.get_image_name(use_wget=True)
-        assert_equals(name, '{0}.{1}'.format(
-            self.IMAGE_NAME, dl.DownloadPX.EXTENSION))
+        assert_equals(name, f'{self.IMAGE_NAME}.{dl.DownloadPX.EXTENSION}')
         assert_equals(image_dl.status, status.DownloadStatus.PENDING)
 
     def test_get_image_name_with_no_image(self):
@@ -125,14 +124,14 @@ class TestDownloadPX(object):
             raise SkipTest()
 
         temp_file = tempfile.NamedTemporaryFile(mode='r', delete=True)
-        print("Created temp file: {0}".format(temp_file.name))
+        print(f"Created temp file: {temp_file.name}")
 
         image_obj = dl.DownloadPX(image_url=self.DUMMY_URL, dl_dir='/tmp')
         image_obj.dl_file_spec = temp_file.name
         dl_status = image_obj._dl_via_requests()
 
         temp_file.close()
-        print("Closed/Removed temp file: {0}".format(image_obj.dl_file_spec))
+        print(f"Closed/Removed temp file: {image_obj.dl_file_spec}")
 
         remove_temp_file(image_obj.dl_file_spec)
 
@@ -153,7 +152,7 @@ class TestDownloadPX(object):
     def test_dl_via_requests_404(self, copyfileobj, requests_get):
 
         temp_file = tempfile.NamedTemporaryFile(mode='r', delete=True)
-        print("Created temp file: {0}".format(temp_file.name))
+        print(f"Created temp file: {temp_file.name}")
 
         image_obj = dl.DownloadPX(image_url=self.DUMMY_URL, dl_dir='/tmp')
         image_obj.dl_file_spec = temp_file.name
@@ -163,7 +162,7 @@ class TestDownloadPX(object):
         dl_status = image_obj._dl_via_requests()
 
         temp_file.close()
-        print("Closed/removed temp file: {0}".format(image_obj.dl_file_spec))
+        print(f"Closed/removed temp file: {image_obj.dl_file_spec}")
 
         remove_temp_file(image_obj.dl_file_spec)
 
@@ -190,9 +189,8 @@ class TestDownloadPX(object):
     def test_dl_via_wget_200_with_correct_file_size(self, wget_mock):
 
         image_file = wget_mock.return_value
-        print("Created temp file: {0}".format(image_file))
-        print("Temp file stats:\n\tSize:{size} bytes".format(
-            size=os.path.getsize(image_file)))
+        print(f"Created temp file: {image_file}")
+        print(f"Temp file stats:\n\tSize:{os.path.getsize(image_file)} bytes")
 
         image_obj = dl.DownloadPX(
             image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=True)
@@ -202,8 +200,8 @@ class TestDownloadPX(object):
         dl_status = image_obj._dl_via_wget()
         remove_temp_file(wget_mock.return_value)
 
-        print("Deleted temp file: {0}".format(image_file))
-        print("Mock call count: {0}".format(wget_mock.call_count))
+        print(f"Deleted temp file: {image_file}")
+        print(f"Mock call count: {wget_mock.call_count}")
 
         assert wget_mock.call_count == 1
         assert dl_status == status.DownloadStatus.DOWNLOADED
@@ -219,9 +217,8 @@ class TestDownloadPX(object):
             self, mock_delete, wget_mock):
 
         image_file = wget_mock.return_value
-        print("Created temp file: {0}".format(image_file))
-        print("Temp file stats:\n\tSize:{size} bytes".format(
-            size=os.path.getsize(image_file)))
+        print(f"Created temp file: {image_file}")
+        print(f"Temp file stats:\n\tSize:{os.path.getsize(image_file)} bytes")
 
         image_obj = dl.DownloadPX(
             image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=True)
@@ -230,9 +227,9 @@ class TestDownloadPX(object):
 
         dl_status = image_obj._dl_via_wget()
 
-        print("Deleted temp file: {0}".format(image_file))
-        print("Mock WGET call count: {0}".format(wget_mock.call_count))
-        print("Mock delete call count: {0}".format(mock_delete.call_count))
+        print(f"Deleted temp file: {image_file}")
+        print(f"Mock WGET call count: {wget_mock.call_count}")
+        print(f"Mock delete call count: {mock_delete.call_count}")
 
         assert wget_mock.call_count == dl.DownloadPX.MAX_ATTEMPTS
         assert mock_delete.call_count == dl.DownloadPX.MAX_ATTEMPTS
@@ -252,9 +249,8 @@ class TestDownloadPX(object):
             self, wget_mock):
 
         image_file = wget_mock.return_value
-        print("Created temp file: {0}".format(image_file))
-        print("Temp file stats:\n\tSize:{size} bytes".format(
-            size=os.path.getsize(image_file)))
+        print(f"Created temp file: {image_file}")
+        print(f"Temp file stats:\n\tSize:{os.path.getsize(image_file)} bytes")
 
         image_obj = dl.DownloadPX(
             image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=True)
@@ -263,8 +259,8 @@ class TestDownloadPX(object):
 
         dl_status = image_obj._dl_via_wget()
 
-        print("Deleted temp file: {0}".format(image_file))
-        print("Mock WGET call count: {0}".format(wget_mock.call_count))
+        print(f"Deleted temp file: {image_file}")
+        print(f"Mock WGET call count: {wget_mock.call_count}")
 
         assert wget_mock.call_count == dl.DownloadPX.MAX_ATTEMPTS
         assert dl_status == status.DownloadStatus.ERROR
@@ -286,7 +282,7 @@ class TestDownloadPX(object):
 
         dl_status = image_obj._dl_via_wget()
 
-        print("Mock WGET call count: {0}".format(wget_mock.call_count))
+        print(f"Mock WGET call count: {wget_mock.call_count}")
 
         assert wget_mock.call_count == image_obj.MAX_ATTEMPTS
         assert dl_status == status.DownloadStatus.ERROR

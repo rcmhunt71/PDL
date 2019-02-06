@@ -109,8 +109,8 @@ class PdlConfig(object):
                 timestamp = timestamp.replace(update, '')
 
         # Build the file name
-        filename = "{timestamp}.{ext}".format(timestamp=timestamp,
-                                              ext=JsonLog.EXTENSION)
+        filename = f"{timestamp}.{JsonLog.EXTENSION}"
+
         # Build the full file spec
         filename = os.path.sep.join([self.json_log_location, filename])
         return filename
@@ -376,7 +376,7 @@ def download_images(cfg_obj: PdlConfig) -> None:
 
     # Download each image
     for index, image in enumerate(cfg_obj.image_data):
-        log.info("{index:>3}: {url}".format(index=index + 1, url=image.image_url))
+        log.info(f"{index + 1:>3}: {image.image_url}")
         contact = Contact(image_url=image.image_url, dl_dir=cfg_obj.dl_dir, image_info=image)
         if image.image_url not in downloaded_image_urls and image.image_name not in downloaded_images:
             status = contact.download_image()

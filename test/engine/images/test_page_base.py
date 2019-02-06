@@ -35,8 +35,7 @@ class TestImageContactPage(object):
 
     def test_init_params_with_list(self):
         num_urls = 10
-        urls = ['{url}_{index}'.format(url=self.IMAGE_URL, index=index) for
-                index in range(num_urls)]
+        urls = [f'{self.IMAGE_URL}_{index}' for index in range(num_urls)]
 
         cpage = base.ImageContactPage(page_url=self.IMAGE_URL, image_urls=urls)
         assert_equals(len(cpage.image_urls), num_urls)
