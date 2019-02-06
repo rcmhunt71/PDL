@@ -81,6 +81,8 @@ class ImageData(object):
                 log.debug(self.DEBUG_MSG_ADD.format(
                     name=new_obj.image_name, attr=attribute, val=other_value))
 
+        # TODO: Locations should be re-evalauted during scan, and not inherited from ancestors
+
         return new_obj
 
     def table(self):
