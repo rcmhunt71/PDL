@@ -1,5 +1,6 @@
 import os
 import pickle
+from typing import Dict
 
 from PDL.engine.images.image_info import ImageData
 from PDL.engine.images.status import DownloadStatus
@@ -24,7 +25,9 @@ class FSInv(BaseInventory):
     INV_FILE_EXT = ".jpg"
     DATA_FILE_EXT = ".dat"
 
-    def __init__(self, base_dir, metadata=None, serialization=False, binary_filename=None, force_scan=False):
+    def __init__(self, base_dir: str, metadata: list = None,
+                 serialization: bool = False, binary_filename: str = None,
+                 force_scan: bool = False) -> None:
         self.base_dir = base_dir
         self.metadata = metadata
         self.pickle_fname = binary_filename
@@ -32,7 +35,8 @@ class FSInv(BaseInventory):
         self._scan = force_scan
         super(FSInv, self).__init__()
 
-    def get_inventory(self, from_file=None, serialize=None, scan_local=True, force_scan=False):
+    def get_inventory(self, from_file: bool = None, serialize: bool = None,
+                      scan_local: bool = True, force_scan: bool = False) -> Dict[str, ImageData]:
         serialize = self.serialize if serialize is None else serialize
         from_file = self.serialize if from_file is None else from_file
 
@@ -43,7 +47,8 @@ class FSInv(BaseInventory):
 
         return self._inventory
 
-    def scan_inventory(self, scan_local=True, serialize=None, from_file=None, filename=None):
+    def scan_inventory(self, scan_local: bool = True, serialize: bool = None,
+                       from_file: bool = None, filename: str = None) -> None:
         """
         Aggregate the inventory, and include previous inventory if requested.
 
@@ -54,11 +59,11 @@ class FSInv(BaseInventory):
         from_file = self.serialize if from_file is None else from_file
         pickle_fname = self.pickle_fname if filename is None else filename
 
-        log.debug("Serialize data: {0}".format(str(serialize)))
-        log.debug("Read from file: {0}".format(str(from_file)))
+        log.debug(f"Serialize data: {str(serialize)}")
+        log.debug(f"Read from file: {str(from_file)}")
 
         if from_file:
-            log.info("Reading inventory from {0}".format(self.pickle_fname))
+            log.info(f"Reading inventory from {self.pickle_fname}")
             self._inventory = self.unpickle(filename=pickle_fname)
 
         if scan_local:
@@ -66,29 +71,29 @@ class FSInv(BaseInventory):
             self._scan_(base_dir=self.base_dir)
 
         if serialize:
-            log.info("Writing inventory to {0}. Includes new local inventory".format(pickle_fname))
+            log.info(f"Writing inventory to {pickle_fname}. Includes new local inventory")
             self.pickle(data=self._inventory, filename=pickle_fname)
 
             # TODO: Include size of file written
 
     @staticmethod
-    def pickle(data, filename):
-        log.debug("Pickling inventory to {0}".format(filename))
+    def pickle(data: dict, filename: str) -> None:
+        log.debug(f"Pickling inventory to {filename}")
         with open(filename, "wb") as PICKLE:
             pickle.dump(data, PICKLE)
         log.info(f"Pickling inventory complete. {len(data.keys())} records written.")
 
-    def unpickle(self, filename):
+    def unpickle(self, filename: str) -> dict:
         data = dict()
         if os.path.exists(filename):
             with open(filename, "rb") as PICKLE:
                 data = pickle.load(PICKLE)
             self._inventory.update(data)
         else:
-            log.warn("Unable to find/open '{0}' for reading serialized data.".format(filename))
+            log.warn(f"Unable to find/open '{filename}' for reading serialized data.")
         return data
 
-    def _scan_(self, target_dir=None, base_dir=None):
+    def _scan_(self, target_dir: str = None, base_dir: str = None) -> None:
         """
         Recursively determine the images and directories. Store the information about the image
         in the _inventory dictionary, then traverse the sub-drectories.
@@ -111,15 +116,15 @@ class FSInv(BaseInventory):
         # Get the list of files and directories
         try:
             contents = os.listdir(directory)
-        except FileNotFoundError as exc:
-            log.error("Unable to find directory: {0}".format(directory))
+        except FileNotFoundError:
+            log.error(f"Unable to find directory: {directory}")
             return
 
         files = [str(x).rstrip(self.INV_FILE_EXT) for x in contents if x.endswith(self.INV_FILE_EXT)]
         directories = [str(x) for x in contents if '.' not in x]
 
         # Iterate through the files, populating/updating the _inventory dictionary.
-        log.debug("\t+ {0}".format(base_dir))
+        log.debug(f"\t+ {base_dir}")
         for file_name in files:
             self._add_imagedata_object(file_name)
 
@@ -146,7 +151,7 @@ class FSInv(BaseInventory):
             directory = os.path.join(str(base_dir), str(directory))
             self._scan_(target_dir=directory)
 
-    def _add_imagedata_object(self, file_name):
+    def _add_imagedata_object(self, file_name: str) -> None:
         """
         Used to initialize each dictionary entry in _inventory with an ImageData object
         :param file_name: Image to add to _inventory
@@ -159,7 +164,7 @@ class FSInv(BaseInventory):
             setattr(self._inventory[file_name], ImageData.DL_STATUS, DownloadStatus.DOWNLOADED)
             setattr(self._inventory[file_name], ImageData.FILENAME, file_name)
 
-    def list_duplicates(self):
+    def list_duplicates(self) -> None:
         """
         List duplicate images in the inventory (found in 2+ locations)
 
@@ -168,12 +173,12 @@ class FSInv(BaseInventory):
         """
         duplicates = dict([(name, obj) for name, obj in self._inventory.items()
                            if len(getattr(obj, ImageData.LOCATIONS)) > 1])
-        log.info("DUPLICATES: {0}".format(len(duplicates.keys())))
+        log.info(f"DUPLICATES: {len(duplicates.keys())}")
         for name, image_obj in duplicates.items():
             log.info("{0}: {1}".format(name, ", ".join(getattr(image_obj, ImageData.CLASSIFICATION))))
-        log.info("TOTAL FILES ANALYZED: {0}".format(len(self._inventory.keys())))
+        log.info(f"TOTAL FILES ANALYZED: {len(self._inventory.keys())}")
 
-    def list_inventory(self):
+    def list_inventory(self) -> str:
         """
         Create pretty table based on _inventory.,
 

@@ -38,7 +38,7 @@ class Inventory(object):
         self.inventory = self._accumulate_inv()
         self._pickle_()
 
-    def _accumulate_inv(self) -> dict[str, ImageData]:
+    def _accumulate_inv(self) -> Dict[str, ImageData]:
         if self.force_scan:
             total_env = self.fs_inv.copy()
             log.info("Accumulating inventory from file system and JSON logs")
@@ -65,7 +65,7 @@ class Inventory(object):
             data = self.inventory
         self.fs_inventory_obj.pickle(data=data, filename=self.fs_inventory_obj.pickle_fname)
 
-    def _unpickle(self) -> dict[str, ImageData]:
+    def _unpickle(self) -> Dict[str, ImageData]:
         return self.fs_inventory_obj.unpickle(filename=self.fs_inventory_obj.pickle_fname)
 
     def get_list_of_page_urls(self) -> List[str]:

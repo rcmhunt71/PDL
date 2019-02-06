@@ -2,6 +2,7 @@ from typing import NoReturn
 
 import PDL.engine.images.image_info as image_info
 
+
 class BaseInventory(object):
     """
     Base class for maintaining an inventory. The inventory could be
