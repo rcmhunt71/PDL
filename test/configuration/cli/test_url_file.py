@@ -23,7 +23,7 @@ class TestUrlFile(object):
     FILE_DIR = '/tmp'
 
     @staticmethod
-    def _print_file(filename):
+    def _print_file(filename: str) -> None:
         with open(filename, 'r') as FILE:
             lines = FILE.readlines()
 
@@ -60,7 +60,7 @@ class TestUrlFile(object):
         with tempfile.NamedTemporaryFile(
                 mode="w", suffix='jpg') as file_obj:
             file_obj.close()
-            print("Using an empty file: {0}".format(file_obj.name))
+            print(f"Using an empty file: {file_obj.name}")
             url_list = url_file.UrlFile().read_file(file_obj.name)
 
         assert_equals(url_list, list())

@@ -1,4 +1,5 @@
 import copy
+from typing import NoReturn, List
 
 from PDL.configuration.cli.args import CLIArgs, ArgSubmodules, ArgOptions
 from nose.tools import raises, assert_equals, assert_false, assert_true
@@ -53,7 +54,7 @@ class TestCommandLine(object):
         cli = CLIArgs(test_args_list=[designator,
                                       "www.foo.com/this/is/my/utl.html"])
         attribute = getattr(cli.args, attr)
-        print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=attribute))
+        print(f"{attr} ATTRIBUTE: {attribute}")
         assert_equals(attribute, designator)
 
 # --------- Improper CLI Argument Sets -------------
@@ -65,7 +66,7 @@ class TestCommandLine(object):
         # Actual arg list: --cfg
 
         attr = ArgOptions.CFG
-        cli = CLIArgs(test_args_list=[self._build_longword_option(attr)])
+        CLIArgs(test_args_list=[self._build_longword_option(attr)])
 
     @raises(SystemExit)
     def test_if_engine_cfg_option_without_file_specified(self):
@@ -74,7 +75,7 @@ class TestCommandLine(object):
         # Actual arg list: --engine
 
         attr = ArgOptions.ENGINE
-        cli = CLIArgs(test_args_list=[self._build_longword_option(attr)])
+        CLIArgs(test_args_list=[self._build_longword_option(attr)])
 
     @raises(SystemExit)
     def test_if_image_without_filespec_raises_error(self):
@@ -83,16 +84,16 @@ class TestCommandLine(object):
         # Actual arg list: info image
 
         attr = ArgOptions.IMAGE
-        cli = CLIArgs(test_args_list=[ArgSubmodules.INFO,
-                                      self._build_longword_option(attr)])
+        CLIArgs(test_args_list=[ArgSubmodules.INFO,
+                                self._build_longword_option(attr)])
 
     @raises(SystemExit)
     def test_if_db_sync_and_records_are_mutually_exclusive(self):
         # Test if db --sync and --records are mutually exclusive.
 
         attr = [ArgOptions.SYNC, ArgOptions.RECORDS]
-        cli = CLIArgs(test_args_list=[self._build_longword_option(attr[0]),
-                                      self._build_longword_option(attr[1])])
+        CLIArgs(test_args_list=[self._build_longword_option(attr[0]),
+                                self._build_longword_option(attr[1])])
 
     def test_if_db_sync_option_works_alone(self):
         # Test if db --sync option is accepted without arguments.
@@ -102,7 +103,7 @@ class TestCommandLine(object):
         cli = CLIArgs(
             test_args_list=[designator, self._build_longword_option(attr)])
         value = getattr(cli.args, attr)
-        print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=value))
+        print(f"{attr} ATTRIBUTE: {value}")
         assert_equals(getattr(cli.args, ArgOptions.COMMAND), designator)
         assert_equals(getattr(cli.args, attr), True)
 
@@ -114,7 +115,7 @@ class TestCommandLine(object):
         cli = CLIArgs(test_args_list=[designator,
                                       self._build_longword_option(attr)])
         value = getattr(cli.args, attr)
-        print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=value))
+        print(f"{attr} ATTRIBUTE: {value}")
         assert_equals(getattr(cli.args, ArgOptions.COMMAND), designator)
         assert_equals(getattr(cli.args, attr), True)
 
@@ -124,13 +125,13 @@ class TestCommandLine(object):
         designator = ArgSubmodules.DATABASE
 
         args = [designator]
-        args.extend(['--{0}'.format(attr) for attr in attributes])
+        args.extend([f'--{attr}' for attr in attributes])
         cli = CLIArgs(test_args_list=args)
 
         assert_equals(getattr(cli.args, ArgOptions.COMMAND), designator)
         for attr in attributes:
             value = getattr(cli.args, attr)
-            print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=value))
+            print(f"{attr} ATTRIBUTE: {value}")
             assert_equals(getattr(cli.args, attr), True)
 
     def test_if_db_records_with_details_and_filespec_options_is_stored(self):
@@ -149,8 +150,7 @@ class TestCommandLine(object):
         assert_equals(getattr(cli.args, ArgOptions.COMMAND), designator)
         for attr in attributes:
             value = getattr(cli.args, attr)
-            print("{attr} ATTRIBUTE: {name} = {val}".format(
-                attr=attr.upper(), name=attr, val=value))
+            print(f"{attr.upper()} ATTRIBUTE: {attr} = {value}")
             expected = True
             if attr == filespec_opt:
                 expected = filespec
@@ -173,7 +173,7 @@ class TestCommandLine(object):
         assert_equals(getattr(cli.args, ArgOptions.COMMAND), designator)
         for attr in attributes:
             value = getattr(cli.args, attr)
-            print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=value))
+            print(f"{attr} ATTRIBUTE: {value}")
             expected = True
             if attr == ArgOptions.FILE_SPEC:
                 expected = file_spec
@@ -188,7 +188,9 @@ class TestCommandLine(object):
         attr = ArgOptions.IMAGE
         cli = CLIArgs(test_args_list=[self._build_longword_option(attr),
                                       'foo.tmp'])
-        attribute = getattr(cli.args, attr)
+
+        # Should cause error (sysExit)
+        getattr(cli.args, attr)
 
     @raises(SystemExit)
     def test_if_invalid_designator_raises_error(self):
@@ -219,7 +221,7 @@ class TestCommandLine(object):
         assert option is None
 
     @staticmethod
-    def _verify_boolean_response(attr, cli_args, bool_expectation):
+    def _verify_boolean_response(attr: str, cli_args: List[str], bool_expectation: bool) -> NoReturn:
         """
         Sets up CLIArgs object with provided args, verify the boolean response
         is correct, based on the boolean expectation.
@@ -232,22 +234,22 @@ class TestCommandLine(object):
         """
         cli = CLIArgs(test_args_list=cli_args)
         attribute = getattr(cli.args, attr)
-        print("{attr} ATTRIBUTE: {val}".format(attr=attr, val=attribute))
+        print(f"{attr} ATTRIBUTE: {attribute}")
         if bool_expectation:
             assert_true(attribute)
         else:
             assert_false(attribute)
 
     @staticmethod
-    def _build_longword_option(option):
-        return '--{option}'.format(option=option)
+    def _build_longword_option(option: str) -> str:
+        return f'--{option}'
 
     def test_get_args_str(self):
         args, options, flags = self._build_args_for_args_output_tests()
         cli = CLIArgs(test_args_list=args)
 
         output = cli.get_args_str()
-        print("Output: {0}".format(output))
+        print(f"Output: {output}")
 
         for option in options:
             assert option in output
@@ -256,11 +258,11 @@ class TestCommandLine(object):
         args, options, flags = self._build_args_for_args_output_tests()
         cli = CLIArgs(test_args_list=args)
         output = cli.get_opt_args_states()
-        print("Output: {0}".format(output))
+        print(f"Output: {output}")
 
         for option in flags:
             bool_val = "ENABLED" if getattr(cli.args, option) else "DISABLED"
-            assert "{0} {1}".format(option, bool_val) in output
+            assert f"{option} {bool_val}" in output
 
     def _build_args_for_args_output_tests(self):
         filespec_opt = ArgOptions.FILE_SPEC
