@@ -1,3 +1,6 @@
+from typing import List
+
+
 class DownloadStatus(object):
     NOT_SET = 'Status_Not_Set'
     PENDING = 'Pending'
@@ -7,7 +10,7 @@ class DownloadStatus(object):
     ERROR = 'Error'
 
     @staticmethod
-    def get_statuses_() -> list:
+    def get_statuses_() -> List[str]:
         return [x for x in dir(DownloadStatus) if (
             (not x.startswith('_') or not x.endswith('_')) and x.lower() != x)]
 

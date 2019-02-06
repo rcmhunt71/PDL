@@ -1,4 +1,4 @@
-from typing import NoReturn
+from typing import NoReturn, List
 
 
 class NotImplementedMethod(Exception):
@@ -70,7 +70,7 @@ class ImageContactPage(ParsePage):
     Return: List of ImageData objects
     """
 
-    def __init__(self, page_url: str, image_urls: list = None) -> None:
+    def __init__(self, page_url: str, image_urls: List[str] = None) -> None:
         # Using python2.x super() call.
         super(ImageContactPage, self).__init__(page_url)
         self.image_urls = image_urls or list()

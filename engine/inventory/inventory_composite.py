@@ -1,13 +1,19 @@
+from typing import List, Dict
+
+from PDL.pdl import PdlConfig
 from PDL.configuration.properties.app_cfg import AppCfgFileSections, AppCfgFileSectionKeys
+from PDL.engine.images.image_info import ImageData
 from PDL.engine.inventory.json.inventory import JsonInventory
 from PDL.engine.inventory.filesystems.inventory import FSInv
 from PDL.logger.logger import Logger
 
 log = Logger()
 
+# TODO: Add docstrings
+
 
 class Inventory(object):
-    def __init__(self, cfg, force_scan=False):
+    def __init__(self, cfg: PdlConfig, force_scan: bool = False) -> None:
 
         self.force_scan = force_scan
         self.metadata = cfg.app_cfg.get_list(
@@ -32,7 +38,7 @@ class Inventory(object):
         self.inventory = self._accumulate_inv()
         self._pickle_()
 
-    def _accumulate_inv(self):
+    def _accumulate_inv(self) -> dict[str, ImageData]:
         if self.force_scan:
             total_env = self.fs_inv.copy()
             log.info("Accumulating inventory from file system and JSON logs")
@@ -54,40 +60,40 @@ class Inventory(object):
         log.info("Accumulation complete.")
         return total_env
 
-    def _pickle_(self, data=None):
+    def _pickle_(self, data: Dict[str, ImageData] = None) -> None:
         if data is None:
             data = self.inventory
         self.fs_inventory_obj.pickle(data=data, filename=self.fs_inventory_obj.pickle_fname)
 
-    def _unpickle(self):
+    def _unpickle(self) -> dict[str, ImageData]:
         return self.fs_inventory_obj.unpickle(filename=self.fs_inventory_obj.pickle_fname)
 
-    def get_list_of_page_urls(self):
+    def get_list_of_page_urls(self) -> List[str]:
         return self._list_of_attribute_values(attr='page_url')
 
-    def get_list_of_image_urls(self):
+    def get_list_of_image_urls(self) -> List[str]:
         return self._list_of_attribute_values(attr='image_url')
 
-    def get_list_of_images(self):
-        return self.inventory.keys()
+    def get_list_of_images(self) -> List[str]:
+        return [x for x in self.inventory.keys()]
 
-    def _list_of_attribute_values(self, attr):
+    def _list_of_attribute_values(self, attr: str) -> list:
         log.debug("Generating list of '{attr}'s from inventory.".format(attr=attr))
         return [getattr(x, attr) for x in self.inventory.items()
                 if hasattr(x, attr) and getattr(x, attr) is not None]
 
-    def update_inventory(self, list_image_data_objs):
+    def update_inventory(self, list_image_data_objs: List[ImageData]) -> None:
         for image_obj in list_image_data_objs:
             image_name = image_obj.image_name
             if image_name in self.inventory.keys():
-                log.debug("Updating data for {0}".format(image_name))
+                log.debug(f"Updating data for {image_name}")
                 self.inventory[image_name].combine(image_obj)
             else:
-                log.debug("Adding data for {0}".format(image_name))
+                log.debug(f"Adding data for {image_name}")
                 self.inventory[image_name] = image_obj
 
     @staticmethod
-    def _make_inv_consistent(data_dict):
+    def _make_inv_consistent(data_dict: Dict[str, ImageData]) -> Dict[str, ImageData]:
         log.info("Making inventory consistent...")
         new_inv = dict()
         for image_name, image_obj in data_dict.items():

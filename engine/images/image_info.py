@@ -1,3 +1,5 @@
+from typing import List
+
 from PDL.engine.images.status import (
     DownloadStatus as Status,
     ImageDataModificationStatus as ModStatus
@@ -111,7 +113,7 @@ class ImageData(object):
         attr_dict = dict([(key, getattr(self, key)) for key in attributes])
         return attr_dict
 
-    def _list_attributes(self) -> list:
+    def _list_attributes(self) -> List[str]:
         """
         List of all object attributes:
           * not callable,
