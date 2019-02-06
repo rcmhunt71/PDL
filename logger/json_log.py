@@ -1,5 +1,7 @@
 import json
+from typing import List
 
+from PDL.engine.images.image_info import ImageData
 from PDL.logger.logger import Logger as Log
 
 log = Log()
@@ -16,7 +18,7 @@ class JsonLog(object):
     """
     EXTENSION = 'json'
 
-    def __init__(self, image_obj_list: list, log_filespec: str) -> None:
+    def __init__(self, image_obj_list: List[ImageData], log_filespec: str) -> None:
         """
         Create the log object
 
