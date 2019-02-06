@@ -1,6 +1,10 @@
-import prettytable
+from typing import Dict, List
+
+from PDL.engine.images.image_info import ImageData
 from PDL.engine.images.status import DownloadStatus
 from PDL.logger.logger import Logger
+
+import prettytable
 
 log = Logger()
 
@@ -21,7 +25,7 @@ class ReportingSummary(object):
     DICT_VALUE_TYPE = 'dict'
     DEFAULT_VALUE_TYPE = INT_VALUE_TYPE
 
-    def __init__(self, image_data):
+    def __init__(self, image_data: List[ImageData]) -> None:
         self.data = image_data
         self.status_tally = None
         self.url_results = None
@@ -75,7 +79,7 @@ class ReportingSummary(object):
 
     # ------------------- DOWNLOAD STATUS RESULTS -------------------
 
-    def tally_status_results(self) -> dict:
+    def tally_status_results(self) -> Dict[str, int]:
         """
         Tally the counts of DLs based on the status
 
@@ -259,7 +263,7 @@ class ReportingSummary(object):
 
         # Collect all ImageData objects that have a dl_status of ERROR.
         data = [x for x in self.data if
-                x.image_info.dl_status == DownloadStatus.ERROR]
+                x.dl_status == DownloadStatus.ERROR]
 
         # Populate table
         for image in data:
@@ -270,7 +274,7 @@ class ReportingSummary(object):
 
             # Add the current error to the table
             table.add_row(
-                [image.name, image.image_info.error_info, image.image_url])
+                [image.image_name, image.error_info, image.image_url])
 
         return table.get_string(title='Download Errors')
 
