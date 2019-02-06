@@ -1,10 +1,4 @@
-try:
-    # Python 2.x
-    import ConfigParser
-except ModuleNotFoundError:
-    # Python 3.x
-    import configparser as ConfigParser
-
+import configparser as ConfigParser
 import inspect
 import os
 
@@ -34,18 +28,19 @@ class TestPropertiesConfig(object):
 
     def setup(self):
         filename = inspect.getframeinfo(inspect.currentframe()).filename
-        self.cfg_file = '{0}.data'.format(os.path.splitext(filename)[0])
+        self.cfg_file = f'{os.path.splitext(filename)[0]}.data'
         self.config = AppConfig(cfg_file=self.cfg_file, test=True)
 
     def _print_config_file(self):
         with open(self.cfg_file) as CFG:
             lines = CFG.readlines()
-        print("CFG FILE ({location}):\n\t{contents}".format(
-            location=self.cfg_file, contents='\t'.join(lines)))
+
+        lines = '\t'.join(lines)
+        print(f"CFG FILE ({self.cfg_file}):\n\t{lines}")
 
     def test_app_config_init(self):
         filename = inspect.getframeinfo(inspect.currentframe()).filename
-        self.cfg_file = '{0}.data'.format(os.path.splitext(filename)[0])
+        self.cfg_file = f'{os.path.splitext(filename)[0]}.data'
         self.config = AppConfig(cfg_file=self.cfg_file, test=False)
 
         assert self.config is not None
