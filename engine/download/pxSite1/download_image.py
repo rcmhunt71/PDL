@@ -15,6 +15,8 @@ from PDL.logger.logger import Logger
 
 log = Logger()
 
+# TODO: Change return types from 'str' to 'DownloadStatus.<str>' options
+
 
 class DownloadPX(DownloadImage):
     """
@@ -32,8 +34,8 @@ class DownloadPX(DownloadImage):
     RETRY_DELAY = 5    # in seconds
     MAX_ATTEMPTS = 5   # Number of attempts to download
 
-    def __init__(self, image_url, dl_dir, url_split_token=None, image_info=None,
-                 use_wget=False):
+    def __init__(self, image_url: str, dl_dir: str, url_split_token: str = None,
+                 image_info: ImageData = None, use_wget: bool = False) -> None:
         """
         Instantiate an instance of DownloadPX Class
 
@@ -54,17 +56,22 @@ class DownloadPX(DownloadImage):
         self.parse_image_info()
 
     @property
-    def status(self):
+    def status(self) -> str:
+        """
+        Return page DL status.
+        :return: (str) status (See PDL.engine.images.status.DownloadStatus)
+
+        """
         return self._status
 
     @status.setter
-    def status(self, new_status):
+    def status(self, new_status: str) -> None:
         log.debug("Setting status from '{orig}' to '{to}' for {image}".format(
             orig=self._status, to=new_status, image=self.image_url))
         self._status = new_status
         self.image_info.dl_status = new_status
 
-    def parse_image_info(self):
+    def parse_image_info(self) -> None:
         """
         Scrape and store relevant storage information required for the download.
 
@@ -76,7 +83,7 @@ class DownloadPX(DownloadImage):
             image_name=self.image_name, dl_dir=self.dl_dir)
         self.status = Status.PENDING
 
-    def download_image(self):
+    def download_image(self) -> str:
         """
         Download the image. If unsuccessful, wait a few seconds and try again,
         up to the maximum number of attempts.
@@ -140,7 +147,8 @@ class DownloadPX(DownloadImage):
 
         return self.status
 
-    def get_image_name(self, image_url=None, delimiter_key=None, use_wget=False):
+    def get_image_name(self, image_url: str = None, delimiter_key: str = None,
+                       use_wget: bool = False) -> str:
         """
         Builds image name from URL
 
@@ -162,6 +170,7 @@ class DownloadPX(DownloadImage):
             self.status = Status.ERROR
             self.image_info.error_info = msg
             log.error(msg)
+            # TODO: fix return type to match declared return type
             return None
 
         # Build regexp from key
@@ -193,7 +202,7 @@ class DownloadPX(DownloadImage):
 
         return image_name
 
-    def _get_file_location(self, image_name=None, dl_dir=None):
+    def _get_file_location(self, image_name: str = None, dl_dir: str = None) -> str:
         """
         Builds download file_spec based on image name and dl_path
 
@@ -221,7 +230,7 @@ class DownloadPX(DownloadImage):
 
         return file_spec
 
-    def _file_exists(self):
+    def _file_exists(self) -> bool:
         """
         Check to see if file exists. If it does, set status to prevent DL.
 
@@ -253,7 +262,7 @@ class DownloadPX(DownloadImage):
         # Return results
         return exists
 
-    def _dl_via_wget(self):
+    def _dl_via_wget(self) -> str:
         """
         Download the image via wget.
 
@@ -326,7 +335,7 @@ class DownloadPX(DownloadImage):
 
         return self.status
 
-    def _dl_via_requests(self):
+    def _dl_via_requests(self) -> str:
         """
         Download the image via the requests module
 

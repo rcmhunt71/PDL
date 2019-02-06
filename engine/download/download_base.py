@@ -1,3 +1,6 @@
+from typing import NoReturn
+
+
 class NotImplementedMethod(Exception):
     """
     Needed to implement a "dumb" class so that nose could test DownloadImage
@@ -18,35 +21,35 @@ class DownloadImage(object):
     existence, download, status, location, etc.
     """
 
-    def __init__(self, image_url, dl_dir):
+    def __init__(self, image_url: str, dl_dir: str) -> None:
         self.image_url = image_url
         self.dl_dir = dl_dir
 
-    def parse_image_info(self):
+    def parse_image_info(self) -> NoReturn:
         """
         Given the url and dl directory, determine the image name, the final dl
         file spec, and any addition info required for download.
 
-        :return: None
+        :return: No return; raise exception (implementation should return dict)
 
         """
         raise NotImplementedMethod('parse_image_info')
 
-    def get_image_status(self):
+    def get_image_status(self) -> NoReturn:
         """
         Determine if image has been downloaded, or already exists. If it does
         exist, don't download again.
 
-        :return: image status
+        :return: No return; raise exception (implementation should return <str: DownloadStatus.<str>)
 
         """
         raise NotImplementedMethod('get_image_status')
 
-    def download_image(self):
+    def download_image(self) -> NoReturn:
         """
         Process for downloading image via specified url to the local repository
 
-        :return: status of download.
+        :return: No return; raise exception (implementation should return <str>)
 
         """
         raise NotImplementedMethod('download_image')

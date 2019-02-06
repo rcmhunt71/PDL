@@ -56,13 +56,13 @@ class ParseDisplayPage(CatalogPage):
     USERNAME = 'username'
     WIDTH = "width"
 
-    def __init__(self, page_url):
+    def __init__(self, page_url: str) -> None:
         super(ParseDisplayPage, self).__init__(page_url=page_url)
         self.image_info = ImageData()
         self.source_list = None
         self._metadata = None
 
-    def get_image_info(self):
+    def get_image_info(self) -> None:
         """
         Store any collected info into the ImageData object
 
@@ -100,7 +100,7 @@ class ParseDisplayPage(CatalogPage):
         self.image_info.resolution = self._get_resolution()
         self.image_info.filename = self._get_filename()
 
-    def _get_author_name(self):
+    def _get_author_name(self) -> str:
         """
         Get the Author name from the scraped metadata.
 
@@ -109,7 +109,7 @@ class ParseDisplayPage(CatalogPage):
         """
         return self._metadata[self.PHOTO][self.USER][self.USERNAME]
 
-    def _get_title(self):
+    def _get_title(self) -> str:
         """
         Get the Image Title from the scraped metadata.
 
@@ -118,7 +118,7 @@ class ParseDisplayPage(CatalogPage):
         """
         return self._metadata[self.PHOTO][self.NAME]
 
-    def _get_description(self):
+    def _get_description(self) -> str:
         """
         Get the Image Description from the scraped metadata.
 
@@ -127,7 +127,7 @@ class ParseDisplayPage(CatalogPage):
         """
         return self._metadata[self.PHOTO][self.DESCRIPTION]
 
-    def _get_image_date(self):
+    def _get_image_date(self) -> str:
         """
         Get the Image Date from the scraped metadata.
 
@@ -138,7 +138,7 @@ class ParseDisplayPage(CatalogPage):
             self._metadata[self.PHOTO][self.CREATED_AT])
         return str(date.isoformat()).split('.')[0]
 
-    def _get_filename(self):
+    def _get_filename(self) -> str:
         """
         Get the file name from the image name from scraped metadata.
 
@@ -150,7 +150,7 @@ class ParseDisplayPage(CatalogPage):
 
         return f'{filename.split("=")[-1]}.{self.EXTENSION}'
 
-    def _get_resolution(self):
+    def _get_resolution(self) -> str:
         """
         Build the image resolution from the scraped metadata.
 
@@ -161,7 +161,7 @@ class ParseDisplayPage(CatalogPage):
         height = self._metadata[self.PHOTO][self.HEIGHT]
         return f"{width}x{height}"
 
-    def _get_image_url(self):
+    def _get_image_url(self) -> str:
         """
         Get the image URL from the source page
         (not part of the metadata, but scraped with the metadata).
@@ -182,7 +182,7 @@ class ParseDisplayPage(CatalogPage):
 
         return target_url
 
-    def get_page(self):
+    def get_page(self) -> list:
         """
         Get url source code
 
@@ -237,7 +237,7 @@ class ParseDisplayPage(CatalogPage):
 
         return source
 
-    def _get_domain_from_url(self):
+    def _get_domain_from_url(self) -> str:
         """
         Get domain from the url.
         e.g - http://<domain>/resource/page.html
@@ -254,7 +254,7 @@ class ParseDisplayPage(CatalogPage):
         log.debug(f"DOMAIN: {domain}")
         return domain
 
-    def parse_page_for_link(self):
+    def parse_page_for_link(self) -> str:
         """
         Retrieve the originating page's domain, and get
         the desired image link out of the page.
@@ -282,7 +282,7 @@ class ParseDisplayPage(CatalogPage):
 
         return url
 
-    def _get_metadata(self):
+    def _get_metadata(self) -> dict:
         """
         Scrape the json metadata dictionary from the source page,
         convert to a dictionary.
@@ -332,7 +332,7 @@ class ParseDisplayPage(CatalogPage):
         return metadata
 
     @staticmethod
-    def remove_control_characters(s):
+    def remove_control_characters(s: str) -> str:
         """
         Remove any non-printing control characters from a string (breaks regexps)
         :param s: String to check/fix.
@@ -342,7 +342,7 @@ class ParseDisplayPage(CatalogPage):
         return "".join(ch for ch in s if unicodedata.category(ch)[0] != "C")
 
     @staticmethod
-    def _translate_unicode_in_link(link):
+    def _translate_unicode_in_link(link: str) -> str:
         """
         Adds quoting around unicode embedded in the links
 
