@@ -24,9 +24,10 @@ class FSInv(BaseInventory):
 
     INV_FILE_EXT = ".jpg"
     DATA_FILE_EXT = ".dat"
+    KILOBYTE = 1024
 
-    def __init__(self, base_dir: str, metadata: list = None,
-                 serialization: bool = False, binary_filename: str = None,
+    def __init__(self, base_dir: str, metadata: Optional[list] = None,
+                 serialization: bool = False, binary_filename: Optional[str] = None,
                  force_scan: bool = False) -> None:
         self.base_dir = base_dir
         self.metadata = metadata
@@ -130,6 +131,8 @@ class FSInv(BaseInventory):
 
             # If metadata was defined/provided
             image_obj = self._inventory[file_name]
+            file_size = int(os.stat(os.path.sep.join([base_dir, file_name])).st_size) / self.KILOBYTE
+            setattr(image_obj, ImageData.FILE_SIZE, f'{file_size:0.2f} KB')
             if base_dir not in getattr(image_obj, ImageData.LOCATIONS):
                 if self.metadata:
                     if base_dir.lower().endswith(tuple([x.lower() for x in self.metadata])):

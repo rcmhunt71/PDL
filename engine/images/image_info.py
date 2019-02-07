@@ -25,6 +25,7 @@ class ImageData(object):
     DOWNLOADED_ON = 'downloaded_on'
     ERROR_INFO = 'error_info'
     FILENAME = 'filename'
+    FILE_SIZE = 'file_size'
     IMAGE_NAME = "image_name"
     LOCATIONS = 'locations'
     PAGE_URL = 'page_url'
@@ -33,7 +34,8 @@ class ImageData(object):
     RESOLUTION = 'resolution'
 
     # List of the metadata specific to the image
-    METADATA = [DL_STATUS, IMAGE_NAME, PAGE_URL, IMAGE_URL, AUTHOR, DESCRIPTION, RESOLUTION, FILENAME, IMAGE_DATE]
+    METADATA = [DL_STATUS, IMAGE_NAME, PAGE_URL, IMAGE_URL, AUTHOR, DESCRIPTION, RESOLUTION, FILENAME,
+                IMAGE_DATE, FILE_SIZE]
     DL_METADATA = [CLASSIFICATION, DOWNLOADED_ON, ERROR_INFO]
 
     DEFAULT_VALUES = [None, Status.NOT_SET, ModStatus.MOD_NOT_SET, list(), 0]
@@ -55,6 +57,7 @@ class ImageData(object):
         self.dl_status = Status.NOT_SET
         self.mod_status = ModStatus.MOD_NOT_SET
         self.error_info = None
+        self.file_size = None
 
         # TODO: Add self.filesize + calc during DL or Inv.
 
