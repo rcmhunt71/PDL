@@ -252,6 +252,7 @@ def read_from_buffer(read_delay: float = 0.25) -> list:
                 # If the URL is already in the buffer, don't duplicate it.
                 if buffer in url_list:
                     log.info(f"The specified URL is already in the list ({buffer}).")
+                    last_url = buffer
                     continue
 
                 # Append the URL in the list and store the link in the last_buffer
