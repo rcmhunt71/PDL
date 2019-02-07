@@ -1,4 +1,5 @@
 import time
+from typing import Callable
 
 import PDL.logger.logger as logger
 
@@ -9,9 +10,7 @@ MULTIPLIER = pow(BASE, PRECISION)
 log = logger.Logger()
 
 
-# TODO: Look up and Add unknown return type
-
-def measure_elapsed_time(event: str, test: bool = False):
+def measure_elapsed_time(event: str, test: bool = False) -> Callable:
     """
     Decorator for measuring the execution time of a specific call
 
