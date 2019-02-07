@@ -244,10 +244,16 @@ def read_from_buffer(read_delay: float = 0.25) -> list:
     while True:
         try:
             # Read buffer
-            buffer = pyperclip.paste()
+            buffer = pyperclip.paste().strip()
 
             # If URL and buffer does not match previous iteration...
             if is_url(buffer) and buffer != last_url:
+
+                # If the URL is already in the buffer, don't duplicate it.
+                if buffer in url_list:
+                    log.info(f"The specified URL is already in the list ({buffer}).")
+                    continue
+
                 # Append the URL in the list and store the link in the last_buffer
                 url_list.append(buffer.strip())
                 last_url = buffer
