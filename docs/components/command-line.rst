@@ -27,6 +27,8 @@ Group: Downloads (dl)
 <URLs>                       <space separated list>     List of URLs to download
 --------------- ------------ -------------------------- -----------------------------
 --file          -f           <DL FILE> (file spec)      Redownload images listed in file
+--------------- ------------ -------------------------- -----------------------------
+--buffer        -b           Bool (**True**)            Read list from OS's copy/paste buffer
 =============== ============ ========================== =============================
 
 
@@ -66,6 +68,8 @@ Group: General
 --cfg           -c            Str: <filespec>        Configuration File
 --------------- ------------ ----------------------- -----------------------------
 --debug         -d           Boolean (**True**)      Enable Debug Statements
+--------------- ------------ ----------------------- -----------------------------
+--force-scan    -s           Boolean (**True**)      Rebuild inventory from JSON + File System
 --------------- ------------ ----------------------- -----------------------------
 --help          -h           Boolean (**True**)      Detail list of options
 =============== ============ ======================= =============================
