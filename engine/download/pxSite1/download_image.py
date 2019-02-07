@@ -81,7 +81,7 @@ class DownloadPX(DownloadImage):
         self.image_name = self.get_image_name()
         self.dl_file_spec = self._get_file_location(
             image_name=self.image_name, dl_dir=self.dl_dir)
-        self._status = Status.PENDING
+        self.status = Status.PENDING
 
     def download_image(self) -> str:
         """
