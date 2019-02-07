@@ -10,22 +10,21 @@ num_data = 100
 statuses = Status.get_statuses_()
 
 for _ in range(num_data):
-    image = ImageData()
-    image.dl_status = getattr(Status, choice(statuses))
-    data.append(image)
+    dummy_image = ImageData()
+    dummy_image.dl_status = getattr(Status, choice(statuses))
+    data.append(dummy_image)
 
 
 class TestReportingSummary(object):
 
-    # TODO: Shouldn't there be a test method? Look into this...
+    def test_reporting_summary_values(self):
+        summary = ReportingSummary(image_data=data)
+        results = summary.tally_status_results()
 
-    summary = ReportingSummary(image_data=data)
-    results = summary.tally_status_results()
+        data_tally = summary.init_status_dict_()
+        for image in data:
+            data_tally[image.dl_status] += 1
 
-    data_tally = summary.init_status_dict_()
-    for image in data:
-        data_tally[image.dl_status] += 1
-
-    for status in statuses:
-        status_value = getattr(Status, status)
-        assert results[status_value] == data_tally[status_value]
+        for status in statuses:
+            status_value = getattr(Status, status)
+            assert results[status_value] == data_tally[status_value]
