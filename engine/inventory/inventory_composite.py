@@ -1,6 +1,5 @@
 from typing import List, Dict
 
-from PDL.pdl import PdlConfig
 from PDL.configuration.properties.app_cfg import AppCfgFileSections, AppCfgFileSectionKeys
 from PDL.engine.images.image_info import ImageData
 from PDL.engine.inventory.json.inventory import JsonInventory
@@ -10,10 +9,11 @@ from PDL.logger.logger import Logger
 log = Logger()
 
 # TODO: Add docstrings
+# TODO: Figure out how to type the __init__ parameters (circular reference)
 
 
 class Inventory(object):
-    def __init__(self, cfg: PdlConfig, force_scan: bool = False) -> None:
+    def __init__(self, cfg, force_scan=False) -> None:
 
         self.force_scan = force_scan
         self.metadata = cfg.app_cfg.get_list(
