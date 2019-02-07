@@ -8,8 +8,14 @@ import prettytable
 
 log = Logger()
 
+"""
+This module creates the various prettyTable tables used within the application.
 
-# TODO: Add Docstrings and necessary inline comments
+NOTE: There is a wrapper function _log_table that will process a string_version of the table and
+   record it into the logs (at requested or default level)
+
+"""
+
 
 class ReportingSummary(object):
 
@@ -24,6 +30,7 @@ class ReportingSummary(object):
     LIST_VALUE_TYPE = 'list'
     DICT_VALUE_TYPE = 'dict'
     DEFAULT_VALUE_TYPE = INT_VALUE_TYPE
+    DEFAULT_LOG_LEVEL = 'info'
 
     def __init__(self, image_data: List[ImageData]) -> None:
         self.data = image_data
@@ -33,15 +40,26 @@ class ReportingSummary(object):
     # ------------------- GENERAL METHODS -------------------
 
     @staticmethod
-    def _log_table(table: str) -> None:
+    def _log_table(table: str, log_level: str = DEFAULT_LOG_LEVEL) -> None:
         """
         Break table into separate log lines.
 
         :param table: Multi-line text table (delimiter = \n)
         :return:
         """
+
+        # Try to get requested logger level call
+        log_call = getattr(log, log_level.lower(), None)
+
+        # If None, report error and use default level.
+        if log_call is None:
+            log.error(f"Unable to log at level '{log_level.lower()}', "
+                      f"defaulting to '{ReportingSummary.DEFAULT_LOG_LEVEL}'")
+            log_call = getattr(log, ReportingSummary.DEFAULT_LOG_LEVEL, None)
+
+        # Record the log in the tables
         for line in table.split('\n'):
-            log.info(line)
+            log_call(line)
 
     # ------------------- BASIC RESULT TABLE STRUCTURE -------------------
 
@@ -277,16 +295,3 @@ class ReportingSummary(object):
                 [image.image_name, image.error_info, image.image_url])
 
         return table.get_string(title='Download Errors')
-
-
-# ------------------- TODOs -------------------
-# TODO: <code> Create JSON report of DL'd info.
-#
-#        EXAMPLE:
-#        +===============+==========================+===========+===========+===========+
-#        |  Image Name   | URL                      | Metadata1 | Metadata2 | Metadata3 |
-#        +===============+==========================+===========+===========+===========+
-#        |  image1.jpg   | www.foo.com/image1.html  | foo       | wooba     | lalala    |
-#        |  image2.jpg   | www.foo.com/image2.html  | doo       | shooba    | falala    |
-#        +===============+==========================+===========+===========+===========+
-#
