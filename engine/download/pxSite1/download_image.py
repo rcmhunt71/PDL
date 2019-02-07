@@ -53,6 +53,7 @@ class DownloadPX(DownloadImage):
         self.dl_file_spec = None
         self.image_info = image_info or ImageData()
         self._status = Status.NOT_SET
+        self.status = -1
         self.use_wget = use_wget
         self.parse_image_info()
 
@@ -102,13 +103,13 @@ class DownloadPX(DownloadImage):
         # Set DL and image status
         db_status = ModStatus.MOD_NOT_SET
         exists = self._file_exists()
-        file_size = -1
+        file_size = 0
 
         # Start timer
         start_dl = datetime.datetime.now()
 
         # If image is PENDING and DNE
-        if not exists and self.status == Status.PENDING:
+        if not exists and self.status == Status.PENDING and self.image_name != '':
 
             # Try to DL
             while (attempts < self.MAX_ATTEMPTS and
@@ -127,11 +128,14 @@ class DownloadPX(DownloadImage):
             # Adjust image status metadata if DL'd
             if self.status == Status.DOWNLOADED:
                 db_status = ModStatus.NEW
-                file_size = f"{int(os.stat(self.dl_file_spec).st_size)/self.KILOBYTES:0.2f} KB"
+                file_size = int(os.stat(self.dl_file_spec).st_size)/self.KILOBYTES
 
         elif exists:
             # Depends if it exists in the DB, but for now, unchanged
             db_status = ModStatus.UNCHANGED
+
+        elif self.image_name != '':
+            self.status = Status.ERROR
 
         # Calculate time to DL
         dl_duration = (datetime.datetime.now() - start_dl).total_seconds()
@@ -142,7 +146,7 @@ class DownloadPX(DownloadImage):
         self.image_info.download_duration += dl_duration
         self.image_info.mod_status = db_status
         self.image_info.locations.append(self.dl_dir)
-        self.image_info.file_size = file_size
+        self.image_info.file_size = f"{file_size:0.2f} KB"
 
         # Log status
         log.info(f"Downloaded in {dl_duration:0.3f} seconds.")
@@ -173,8 +177,7 @@ class DownloadPX(DownloadImage):
             self.status = Status.ERROR
             self.image_info.error_info = msg
             log.error(msg)
-            # TODO: fix return type to match declared return type
-            return None
+            return ''
 
         # Build regexp from key
         sig_comp = re.compile(delimiter_key)
