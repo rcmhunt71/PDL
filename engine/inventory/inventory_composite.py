@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict, List, Optional
 
 from PDL.configuration.properties.app_cfg import AppCfgFileSections, AppCfgFileSectionKeys
 from PDL.engine.images.image_info import ImageData
@@ -60,7 +60,7 @@ class Inventory(object):
         log.info("Accumulation complete.")
         return total_env
 
-    def _pickle_(self, data: Dict[str, ImageData] = None) -> None:
+    def _pickle_(self, data: Optional[Dict[str, ImageData]] = None) -> None:
         if data is None:
             data = self.inventory
         self.fs_inventory_obj.pickle(data=data, filename=self.fs_inventory_obj.pickle_fname)

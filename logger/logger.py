@@ -1,7 +1,7 @@
 import inspect
 import logging
 import os
-from typing import List
+from typing import List, Optional
 
 import prettytable
 
@@ -67,8 +67,8 @@ class Logger(object):
     ROOT_LOGGER = 'root'
 
     def __init__(
-            self, filename: str = None, default_level: str = None, added_depth: int = 0,
-            project: str = None, set_root: bool = False, test_name: str = None) -> None:
+            self, filename: Optional[str] = None, default_level: Optional[str] = None, added_depth: int = 0,
+            project: Optional[str] = None, set_root: bool = False, test_name: Optional[str] = None) -> None:
         """
         :param filename: Filename to write logs to...
         :param default_level: Default stack level (default = DEFAULT_STACK_DEPTH)

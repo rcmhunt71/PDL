@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from PDL.engine.images.image_info import ImageData
 from PDL.engine.images.status import DownloadStatus
@@ -149,7 +149,7 @@ class ReportingSummary(object):
 
     # ------------------- URL RESULTS -------------------
 
-    def detailed_download_results_table(self, specific_status: str = None) -> str:
+    def detailed_download_results_table(self, specific_status: Optional[str] = None) -> str:
         """
         Generates a table of download statuses, and the DL'd links for each status
 
@@ -223,7 +223,7 @@ class ReportingSummary(object):
         table.add_row(["TOTAL DURATION", time_format.format(total_dur)])
         return table.get_string(title='URL Status')
 
-    def log_detailed_download_results_table(self, specific_status: str = None) -> None:
+    def log_detailed_download_results_table(self, specific_status: Optional[str] = None) -> None:
         """
         Generate the detailed results table, and log to file.
 

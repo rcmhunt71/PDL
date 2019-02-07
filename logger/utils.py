@@ -1,17 +1,18 @@
 import datetime
 import os
+from typing import Optional
 
 import PDL.logger.logger as logger
 
 DEFAULT_EXTENSION = 'log'      # Used for finding log files
 DELIMITER = '_'                # Delimiter for file naming convention
-TIMESTAMP = r'%y%m%dT%H%M%S'   # Timestamnp: YYYYMMDDThhmmss
+TIMESTAMP = r'%y%m%dT%H%M%S'   # Timestamp: YYYYMMDDThhmmss
 
 log = logger.Logger()
 
 
-def datestamp_filename(prefix: str = None, suffix: str = None,
-                       extension: str = DEFAULT_EXTENSION, drive_letter: str = None,
+def datestamp_filename(prefix: Optional[str] = None, suffix: Optional[str] = None,
+                       extension: str = DEFAULT_EXTENSION, drive_letter: Optional[str] = None,
                        directory: str = '.', timestamp_format: str = TIMESTAMP,
                        log_level: str = 'INFO') -> str:
 

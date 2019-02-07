@@ -1,6 +1,6 @@
 import argparse
 import pprint
-from typing import List
+from typing import List, Optional
 
 # Argparse docs: https://docs.python.org/3/library/argparse.html
 
@@ -104,7 +104,7 @@ class CLIArgs(object):
         ArgSubmodules.INFO: [],
     }
 
-    def __init__(self, test_args_list: List[str] = None) -> None:
+    def __init__(self, test_args_list: Optional[List[str]] = None) -> None:
 
         self.parser = argparse.ArgumentParser(description=self.PURPOSE)
         self.subparsers = self.parser.add_subparsers(dest=ArgOptions.COMMAND)
@@ -141,10 +141,10 @@ class CLIArgs(object):
         log.error(f'No shortcut registered for "{option}".')
         return ''
 
-    def parse_args(self, test_args_list: List[str] = None) -> argparse.Namespace:
+    def parse_args(self, test_args_list: Optional[List[str]] = None) -> argparse.Namespace:
         """
         Parses CLI, but allows injection of arguments for testing purposes
-        :param test_args_list:
+        :param test_args_list: List of args to test for.
         :return:
 
         """

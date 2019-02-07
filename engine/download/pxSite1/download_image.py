@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 import time
+from typing import Optional
 
 import requests
 import wget
@@ -80,7 +81,7 @@ class DownloadPX(DownloadImage):
         self.image_name = self.get_image_name()
         self.dl_file_spec = self._get_file_location(
             image_name=self.image_name, dl_dir=self.dl_dir)
-        self.status = Status.PENDING
+        self._status = Status.PENDING
 
     def download_image(self) -> str:
         """
@@ -146,7 +147,7 @@ class DownloadPX(DownloadImage):
 
         return self.status
 
-    def get_image_name(self, image_url: str = None, delimiter_key: str = None,
+    def get_image_name(self, image_url: Optional[str] = None, delimiter_key: Optional[str] = None,
                        use_wget: bool = False) -> str:
         """
         Builds image name from URL
@@ -201,7 +202,7 @@ class DownloadPX(DownloadImage):
 
         return image_name
 
-    def _get_file_location(self, image_name: str = None, dl_dir: str = None) -> str:
+    def _get_file_location(self, image_name: Optional[str] = None, dl_dir: Optional[str] = None) -> str:
         """
         Builds download file_spec based on image name and dl_path
 

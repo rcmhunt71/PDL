@@ -1,7 +1,7 @@
 import datetime
 import os
 import pprint
-from typing import List
+from typing import List, Optional
 
 from PDL.configuration.cli.urls import UrlArgProcessing
 from PDL.logger.logger import Logger as Log
@@ -17,7 +17,7 @@ class UrlFile(object):
     URL_DELIM = ' '
     EXTENSION = 'urls'
 
-    def write_file(self, urls: List[str], location: str, filename: str = None,
+    def write_file(self, urls: List[str], location: str, filename: Optional[str] = None,
                    create_dir: bool = False) -> str:
         """
         Write the URL list to file. Human readable, but machine parse-able.

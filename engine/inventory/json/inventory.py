@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from PDL.engine.inventory.base_inventory import BaseInventory
 from PDL.logger.logger import Logger
@@ -48,7 +48,7 @@ class JsonInventory(BaseInventory):
 
         return inv
 
-    def get_json_files(self, loc: str = None) -> List[str]:
+    def get_json_files(self, loc: Optional[str] = None) -> List[str]:
         """
         Get list of JSON files (<filespec>.json)
 

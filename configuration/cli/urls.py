@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import PDL.logger.logger as pdl_log
 
@@ -24,7 +24,7 @@ class UrlArgProcessing(object):
     INVALID = False
 
     @classmethod
-    def process_url_list(cls, url_list: List[str], domains: List[str] = None) -> List[str]:
+    def process_url_list(cls, url_list: List[str], domains: Optional[List[str]] = None) -> List[str]:
         """
         Split any combined URLs, verify all URLs are valid, and remove any duplicates
 
@@ -91,7 +91,7 @@ class UrlArgProcessing(object):
                      list(set(duplicates))])
 
     @classmethod
-    def split_urls(cls, url_list: List[str], domains: List[str] = None,
+    def split_urls(cls, url_list: List[str], domains: Optional[List[str]] = None,
                    delimiter: str = PROTOCOL) -> List[str]:
         """
         Check for URLs that are not space delimited from the CLI. If found,
@@ -137,7 +137,8 @@ class UrlArgProcessing(object):
         return urls[cls.VALID]
 
     @classmethod
-    def validate_url(cls, url: str, domains: List[str] = None, protocol: str = PROTOCOL):
+    def validate_url(cls, url: str, domains: Optional[List[str]] = None,
+                     protocol: str = PROTOCOL):
         """
         Verify URL starts with delimited, and has additional URL info.
 

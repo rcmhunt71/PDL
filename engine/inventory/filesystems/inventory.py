@@ -1,6 +1,6 @@
 import os
 import pickle
-from typing import Dict
+from typing import Dict, Optional
 
 from PDL.engine.images.image_info import ImageData
 from PDL.engine.images.status import DownloadStatus
@@ -35,7 +35,7 @@ class FSInv(BaseInventory):
         self._scan = force_scan
         super(FSInv, self).__init__()
 
-    def get_inventory(self, from_file: bool = None, serialize: bool = None,
+    def get_inventory(self, from_file: Optional[bool] = None, serialize: Optional[bool] = None,
                       scan_local: bool = True, force_scan: bool = False) -> Dict[str, ImageData]:
         serialize = self.serialize if serialize is None else serialize
         from_file = self.serialize if from_file is None else from_file
@@ -47,8 +47,8 @@ class FSInv(BaseInventory):
 
         return self._inventory
 
-    def scan_inventory(self, scan_local: bool = True, serialize: bool = None,
-                       from_file: bool = None, filename: str = None) -> None:
+    def scan_inventory(self, scan_local: bool = True, serialize: Optional[bool] = None,
+                       from_file: Optional[bool] = None, filename: Optional[str] = None) -> None:
         """
         Aggregate the inventory, and include previous inventory if requested.
 
@@ -93,7 +93,7 @@ class FSInv(BaseInventory):
             log.warn(f"Unable to find/open '{filename}' for reading serialized data.")
         return data
 
-    def _scan_(self, target_dir: str = None, base_dir: str = None) -> None:
+    def _scan_(self, target_dir: Optional[str] = None, base_dir: Optional[str] = None) -> None:
         """
         Recursively determine the images and directories. Store the information about the image
         in the _inventory dictionary, then traverse the sub-drectories.
@@ -111,7 +111,7 @@ class FSInv(BaseInventory):
         elif base_dir is None:
             base_dir = target_dir
 
-        log.debug("Scanning Base Dir: {0}".format(base_dir))
+        log.debug(f"Scanning Base Dir: {base_dir}")
 
         # Get the list of files and directories
         try:
