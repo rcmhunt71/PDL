@@ -15,7 +15,18 @@ from six.moves.urllib.parse import quote
 
 log = Logger()
 
-# TODO: <DOC> Add code documentation explaining approach
+"""
+This class will take the primary page (the display page), and parse the source code
+for image specific metadata (currently in the form of an embedded JSON dictionary,
+find the list of image URLs (listed by resolution), and select the URL for the 
+largest available resolution.
+
+It will also provide some basic translations for unicode.
+
+The primary responsibility of this class is to populate the corresponding 
+ImageData object, and select the URL for downloading the image directly.
+
+"""
 
 
 class ParseDisplayPage(CatalogPage):
