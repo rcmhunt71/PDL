@@ -131,8 +131,10 @@ class FSInv(BaseInventory):
 
             # If metadata was defined/provided
             image_obj = self._inventory[file_name]
-            file_size = int(os.stat(os.path.sep.join([base_dir, file_name])).st_size) / self.KILOBYTE
-            setattr(image_obj, ImageData.FILE_SIZE, f'{file_size:0.2f} KB')
+            file_path = os.path.sep.join([base_dir, f'{file_name}.{self.INV_FILE_EXT}'])
+            if os.path.exists(file_path):
+                file_size = int(os.stat(file_path).st_size) / self.KILOBYTE
+                setattr(image_obj, ImageData.FILE_SIZE, f'{file_size:0.2f} KB')
             if base_dir not in getattr(image_obj, ImageData.LOCATIONS):
                 if self.metadata:
                     if base_dir.lower().endswith(tuple([x.lower() for x in self.metadata])):
