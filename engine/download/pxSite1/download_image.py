@@ -143,7 +143,7 @@ class DownloadPX(DownloadImage):
         #   Record timestamp in UTC in ISO-8601 format
         current_time_utc = time.mktime(datetime.datetime.now().timetuple())
         iso_timestamp = datetime.datetime.utcfromtimestamp(current_time_utc).isoformat()
-        self.image_info.downloaded_on = f'{str(iso_timestamp).split(".")[0]} UTC'
+        self.image_info.downloaded_on = f'{str(iso_timestamp).split(".")[0]}Z'
 
         self.image_info.download_duration += dl_duration
         self.image_info.mod_status = db_status
