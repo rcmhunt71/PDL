@@ -11,8 +11,8 @@ class DownloadStatus(object):
 
     @staticmethod
     def get_statuses_() -> List[str]:
-        return [x for x in dir(DownloadStatus) if (
-            (not x.startswith('_') or not x.endswith('_')) and x.lower() != x)]
+        return [status for status in dir(DownloadStatus) if (
+            (not status.startswith('_') or not status.endswith('_')) and status.lower() != status)]
 
 
 class ImageDataModificationStatus(object):
