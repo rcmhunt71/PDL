@@ -74,15 +74,15 @@ class FSInv(BaseInventory):
         if serialize:
             log.info(f"Writing inventory to {pickle_fname}. Includes new local inventory")
             self.pickle(data=self._inventory, filename=pickle_fname)
-            file_size = int(os.stat(pickle_fname).st_size) / self.KILOBYTE
-            log.info(f"File written. {file_size:0.2f} KB.")
 
     @staticmethod
     def pickle(data: dict, filename: str) -> None:
         log.debug(f"Pickling inventory to {filename}")
         with open(filename, "wb") as PICKLE:
             pickle.dump(data, PICKLE)
-        log.info(f"Pickling inventory complete. {len(data.keys())} records written.")
+        file_size = int(os.stat(filename).st_size) / FSInv.KILOBYTE
+        log.info(f"Pickling inventory complete. {len(data.keys())} "
+                 f"records written. File Size:  {file_size:0.2f} KB.")
 
     def unpickle(self, filename: str) -> dict:
         data = dict()
