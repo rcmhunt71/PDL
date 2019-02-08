@@ -136,12 +136,13 @@ class DownloadPX(DownloadImage):
             self.status = Status.ERROR
 
         # Calculate time to DL
-        dl_duration = (datetime.datetime.now() - start_dl).total_seconds()
+        current_local_time = datetime.datetime.now()
+        dl_duration = (current_local_time - start_dl).total_seconds()
 
         # Update image metadata
         # =============================
         #   Record timestamp in UTC in ISO-8601 format
-        current_time_utc = time.mktime(datetime.datetime.now().timetuple())
+        current_time_utc = time.mktime(current_local_time.timetuple())
         iso_timestamp = datetime.datetime.utcfromtimestamp(current_time_utc).isoformat()
         self.image_info.downloaded_on = f'{str(iso_timestamp).split(".")[0]}Z'
 
