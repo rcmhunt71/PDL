@@ -349,11 +349,11 @@ def download_images(cfg_obj: PdlConfig) -> None:
     url_list = process_and_record_urls(cfg_obj=cfg_obj)
 
     # Import the specified libraries for processing the URLs, based on the config file
-    Catalog = import_module_class(
+    catalog_class = import_module_class(
         cfg_obj.app_cfg.get(AppCfgFileSections.PROJECT,
                             AppCfgFileSectionKeys.CATALOG_PARSE))
 
-    Contact = import_module_class(
+    contact_class = import_module_class(
         cfg_obj.app_cfg.get(AppCfgFileSections.PROJECT,
                             AppCfgFileSectionKeys.IMAGE_CONTACT_PARSE))
 
@@ -365,7 +365,7 @@ def download_images(cfg_obj: PdlConfig) -> None:
     for index, page_url in enumerate(url_list):
 
         # Parse the primary image page for the image URL and metadata.
-        catalog = Catalog(page_url=page_url)
+        catalog = catalog_class(page_url=page_url)
         log.info(f"({index + 1}/{len(url_list)}) Retrieving URL: {page_url}")
         catalog.get_image_info()
 
@@ -382,17 +382,18 @@ def download_images(cfg_obj: PdlConfig) -> None:
     log.debug(f"Have {len(downloaded_image_urls)} URLs in inventory.")
 
     # Download each image
-    for index, image in enumerate(cfg_obj.image_data):
-        log.info(f"{index + 1:>3}: {image.image_url}")
-        contact = Contact(image_url=image.image_url, dl_dir=cfg_obj.dl_dir, image_info=image)
-        if image.image_url not in downloaded_image_urls and image.image_name not in downloaded_images:
+    for index, image_data in enumerate(cfg_obj.image_data):
+        log.info(f"{index + 1:>3}: {image_data.image_url}")
+        contact = contact_class(image_url=image_data.image_url, dl_dir=cfg_obj.dl_dir, image_info=image_data)
+        image_filename = image_data.filename.split('.')[0]
+        if image_data.image_url not in downloaded_image_urls and image_filename not in downloaded_images:
             status = contact.download_image()
         else:
             image_metadata = None
-            if image.image_url in downloaded_image_urls:
-                image_metadata = image.image_url
-            elif image.image_name in downloaded_images:
-                image_metadata = image.image_name
+            if image_data.image_url in downloaded_image_urls:
+                image_metadata = image_data.image_url
+            elif image_filename in downloaded_images:
+                image_metadata = image_filename
             log.info(f"Found image url that exists in metadata: {image_metadata}")
             status = Status.EXISTS
             contact.status = status
@@ -409,9 +410,9 @@ def download_images(cfg_obj: PdlConfig) -> None:
 
     # Log image metadata (DEBUG)
     if cfg_obj.cli_args.debug:
-        for image in cfg_obj.image_data:
-            log.debug(image.image_name)
-            log.debug(pprint.pformat(image.to_dict()))
+        for image_data in cfg_obj.image_data:
+            log.debug(image_data.image_name)
+            log.debug(pprint.pformat(image_data.to_dict()))
 
     # If images were downloaded, create the corresponding JSON file
     if cfg_obj.image_data:
@@ -429,7 +430,7 @@ if __name__ == '__main__':
     app_config = PdlConfig()
     log = AppLogging.configure_logging(app_cfg_obj=app_config)
 
-    # INVENTORY
+    # Get inventory
     metadata = app_config.app_cfg.get_list(
         section=AppCfgFileSections.CLASSIFICATION,
         option=AppCfgFileSectionKeys.TYPES)
@@ -443,7 +444,6 @@ if __name__ == '__main__':
     if app_config.cli_args.command == args.ArgSubmodules.DOWNLOAD:
         log.debug("Selected args.ArgSubmodules.DOWNLOAD")
         download_images(cfg_obj=app_config)
-        # TODO: Get inventory, include as part of filtering for downloading images.
 
     # -----------------------------------------------------------------
     #                DUPLICATE MANAGEMENT
