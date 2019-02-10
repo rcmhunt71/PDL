@@ -95,8 +95,11 @@ class ImageData(object):
                 log.debug(self.DEBUG_MSG_ADD.format(
                     name=self.image_name, attr=attribute, val=getattr(other, attribute, None)))
 
-        # Verify that all locations are valid (file should exist)
-        self.locations = self._verify_locations(obj=self)
+            # Verify that all locations are valid (file should exist)
+            if attribute == ImageData.LOCATIONS:
+                self.locations.extend(other.locations)
+                self.locations = list(set(self.locations))
+                self.locations = self._verify_locations(obj=self)
 
         return self
 
@@ -154,8 +157,11 @@ class ImageData(object):
                 log.debug(self.DEBUG_MSG_ADD.format(
                     name=new_obj.image_name, attr=attribute, val=other_value))
 
-        # Verify the list of locations; store only the validation locations.
-        new_obj.locations = self._verify_locations(obj=new_obj)
+            # For locations, combine the lists and then verify
+            elif attribute == ImageData.LOCATIONS:
+                new_obj.locations.extend(other.locations)
+                new_obj.locations = list(set(new_obj.locations))
+                new_obj.locations = self._verify_locations(obj=new_obj)
 
         return new_obj
 
