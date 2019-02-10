@@ -34,6 +34,7 @@ class ImageData(object):
     ERROR_INFO = 'error_info'
     FILENAME = 'filename'
     FILE_SIZE = 'file_size'
+    ID = 'id'
     IMAGE_NAME = "image_name"
     LOCATIONS = 'locations'
     PAGE_URL = 'page_url'
@@ -45,29 +46,30 @@ class ImageData(object):
     # but many reports will reorder alphabetically.
     METADATA = [DL_STATUS, IMAGE_NAME, PAGE_URL, IMAGE_URL,
                 AUTHOR, DESCRIPTION, RESOLUTION, FILENAME,
-                FILE_SIZE, IMAGE_DATE]
+                FILE_SIZE, IMAGE_DATE, ID]
     DL_METADATA = [CLASSIFICATION, DOWNLOADED_ON, ERROR_INFO]
 
     DEFAULT_VALUES = [None, Status.NOT_SET, ModStatus.MOD_NOT_SET, list(), 0]
     DEBUG_MSG_ADD = "JSON: Image {name}: Added Attribute: '{attr}' Value: '{val}'"
 
     def __init__(self):
-        self.image_name = None
-        self.description = None
-        self.page_url = None
-        self.image_url = None
         self.author = None
-        self.filename = None
-        self.image_date = None
-        self.resolution = None
-        self.downloaded_on = None
         self.classification_metadata = list()
-        self.download_duration = 0
-        self.locations = list()
+        self.description = None
         self.dl_status = Status.NOT_SET
-        self.mod_status = ModStatus.MOD_NOT_SET
+        self.download_duration = 0
+        self.downloaded_on = None
         self.error_info = None
+        self.filename = None
         self.file_size = None
+        self.id = None
+        self.image_date = None
+        self.image_name = None
+        self.image_url = None
+        self.locations = list()
+        self.mod_status = ModStatus.MOD_NOT_SET
+        self.page_url = None
+        self.resolution = None
 
     def __str__(self) -> str:
         return f"\n{self.table()}"
