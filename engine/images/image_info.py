@@ -95,7 +95,13 @@ class ImageData(object):
         return self
 
     def combine(self, other: "ImageData") -> "ImageData":
+        """
+        Combine two objects into a single, new object
+        :param other: Populated, instantiated ImageObj
 
+        :return: New ImageData object
+
+        """
         # Create a new object that will be a combination of both self/other.
         new_obj = self.build_obj(self.to_dict())
 
