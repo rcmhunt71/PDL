@@ -52,6 +52,8 @@ class ImageData(object):
     DEFAULT_VALUES = [None, Status.NOT_SET, ModStatus.MOD_NOT_SET, list(), 0]
     DEBUG_MSG_ADD = "JSON: Image {name}: Added Attribute: '{attr}' Value: '{val}'"
 
+    # TODO: Add support for ImaageData.id in logic throughout app
+
     def __init__(self):
         self.author = None
         self.classification_metadata = list()
