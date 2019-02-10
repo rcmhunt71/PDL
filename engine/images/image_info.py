@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 from PDL.engine.images.status import (
@@ -94,7 +95,42 @@ class ImageData(object):
                 log.debug(self.DEBUG_MSG_ADD.format(
                     name=self.image_name, attr=attribute, val=getattr(other, attribute, None)))
 
+        # Verify that all locations are valid (file should exist)
+        self.locations = self._verify_locations(obj=self)
+
         return self
+
+    @staticmethod
+    def _verify_locations(obj: "ImageData") -> List[str]:
+        """
+        Given a list of locations for the image, verify the image exists in those locations.
+        Save the locations to a new list where the image exists,
+        otherwise disregard the missing locations.
+
+        :param obj: ImageData obj with locations list
+
+        :return: List of validation locations for the image
+
+        """
+        locations = list()
+
+        # For each location stored in ImageData.locations
+        for loc in obj.locations:
+
+            # Determine the full path
+            full_path = os.path.abspath(os.path.sep.join([loc, obj.filename]))
+
+            action = 'NOT FOUND'
+
+            # Check if the image exists...
+            if os.path.exists(full_path):
+                locations.append(loc)
+                action = 'found'
+
+            # Log the result accordingly
+            log.debug(f'{obj.filename} {action} in location: {loc}')
+
+        return locations
 
     def combine(self, other: "ImageData") -> "ImageData":
         """
@@ -118,7 +154,8 @@ class ImageData(object):
                 log.debug(self.DEBUG_MSG_ADD.format(
                     name=new_obj.image_name, attr=attribute, val=other_value))
 
-        # TODO: Locations should be re-evaluated during scan, and not inherited from ancestors
+        # Verify the list of locations; store only the validation locations.
+        new_obj.locations = self._verify_locations(obj=new_obj)
 
         return new_obj
 
