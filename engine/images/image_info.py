@@ -54,6 +54,7 @@ class ImageData(object):
     DEBUG_MSG_ADD = "JSON: Image {name}: Added Attribute: '{attr}' Value: '{val}'"
 
     # TODO: Add support for ImaageData.id in logic throughout app
+    # TODO: Add option to sync locations on all records.
 
     def __init__(self):
         self.author = None
