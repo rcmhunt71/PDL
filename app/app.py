@@ -19,6 +19,14 @@ import pyperclip
 
 log = Logger()
 
+"""
+
+The purpose of this module is to define application specific logic, such as processing 
+input (specific application requirements), URL sanitization, removing duplicates, and 
+making sure the inventory is up to date.
+
+"""
+
 
 class NoURLsProvided(Exception):
     pass
@@ -29,6 +37,7 @@ def is_url(target_string: str) -> bool:
     Verify target_string is a URL
     :param target_string: String to test
     :return: (Boolean) Is a URL? T/F
+
     """
     return target_string.lstrip().lower().startswith('http')
 
@@ -75,6 +84,16 @@ def read_from_buffer(read_delay: float = 0.25) -> list:
 
 
 def process_and_record_urls(cfg_obj: PdlConfig) -> list:
+    """
+    Take the generated list of URLs, and verify all URLs are correct, no duplicates
+    (in the list, or downloaded previously).  The resulting list should be written to
+    file for archival purposes.
+
+    :param cfg_obj: (PdlConfig): Contains the inventory structure.
+
+    :return: List of valid URLs
+
+    """
     url_file = UrlFile()
 
     # Check for URLs on the CLI
@@ -84,17 +103,20 @@ def process_and_record_urls(cfg_obj: PdlConfig) -> list:
     if not raw_url_list:
         log.debug("URL list from CLI is empty.")
 
-        # Check for URL file
+        # Check for URL file specified on the CLI
         url_file_name = getattr(
             cfg_obj.cli_args, args.ArgOptions.FILE, None)
 
+        # URL file found, so read and store file contents
         if url_file_name is not None:
             url_file_name = os.path.abspath(url_file_name)
             raw_url_list = url_file.read_file(url_file_name)
 
+        # Otherwise was the --buffer option specified the CLI
         elif getattr(cfg_obj.cli_args, args.ArgOptions.BUFFER, False):
             raw_url_list = read_from_buffer()
 
+        # Otherwise, no sure how to proceed... so raise an exception
         else:
             log.info(cfg_obj.cli_args)
             log.debug("No URL file was specified on the CLI, nor reading from buffer.")
@@ -120,65 +142,106 @@ def process_and_record_urls(cfg_obj: PdlConfig) -> list:
         url_file_dir = f"{url_file_drive}:{url_file_dir}"
         log.debug(f"Updated URL File directory for drive letter: {url_file_dir}")
 
+    # If there were URLs available to DL after validation, create the URL file.
     if len(cfg_obj.urls) > 0:
         url_file.write_file(urls=cfg_obj.urls, create_dir=True, location=url_file_dir)
     else:
         log.info("No URLs for DL, no URL FILE created.")
+
     return cfg_obj.urls
 
 
 def remove_duplicate_urls_from_inv(cfg_obj: PdlConfig) -> list:
+    """
+    Remove any provided URLs that were already in the inventory.
+
+    :param cfg_obj: (PdlCfg) - Contains the inventory data structure.
+
+    :return: List of URLs not in the existing inventory
+
+    """
+    # Get list of page URLs in inventory.
     page_urls_in_inv = [getattr(image_obj, ImageData.PAGE_URL) for
                         image_obj in cfg_obj.inventory.inventory.values()]
+
+    # Create a copy a list of the provided URLS
+    # Used for statistics generation, source list will be modified.
     orig_urls = set(cfg_obj.urls.copy())
 
+    # Create a list of URLs that are not found in the inventory list
     cfg_obj.urls = [url for url in cfg_obj.urls if url not in page_urls_in_inv]
+
+    # Convert to a set so the difference can be generated (and remove any duplicates).
     new_urls = set(cfg_obj.urls.copy())
     duplicates = orig_urls - new_urls
 
+    # List the number of duplicates and the number of URLs to be DL'd
     log.info("Removing URLs from existing inventory: Found {dups} duplicates.".format(
         dups=len(orig_urls)-len(new_urls)))
     log.info(f"URLs for downloading: {len(new_urls)}")
 
+    # List the specific duplicate URLs
     for dup in duplicates:
         log.info(f"Duplicate: {dup}")
 
+    # Return the list of unique URLs that can be DL'd.
     return cfg_obj.urls
 
 
 def download_images(cfg_obj: PdlConfig) -> None:
+    """
+    Download the Display pages for the URLS provided.
+
+    :param cfg_obj: (PdlConfig) - Contains the list of URLs to DL
+
+    :return: None
+
+    """
     # Process the urls and return the final list to download
     url_list = process_and_record_urls(cfg_obj=cfg_obj)
 
-    # Import the specified libraries for processing the URLs, based on the config file
+    # Import the specified libraries for processing the URLs,
+    # based on the user-specified config file
+    # -----------------------------------------------
+    # CATALOG - DL/parse the display page
     catalog_class = import_module_class(
         cfg_obj.app_cfg.get(AppCfgFileSections.PROJECT,
                             AppCfgFileSectionKeys.CATALOG_PARSE))
 
+    # CONTACT - DL/Parse the actual Image URL
     contact_class = import_module_class(
         cfg_obj.app_cfg.get(AppCfgFileSections.PROJECT,
                             AppCfgFileSectionKeys.IMAGE_CONTACT_PARSE))
 
+    # Log the list of URLs to DL
     log.info(f"URL LIST:\n{ArgProcessing.list_urls(url_list=url_list)}")
 
     # Get the correct image URL from each catalog Page
     cfg_obj.image_data = list()
     image_errors = list()
+
+    # For each URL specified
     for index, page_url in enumerate(url_list):
 
-        # Parse the primary image page for the image URL and metadata.
+        # Create a catalog object, and parse the primary image page for
+        # the image URL and metadata.
         catalog = catalog_class(page_url=page_url)
         log.info(f"({index + 1}/{len(url_list)}) Retrieving URL: {page_url}")
         catalog.get_image_info()
 
-        # If parsing was successful, store the image URL
+        # If parsing was successful, store the ImageData object created
+        # during the parsing
         if (catalog.image_info.image_url is not None and
                 catalog.image_info.image_url.lower().startswith(
                     ArgProcessing.PROTOCOL.lower())):
             cfg_obj.image_data.append(catalog.image_info)
+
+        # ERROR encountered. Store the error for reporting after
+        # all URLs have been processed.
         else:
             image_errors.append(catalog.image_info)
 
+    # Get a list of the URLs and the ImageData Objects
     downloaded_image_urls = cfg_obj.inventory.get_list_of_image_urls()
     downloaded_images = cfg_obj.inventory.get_list_of_images()
     log.debug(f"Have {len(downloaded_image_urls)} URLs in inventory.")
@@ -186,20 +249,36 @@ def download_images(cfg_obj: PdlConfig) -> None:
     # Download each image
     for index, image_data in enumerate(cfg_obj.image_data):
         log.info(f"{index + 1:>3}: {image_data.image_url}")
+
+        # Create a ContactPage object for storing metadata, location, and statuses.
         contact = contact_class(image_url=image_data.image_url, dl_dir=cfg_obj.dl_dir, image_info=image_data)
         image_filename = image_data.filename.split('.')[0]
+
+        # If both the URL and image name is unique, DL the image.
+        # If the image was DL'd by a different/aliased link, the name will be the same,
+        # so it will not DL the image again.
         if image_data.image_url not in downloaded_image_urls and image_filename not in downloaded_images:
             status = contact.download_image()
+
         else:
+            # Gather information about the image was DL'd
             image_metadata = None
+
+            # If the download URL is in the inventory...
             if image_data.image_url in downloaded_image_urls:
                 image_metadata = image_data.image_url
+
+            # If the download image is in the inventory...
             elif image_filename in downloaded_images:
                 image_metadata = image_filename
+
+            # Report where the image existence was discovered.
+            # Set and record the status.
             log.info(f"Found image url that exists in metadata: {image_metadata}")
             status = Status.EXISTS
             contact.status = status
             contact.image_info.dl_status = status
+
         log.info(f'DL STATUS: {status}')
 
     # Add error_info to be included in results
