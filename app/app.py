@@ -252,12 +252,11 @@ def download_images(cfg_obj: PdlConfig) -> None:
 
         # Create a ContactPage object for storing metadata, location, and statuses.
         contact = contact_class(image_url=image_data.image_url, dl_dir=cfg_obj.dl_dir, image_info=image_data)
-        image_filename = image_data.filename.split('.')[0]
 
         # If both the URL and image name is unique, DL the image.
         # If the image was DL'd by a different/aliased link, the name will be the same,
         # so it will not DL the image again.
-        if image_data.image_url not in downloaded_image_urls and image_filename not in downloaded_images:
+        if image_data.image_url not in downloaded_image_urls and image_data.id not in downloaded_images:
             status = contact.download_image()
 
         else:
@@ -269,8 +268,8 @@ def download_images(cfg_obj: PdlConfig) -> None:
                 image_metadata = image_data.image_url
 
             # If the download image is in the inventory...
-            elif image_filename in downloaded_images:
-                image_metadata = image_filename
+            elif image_data.id in downloaded_images:
+                image_metadata = image_data.id
 
             # Report where the image existence was discovered.
             # Set and record the status.
