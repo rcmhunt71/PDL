@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Optional
 
 from PDL.engine.images.status import (
     DownloadStatus as Status,
@@ -48,12 +48,11 @@ class ImageData(object):
     METADATA = [DL_STATUS, IMAGE_NAME, PAGE_URL, IMAGE_URL,
                 AUTHOR, DESCRIPTION, RESOLUTION, FILENAME,
                 FILE_SIZE, IMAGE_DATE, ID]
-    DL_METADATA = [CLASSIFICATION, DOWNLOADED_ON, ERROR_INFO]
+    DL_METADATA = [CLASSIFICATION, DOWNLOADED_ON, ERROR_INFO, LOCATIONS]
 
     DEFAULT_VALUES = [None, Status.NOT_SET, ModStatus.MOD_NOT_SET, list(), 0]
     DEBUG_MSG_ADD = "JSON: Image {name}: Added Attribute: '{attr}' Value: '{val}'"
 
-    # TODO: Add support for ImaageData.id in logic throughout app
     # TODO: Add option to sync locations on all records.
 
     def __init__(self):
@@ -82,27 +81,7 @@ class ImageData(object):
         return self.__str__()
 
     def __add__(self, other: "ImageData") -> "ImageData":
-        # Iterate through all identified metadata attributes.
-        for attribute in ImageData.METADATA + ImageData.DL_METADATA:
-
-            # If the base object ('this') has a default value, and the compared object
-            # ('other') has a set value, copy the set value into the base object.
-            if (getattr(self, attribute) in self.DEFAULT_VALUES and
-                    getattr(self, attribute, None) != getattr(other, attribute, None)):
-
-                setattr(self, attribute, getattr(other, attribute, None))
-
-                # Log the update (debug only)
-                log.debug(self.DEBUG_MSG_ADD.format(
-                    name=self.image_name, attr=attribute, val=getattr(other, attribute, None)))
-
-            # Verify that all locations are valid (file should exist)
-            if attribute == ImageData.LOCATIONS:
-                self.locations.extend(other.locations)
-                self.locations = list(set(self.locations))
-                self.locations = self._verify_locations(obj=self)
-
-        return self
+        return self.combine(other, use_self=True)
 
     @staticmethod
     def _verify_locations(obj: "ImageData") -> List[str]:
@@ -125,46 +104,51 @@ class ImageData(object):
             full_path = os.path.abspath(os.path.sep.join([loc, obj.filename]))
 
             action = 'NOT FOUND'
+            sub_action = ''
 
             # Check if the image exists...
             if os.path.exists(full_path):
                 locations.append(loc)
                 action = 'found'
+                sub_action = "--> Adding to location list."
 
             # Log the result accordingly
-            log.debug(f'{obj.filename} {action} in location: {loc}')
+            log.debug(f'{obj.id} was {action} in location: {loc} {sub_action}')
 
         return locations
 
-    def combine(self, other: "ImageData") -> "ImageData":
+    def combine(self, other: "ImageData", use_self: bool = False) -> "ImageData":
         """
         Combine two objects into a single, new object
-        :param other: Populated, instantiated ImageObj
+        :param other: Populated, instantiated ImageObj to combine to self
+        :param use_self: If True, use 'self' object, otherwise create and return a new object.
 
         :return: New ImageData object
 
         """
         # Create a new object that will be a combination of both self/other.
-        new_obj = self.build_obj(self.to_dict())
+        combined_obj = self
+        if not use_self:
+            combined_obj = self.build_obj(self.to_dict())
 
         # Iterate through the metadata
         for attribute in ImageData.METADATA + ImageData.DL_METADATA:
-            this_value = getattr(new_obj, attribute, None)
+            this_value = getattr(combined_obj, attribute, None)
             other_value = getattr(other, attribute, None)
 
             # If 'this' has a default value, and the 'other' does not, copy 'other' into 'this'
             if this_value in self.DEFAULT_VALUES and other_value != this_value:
-                setattr(new_obj, attribute, other_value)
+                setattr(combined_obj, attribute, other_value)
                 log.debug(self.DEBUG_MSG_ADD.format(
-                    name=new_obj.image_name, attr=attribute, val=other_value))
+                    name=combined_obj.image_name, attr=attribute, val=other_value))
 
             # For locations, combine the lists and then verify
             elif attribute == ImageData.LOCATIONS:
-                new_obj.locations.extend(other.locations)
-                new_obj.locations = list(set(new_obj.locations))
-                new_obj.locations = self._verify_locations(obj=new_obj)
+                combined_obj.locations.extend(other.locations)
+                combined_obj.locations = list(set(combined_obj.locations))
+                combined_obj.locations = self._verify_locations(obj=combined_obj)
 
-        return new_obj
+        return combined_obj
 
     def table(self) -> str:
         """
