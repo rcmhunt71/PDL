@@ -236,4 +236,8 @@ class ImageData(object):
             else:
                 log.error(attr_err_msg.format(attr=key, val=value))
 
+        # If obj being built is legacy and does not have an ID defined, set the ID.
+        if hasattr(obj, cls.FILENAME) and not hasattr(obj, cls.ID):
+            setattr(obj, cls.ID, cls.FILENAME.split(".")[0])
+
         return obj
