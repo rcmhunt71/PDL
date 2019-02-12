@@ -111,6 +111,7 @@ class ParseDisplayPage(CatalogPage):
         self.image_info.image_date = self._get_image_date()
         self.image_info.resolution = self._get_resolution()
         self.image_info.filename = self._get_filename()
+        self.image_info.id = self._get_id()
 
     def _get_author_name(self) -> str:
         """
@@ -157,10 +158,19 @@ class ParseDisplayPage(CatalogPage):
         :return: (str) filename of the image.
 
         """
-        filename = (self._get_image_url() if self.image_info.image_url is None
-                    else self.image_info.image_url)
+        return f'{self._get_id()}.{self.EXTENSION}'
 
-        return f'{filename.split("=")[-1]}.{self.EXTENSION}'
+    def _get_id(self) -> str:
+        """
+        Get the file id from the image name URL from scraped metadata.
+
+        :return: (str) id of the image.
+
+        """
+        url_id = (self._get_image_url() if self.image_info.image_url is None
+                  else self.image_info.image_url)
+
+        return url_id.split("=")[-1]
 
     def _get_resolution(self) -> str:
         """

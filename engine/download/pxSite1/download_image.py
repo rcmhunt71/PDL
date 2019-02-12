@@ -47,6 +47,7 @@ class DownloadPX(DownloadImage):
         """
         super(DownloadPX, self).__init__(image_url=image_url, dl_dir=dl_dir)
         self.url_split_token = url_split_token or self.URL_KEY
+        self.id = None
         self.image_name = None
         self.dl_file_spec = None
         self.image_info = image_info or ImageData()
@@ -78,6 +79,7 @@ class DownloadPX(DownloadImage):
 
         """
         self.image_name = self.get_image_name()
+        self.id = self.image_name.split('.')[0]
         self.dl_file_spec = self._get_file_location(
             image_name=self.image_name, dl_dir=self.dl_dir)
         self.status = Status.PENDING
@@ -150,6 +152,7 @@ class DownloadPX(DownloadImage):
         self.image_info.mod_status = db_status
         self.image_info.locations.append(self.dl_dir)
         self.image_info.file_size = f"{file_size:0.2f} KB"
+        self.image_info.id = self.id
 
         # Log status
         log.info(f"Downloaded in {dl_duration:0.3f} seconds.")
