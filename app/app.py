@@ -262,18 +262,21 @@ def download_images(cfg_obj: PdlConfig) -> None:
         else:
             # Gather information about the image was DL'd
             image_metadata = None
+            match_type = None
 
             # If the download URL is in the inventory...
             if image_data.image_url in downloaded_image_urls:
                 image_metadata = image_data.image_url
+                match_type = "image URL"
 
             # If the download image is in the inventory...
             elif image_data.id in downloaded_images:
                 image_metadata = image_data.id
+                match_type = "image name"
 
             # Report where the image existence was discovered.
             # Set and record the status.
-            log.info(f"Found image url that exists in metadata: {image_metadata}")
+            log.info(f"Found {match_type} that exists in metadata: {image_metadata}")
             status = Status.EXISTS
             contact.status = status
             contact.image_info.dl_status = status
