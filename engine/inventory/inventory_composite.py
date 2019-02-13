@@ -57,7 +57,7 @@ class Inventory(object):
         self.inventory = self._accumulate_inv()
 
         # Write the updated inventory to file.
-        self._pickle_()
+        self.write()
 
     def _accumulate_inv(self) -> Dict[str, ImageData]:
         """
@@ -94,11 +94,19 @@ class Inventory(object):
         # Read the inventory from the pickled inventory file.
         else:
             log.info(f"Reading from {self.fs_inventory_obj.pickle_fname}")
-            total_env = self._unpickle()
+            total_env = self._unpickle_()
             log.info(f"Total of {len(total_env.keys())} read from file.")
 
         log.info("Accumulation complete.")
         return total_env
+
+    def write(self):
+        """
+        Write current inventory to file. (Common public interface, hiding _pickle_)
+        :return: None
+
+        """
+        self._pickle_()
 
     def _pickle_(self, data: Optional[Dict[str, ImageData]] = None) -> None:
         """
@@ -114,7 +122,7 @@ class Inventory(object):
 
         self.fs_inventory_obj.pickle(data=data, filename=self.fs_inventory_obj.pickle_fname)
 
-    def _unpickle(self) -> Dict[str, ImageData]:
+    def _unpickle_(self) -> Dict[str, ImageData]:
         """
         Read the inventory from a pickled/binary file.
 

@@ -279,9 +279,11 @@ def download_images(cfg_obj: PdlConfig) -> None:
             log.info(f"Found {match_type} that exists in metadata: {image_metadata}")
             status = Status.EXISTS
             contact.status = status
-            contact.image_info.dl_status = status
 
         log.info(f'DL STATUS: {status}')
+
+    cfg_obj.inventory.update_inventory(cfg_obj.image_data)
+    cfg_obj.inventory.write()
 
     # Add error_info to be included in results
     cfg_obj.image_data += image_errors
