@@ -40,12 +40,14 @@ class ReportingSummary(object):
     # ------------------- GENERAL METHODS -------------------
 
     @staticmethod
-    def _log_table(table: str, log_level: str = DEFAULT_LOG_LEVEL) -> None:
+    def log_table(table: str, log_level: str = DEFAULT_LOG_LEVEL) -> None:
         """
         Break table into separate log lines.
 
         :param table: Multi-line text table (delimiter = \n)
-        :return:
+        :param log_level: Log level to log table as... (str: info, debug, error, etc.)
+
+        :return: None
         """
 
         # Try to get requested logger level call
@@ -58,8 +60,13 @@ class ReportingSummary(object):
             log_call = getattr(log, ReportingSummary.DEFAULT_LOG_LEVEL, None)
 
         # Record the log in the tables
+        # Temporarily adjust log depth by 1 , so routine that created table is
+        # logged, not this routine (which only prints the table)
+        log_depth = log.depth
+        log.depth += 1
         for line in table.split('\n'):
             log_call(line)
+        log.depth = log_depth
 
     # ------------------- BASIC RESULT TABLE STRUCTURE -------------------
 
@@ -163,7 +170,7 @@ class ReportingSummary(object):
         :return: None
 
         """
-        self._log_table(table=self.status_table(recalculate=recalculate))
+        self.log_table(table=self.status_table(recalculate=recalculate))
 
     # ------------------- URL RESULTS -------------------
 
@@ -251,7 +258,7 @@ class ReportingSummary(object):
         :return: None
 
         """
-        self._log_table(
+        self.log_table(
             table=self.detailed_download_results_table(specific_status=specific_status))
 
     def error_table(self) -> str:

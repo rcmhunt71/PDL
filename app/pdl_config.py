@@ -8,6 +8,7 @@ from PDL.configuration.properties.app_cfg import (
 from PDL.logger.json_log import JsonLog
 from PDL.logger.logger import Logger as Logger
 import PDL.logger.utils as utils
+from PDL.reporting.summary import ReportingSummary
 
 
 import prettytable
@@ -194,7 +195,8 @@ class PdlConfig(object):
         for name, data in setup.items():
             table.add_row([name, data])
 
-        log.info(table.get_string(title="FILE INFORMATION"))
+        # Display results
+        ReportingSummary.log_table(table.get_string(title="FILE INFORMATION"))
 
 
 class AppLogging(object):
