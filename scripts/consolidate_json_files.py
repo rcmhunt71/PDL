@@ -216,14 +216,22 @@ def verify_records_match(original: dict, consolidated: dict) -> bool:
 
 if __name__ == '__main__':
 
+    length = 80
+    border = "=" * length
+
     # Parse CLI for specified config file
     cfg_name = parse_cli().cfg
-    log.info(f"Using cfg: {cfg_name}")
+    log.info(border)
+    log.info(f"     USING CFG: {cfg_name}")
+    log.info(border)
 
     # Determine the JSON log directory from the config file
     log_location = build_json_log_location(cfg=AppConfig(cfg_file=cfg_name))
 
     # Get a list of the JSON files in the 'log_location' directory
+    log.info(border)
+    log.info("    GET LISTING OF JSON FILES TO CONSOLIDATE.")
+    log.info(border)
     inv = JsonInventory(dir_location=log_location)
     json_files = inv.get_json_files()
 
@@ -240,6 +248,9 @@ if __name__ == '__main__':
     write_json_file(data=records, filename=consolidated_log)
 
     # Verify CONSOLIDATED JSON file matches the original data
+    log.info(border)
+    log.info("    VERIFY CONTENTS MATCH ORIGINAL FILES")
+    log.info(border)
     success = verify_records_match(
         original=read_files(files=data_files),
         consolidated=read_json_file(consolidated_log))
@@ -248,6 +259,9 @@ if __name__ == '__main__':
     if success:
 
         # Delete files
+        log.info(border)
+        log.info("    DELETING NON-CONSOLIDATED JSON FILES")
+        log.info(border)
         for data_file in data_files:
             os.remove(data_file)
             log.info(f"Deleted {data_file}")
@@ -262,4 +276,6 @@ if __name__ == '__main__':
             for data_file in data_files:
                 log.error(f"+ {data_file}")
         else:
-            log.info(f"Consolidation successful. {consolidated_log}")
+            log.info(border)
+            log.info(f"    CONSOLIDATION SUCCESSFUL. {consolidated_log}")
+            log.info(border)
