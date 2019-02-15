@@ -121,6 +121,9 @@ class UrlArgProcessing(object):
         url_temp_list = [url for url in url_temp.split(' ') if url != '']
 
         diff = len(url_temp_list) - num_urls_init
+
+        # If url = '' are found, they are removed, but skew the count.
+        diff = 0 if diff < 0 else diff
         log.info(f"Number of concatenations: {diff}")
 
         # Check the validity of all existing URLs and classify based on validity
