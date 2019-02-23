@@ -34,7 +34,8 @@ class DownloadPX(DownloadImage):
     MAX_ATTEMPTS = 5   # Number of attempts to download
 
     def __init__(self, image_url: str, dl_dir: str, url_split_token: str = None,
-                 image_info: ImageData = None, use_wget: bool = False) -> None:
+                 image_info: ImageData = None, use_wget: bool = False,
+                 test: bool = False) -> None:
         """
         Instantiate an instance of DownloadPX Class
 
@@ -43,6 +44,7 @@ class DownloadPX(DownloadImage):
         :param url_split_token: (str) Key to determining name of image in URL
         :param image_info: (ImageData) Object used to track image metadata
         :param use_wget: (bool) Use wget instead of requests. Default = False
+        :param test: (bool) If testing, don't parse image info
 
         """
         super(DownloadPX, self).__init__(image_url=image_url, dl_dir=dl_dir)
@@ -52,9 +54,9 @@ class DownloadPX(DownloadImage):
         self.dl_file_spec = None
         self.image_info = image_info or ImageData()
         self._status = Status.NOT_SET
-        self.status = -1
         self.use_wget = use_wget
-        self.parse_image_info()
+        if not test:
+            self.parse_image_info()
 
     @property
     def status(self) -> str:
@@ -207,7 +209,7 @@ class DownloadPX(DownloadImage):
             log.error(msg)
 
         # Append the extension
-        else:
+        elif image_name != '':
             image_name += f'.{self.EXTENSION}'
 
         log.debug(f"Image Name: {image_name}")

@@ -218,7 +218,7 @@ class TestCommandLine(object):
 
     def test_get_invalid_shortcut(self):
         option = CLIArgs.get_shortcut(option='8')
-        assert option is None
+        assert_equals(option, '')
 
     @staticmethod
     def _verify_boolean_response(attr: str, cli_args: List[str], bool_expectation: bool) -> NoReturn:

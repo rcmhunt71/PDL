@@ -62,9 +62,10 @@ class TestDownloadPX(object):
         assert_equals(image_dl.image_info.dl_status, test_status)
 
     def test_get_image_name_without_url_returns_none(self):
-        image_dl = dl.DownloadPX(image_url=None,
+        image_dl = dl.DownloadPX(image_url='',
                                  url_split_token=None,
-                                 dl_dir='/tmp')
+                                 dl_dir='/tmp',
+                                 test=True)
         name = image_dl.get_image_name()
         assert_equals(name, None)
         assert_equals(image_dl.status, status.DownloadStatus.ERROR)
@@ -79,11 +80,11 @@ class TestDownloadPX(object):
 
     def test_get_image_name_with_no_image(self):
         image_dl = dl.DownloadPX(image_url='https://abc.com/',
-                                 url_split_token=None,
-                                 dl_dir='/tmp')
+                                 url_split_token='/',
+                                 dl_dir='/tmp', test=True)
         name = image_dl.get_image_name()
-        assert_equals(image_dl.status, status.DownloadStatus.ERROR)
-        assert_equals(name, None)
+        assert_equals(image_dl.status, status.DownloadStatus.NOT_SET)
+        assert_equals(name, '')
 
 # -----------------------------------------------------------------------
 # ---------------------- DOWNLOAD VIA REQUESTS --------------------------
@@ -361,7 +362,12 @@ class TestDownloadPX(object):
            '_dl_via_requests',
            return_value=status.DownloadStatus.DOWNLOADED)
     def test_download_image_successful_dl(self, dl_pending_mock):
-        dl_image = dl.DownloadPX(image_url=self.DUMMY_URL, dl_dir='/tmp')
+
+        dl_dir = '/tmp'
+        if 'nt' in os.name.lower():
+            dl_dir = 'C:\\tmp'
+
+        dl_image = dl.DownloadPX(image_url=self.DUMMY_URL, dl_dir=dl_dir)
         dl_image.RETRY_DELAY = 0
         dl_status = dl_image.download_image()
 
@@ -371,8 +377,13 @@ class TestDownloadPX(object):
     @patch('PDL.engine.download.pxSite1.download_image.DownloadPX._dl_via_wget',
            return_value=status.DownloadStatus.DOWNLOADED)
     def test_download_image_successful_dl_wget(self, dl_pending_mock):
+
+        dl_dir = '/tmp'
+        if 'nt' in os.name.lower():
+            dl_dir = 'C:\\tmp'
+
         dl_image = dl.DownloadPX(
-            image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=True)
+            image_url=self.DUMMY_URL, dl_dir=dl_dir, use_wget=True)
         dl_image.RETRY_DELAY = 0
         dl_status = dl_image.download_image()
 
