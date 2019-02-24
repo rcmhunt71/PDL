@@ -1,3 +1,5 @@
+import os
+
 from PDL.engine.images.image_info import Status, ImageData
 
 from nose.tools import assert_equals
@@ -129,6 +131,36 @@ class TestImageInfo(object):
 
             # Verify each attribute value matches the expected value (obj.attribute = ATTRIBUTE)
             assert_equals(getattr(test_image, attr), val)
+
+    def test_verify_locations_dne(self):
+
+        # TODO: Add test for image that exists. (Need to add one to the repo for test purposes)
+
+        image_path = '/tmp'
+        if 'nt' in os.name.lower():
+            image_path = 'C:\\DNE'
+
+        obj_1 = ImageData()
+        obj_1.filename = self.FILENAME
+        obj_1.locations.append(image_path)
+        valid_locations = obj_1._verify_locations(obj_1)
+        assert_equals(valid_locations, [])
+
+    def test_image_data_table(self):
+        # Verify table is built without throwing errors. Not verifying table contents at this time.
+
+        # TODO: Create routine to validate contents of string (use here and stringify validation)
+
+        img_1, _ = self._build_test_objs()
+        table_1 = img_1.table()
+
+        assert(isinstance(table_1, str))
+
+    def test_image_data_stringify(self):
+        # Verify table is built without throwing errors. Not verifying table contents at this time.
+        img_1, _ = self._build_test_objs()
+        table_1 = str(img_1)
+        assert(isinstance(table_1, str))
 
     @staticmethod
     def _build_test_objs(description: str = "description_1",
