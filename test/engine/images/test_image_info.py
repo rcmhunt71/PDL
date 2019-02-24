@@ -130,7 +130,6 @@ class TestImageInfo(object):
             # Verify each attribute value matches the expected value (obj.attribute = ATTRIBUTE)
             assert_equals(getattr(test_image, attr), val)
 
-
     @staticmethod
     def _build_test_objs(description: str = "description_1",
                          status: str = Status.DOWNLOADED, name: str = 'obj_1', filename: str = FILENAME):
@@ -150,4 +149,3 @@ class TestImageInfo(object):
         obj_2.id = filename.split('.')[0]
 
         return obj_1, obj_2
-

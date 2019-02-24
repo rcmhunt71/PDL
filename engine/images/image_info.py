@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional
+from typing import List
 
 from PDL.engine.images.status import (
     DownloadStatus as Status,
