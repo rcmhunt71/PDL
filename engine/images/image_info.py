@@ -53,9 +53,7 @@ class ImageData(object):
     DEFAULT_VALUES = [None, Status.NOT_SET, ModStatus.MOD_NOT_SET, list(), 0]
     DEBUG_MSG_ADD = "JSON: Image {name}: Added Attribute: '{attr}' Value: '{val}'"
 
-    # TODO: Add option to sync locations on all records.
-
-    def __init__(self):
+    def __init__(self, image_id=None):
         self.author = None
         self.classification_metadata = list()
         self.description = None
@@ -65,7 +63,7 @@ class ImageData(object):
         self.error_info = None
         self.filename = None
         self.file_size = None
-        self.id = None
+        self.id = image_id
         self.image_date = None
         self.image_name = None
         self.image_url = None
@@ -221,7 +219,7 @@ class ImageData(object):
                 log.error(attr_err_msg.format(attr=key, val=value))
 
         # If obj being built is legacy and does not have an ID defined, set the ID.
-        if hasattr(obj, cls.FILENAME) and not hasattr(obj, cls.ID):
+        if hasattr(obj, cls.FILENAME) and getattr(obj, cls.ID) is None:
             setattr(obj, cls.ID, cls.FILENAME.split(".")[0])
 
         return obj
