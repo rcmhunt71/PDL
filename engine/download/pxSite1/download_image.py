@@ -3,7 +3,7 @@ import os
 import re
 import shutil
 import time
-from typing import Optional, TypeVar
+from typing import Optional
 
 import requests
 import wget
@@ -55,8 +55,9 @@ class DownloadPX(DownloadImage):
         self.image_info = image_info or ImageData()
         self._status = Status.NOT_SET
         self.use_wget = use_wget
-        if not test:
-            self.parse_image_info()
+        self.test = test
+        self.parse_image_info()
+
 
     @property
     def status(self) -> str:
@@ -76,14 +77,17 @@ class DownloadPX(DownloadImage):
     def parse_image_info(self) -> None:
         """
         Scrape and store relevant storage information required for the download.
+        If testing, may not have metadata, so just skip it. Tests will explicitly set the metadata as needed.
 
         :return: None
 
         """
-        self.image_name = self.get_image_name()
-        self.id = self.image_name.split('.')[0]
-        self.dl_file_spec = self._get_file_location(
-            image_name=self.image_name, dl_dir=self.dl_dir)
+        if not self.test:
+            self.image_name = self.get_image_name()
+            self.id = self.image_name.split('.')[0]
+            self.dl_file_spec = self._get_file_location(
+                image_name=self.image_name, dl_dir=self.dl_dir)
+
         self.status = Status.PENDING
 
     def download_image(self) -> str:
@@ -104,7 +108,9 @@ class DownloadPX(DownloadImage):
 
         # Set DL and image status
         db_status = ModStatus.MOD_NOT_SET
-        exists = self._file_exists()
+        exists = False
+        if not self.test:
+            exists = self._file_exists()
         file_size = 0
 
         # Start timer
@@ -130,7 +136,8 @@ class DownloadPX(DownloadImage):
             # Adjust image status metadata if DL'd
             if self.status == Status.DOWNLOADED:
                 db_status = ModStatus.NEW
-                file_size = int(os.stat(self.dl_file_spec).st_size)/self.KILOBYTES
+                if not self.test:
+                    file_size = int(os.stat(self.dl_file_spec).st_size)/self.KILOBYTES
 
         elif exists:
             # Depends if it exists in the DB, but for now, unchanged
@@ -195,11 +202,13 @@ class DownloadPX(DownloadImage):
         if match is not None and not use_wget:
             log.debug("Image name found via regex")
             image_name = image_url.split(delimiter_key)[1]
+
         else:
             log.debug("Image name found via wget")
             image_name = wget.filename_from_url(image_url)
             if image_name is not None:
-                image_name = image_name.strip(delimiter_key)
+                image_name = image_name.lstrip(delimiter_key)
+            log.debug(f'Image URL: {image_url}    Image_name: {image_name}   delimiter: {delimiter_key}')
 
         # Didn't find the url or something bad happened
         if image_name is None:
@@ -208,8 +217,8 @@ class DownloadPX(DownloadImage):
             self.image_info.error_info = msg
             log.error(msg)
 
-        # Append the extension
-        elif image_name != '':
+        # Append the extension if it is not present (and image name is not an empty string)
+        elif image_name != '' and not image_name.endswith(self.EXTENSION):
             image_name += f'.{self.EXTENSION}'
 
         log.debug(f"Image Name: {image_name}")
@@ -322,17 +331,18 @@ class DownloadPX(DownloadImage):
                 # be marked as a successful download, but aren't a success.
                 # Delete the file and try again.
                 else:
-                    file_size = os.path.getsize(filename)
+                    if not self.test:
+                        file_size = os.path.getsize(filename)
 
-                    if file_size < self.MIN_KB * self.KILOBYTES:
-                        self.status = Status.ERROR
-                        error_msg = f"Incorrect filesize: {file_size}"
-                        self.image_info.error_info = error_msg
-                        log.warn(error_msg)
-                        log.warn(retry_msg)
-                        os.remove(filename)
+                        if file_size < self.MIN_KB * self.KILOBYTES:
+                            self.status = Status.ERROR
+                            error_msg = f"Incorrect filesize: {file_size}"
+                            self.image_info.error_info = error_msg
+                            log.warn(error_msg)
+                            log.warn(retry_msg)
+                            os.remove(filename)
 
-                        time.sleep(self.RETRY_DELAY)
+                            time.sleep(self.RETRY_DELAY)
 
             # If out of the attempts loop and unable download: all attempts were
             # connection failures, mark the download as a failure.

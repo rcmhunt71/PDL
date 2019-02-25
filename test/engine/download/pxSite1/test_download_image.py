@@ -28,17 +28,23 @@ def remove_temp_file(filename):
 class TestDownloadPX(object):
 
     DELIM = dl.DownloadPX.URL_KEY
-    IMAGE_NAME = 'this_is_my_name'
+    EXIST_IMAGE_NAME = 'bison.jpg'
+    DNE_IMAGE_NAME = 'wooba.jpg'
     DUMMY_URL_FMT = "https://wooba.com/help/{delim}{image}"
-    DUMMY_URL = DUMMY_URL_FMT.format(delim=DELIM, image=IMAGE_NAME)
+    EXISTS_DUMMY_URL = DUMMY_URL_FMT.format(delim=DELIM, image=EXIST_IMAGE_NAME)
+    DNE_DUMMY_URL = DUMMY_URL_FMT.format(delim=DELIM, image=DNE_IMAGE_NAME)
+
+    DL_DIR = os.path.sep.join([os.getcwd(), 'test', 'data'])
+    if 'nt' in os.name.lower():
+        DL_DIR = 'C:\\tmp'
 
     def test_set_status_updates_all_statuses(self):
 
         test_status = status.DownloadStatus.DOWNLOADED
 
-        image_dl = dl.DownloadPX(image_url=self.DUMMY_URL,
+        image_dl = dl.DownloadPX(image_url=self.DNE_DUMMY_URL,
                                  url_split_token=None,
-                                 dl_dir='/tmp',
+                                 dl_dir=self.DL_DIR,
                                  image_info=None)
         image_dl.status = test_status
 
@@ -52,9 +58,9 @@ class TestDownloadPX(object):
         image_data = imageinfo.ImageData()
         image_data.dl_status = status.DownloadStatus.PENDING
 
-        image_dl = dl.DownloadPX(image_url=self.DUMMY_URL,
+        image_dl = dl.DownloadPX(image_url=self.DNE_DUMMY_URL,
                                  url_split_token=None,
-                                 dl_dir='/tmp',
+                                 dl_dir=self.DL_DIR,
                                  image_info=image_data)
         image_dl.status = test_status
 
@@ -64,24 +70,30 @@ class TestDownloadPX(object):
     def test_get_image_name_without_url_returns_none(self):
         image_dl = dl.DownloadPX(image_url='',
                                  url_split_token=None,
-                                 dl_dir='/tmp',
+                                 dl_dir=self.DL_DIR,
                                  test=True)
         name = image_dl.get_image_name()
         assert_equals(name, None)
         assert_equals(image_dl.status, status.DownloadStatus.ERROR)
 
     def test_get_image_name_with_wget(self):
-        image_dl = dl.DownloadPX(image_url=self.DUMMY_URL,
+
+        expected_image_name = self.EXIST_IMAGE_NAME
+        if not expected_image_name.endswith(dl.DownloadPX.EXTENSION):
+            expected_image_name += f'.{dl.DownloadPX.EXTENSION}'
+
+        image_dl = dl.DownloadPX(image_url=self.EXISTS_DUMMY_URL,
                                  url_split_token=None,
-                                 dl_dir='/tmp')
+                                 dl_dir=self.DL_DIR, test=True)
         name = image_dl.get_image_name(use_wget=True)
-        assert_equals(name, f'{self.IMAGE_NAME}.{dl.DownloadPX.EXTENSION}')
+
+        assert_equals(name, expected_image_name)
         assert_equals(image_dl.status, status.DownloadStatus.PENDING)
 
     def test_get_image_name_with_no_image(self):
         image_dl = dl.DownloadPX(image_url='https://abc.com/',
                                  url_split_token='/',
-                                 dl_dir='/tmp', test=True)
+                                 dl_dir=self.DL_DIR, test=True)
         name = image_dl.get_image_name()
         assert_equals(image_dl.status, status.DownloadStatus.NOT_SET)
         assert_equals(name, '')
@@ -127,7 +139,7 @@ class TestDownloadPX(object):
         temp_file = tempfile.NamedTemporaryFile(mode='r', delete=True)
         print(f"Created temp file: {temp_file.name}")
 
-        image_obj = dl.DownloadPX(image_url=self.DUMMY_URL, dl_dir='/tmp')
+        image_obj = dl.DownloadPX(image_url=self.DNE_DUMMY_URL, dl_dir=self.DL_DIR)
         image_obj.dl_file_spec = temp_file.name
         dl_status = image_obj._dl_via_requests()
 
@@ -155,7 +167,7 @@ class TestDownloadPX(object):
         temp_file = tempfile.NamedTemporaryFile(mode='r', delete=True)
         print(f"Created temp file: {temp_file.name}")
 
-        image_obj = dl.DownloadPX(image_url=self.DUMMY_URL, dl_dir='/tmp')
+        image_obj = dl.DownloadPX(image_url=self.DNE_DUMMY_URL, dl_dir=self.DL_DIR)
         image_obj.dl_file_spec = temp_file.name
 
         assert image_obj.status == status.DownloadStatus.PENDING
@@ -194,7 +206,7 @@ class TestDownloadPX(object):
         print(f"Temp file stats:\n\tSize:{os.path.getsize(image_file)} bytes")
 
         image_obj = dl.DownloadPX(
-            image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=True)
+            image_url=self.DNE_DUMMY_URL, dl_dir=self.DL_DIR, use_wget=True)
         image_obj.RETRY_DELAY = 0
         assert image_obj.status == status.DownloadStatus.PENDING
 
@@ -222,7 +234,7 @@ class TestDownloadPX(object):
         print(f"Temp file stats:\n\tSize:{os.path.getsize(image_file)} bytes")
 
         image_obj = dl.DownloadPX(
-            image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=True)
+            image_url=self.DNE_DUMMY_URL, dl_dir=self.DL_DIR, use_wget=True)
         image_obj.RETRY_DELAY = 0
         assert image_obj.status == status.DownloadStatus.PENDING
 
@@ -254,7 +266,7 @@ class TestDownloadPX(object):
         print(f"Temp file stats:\n\tSize:{os.path.getsize(image_file)} bytes")
 
         image_obj = dl.DownloadPX(
-            image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=True)
+            image_url=self.DNE_DUMMY_URL, dl_dir=self.DL_DIR, use_wget=True)
         image_obj.RETRY_DELAY = 0
         assert image_obj.status == status.DownloadStatus.PENDING
 
@@ -276,7 +288,7 @@ class TestDownloadPX(object):
     def test_dl_via_wget_but_wget_is_disabled(self, wget_mock):
 
         image_obj = dl.DownloadPX(
-            image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=False)
+            image_url=self.DNE_DUMMY_URL, dl_dir=self.DL_DIR, use_wget=False)
         image_obj.RETRY_DELAY = 0
         image_obj.MAX_ATTEMPTS = 0
         assert image_obj.status == status.DownloadStatus.PENDING
@@ -299,7 +311,7 @@ class TestDownloadPX(object):
 
     def test_filespec_is_none(self):
         image_obj = dl.DownloadPX(
-            image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=True)
+            image_url=self.DNE_DUMMY_URL, dl_dir=self.DL_DIR, use_wget=True)
         image_obj.dl_file_spec = None
 
         result = image_obj._file_exists()
@@ -309,7 +321,7 @@ class TestDownloadPX(object):
 
     def test_filespec_is_empty_string(self):
         image_obj = dl.DownloadPX(
-            image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=True)
+            image_url=self.DNE_DUMMY_URL, dl_dir=self.DL_DIR, use_wget=True)
         image_obj.dl_file_spec = ''
 
         result = image_obj._file_exists()
@@ -321,7 +333,7 @@ class TestDownloadPX(object):
             size=(dl.DownloadPX.MIN_KB + 1) * dl.DownloadPX.KILOBYTES)
 
         image_obj = dl.DownloadPX(
-            image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=True)
+            image_url=self.DNE_DUMMY_URL, dl_dir=self.DL_DIR, use_wget=True)
         image_obj.dl_file_spec = temp_file.name
 
         result = image_obj._file_exists()
@@ -334,7 +346,7 @@ class TestDownloadPX(object):
     def test_filespec_does_not_exist(self):
 
         image_obj = dl.DownloadPX(
-            image_url=self.DUMMY_URL, dl_dir='/tmp', use_wget=True)
+            image_url=self.DNE_DUMMY_URL, dl_dir=self.DL_DIR, use_wget=True)
         image_obj.dl_file_spec = '/tmp/does_not_exist.wooba'
         curr_status = image_obj.status
 
@@ -350,7 +362,7 @@ class TestDownloadPX(object):
            '_dl_via_requests',
            return_value=status.DownloadStatus.PENDING)
     def test_download_image_unable_to_dl(self, dl_pending_mock):
-        dl_image = dl.DownloadPX(image_url=self.DUMMY_URL, dl_dir='/tmp')
+        dl_image = dl.DownloadPX(image_url=self.DNE_DUMMY_URL, dl_dir=self.DL_DIR)
         dl_image.RETRY_DELAY = 0
         dl_status = dl_image.download_image()
 
@@ -358,16 +370,11 @@ class TestDownloadPX(object):
         assert dl_image.status == status.DownloadStatus.PENDING
         assert dl_pending_mock.call_count == dl.DownloadPX.MAX_ATTEMPTS
 
-    @patch('PDL.engine.download.pxSite1.download_image.DownloadPX.'
-           '_dl_via_requests',
+    @patch('PDL.engine.download.pxSite1.download_image.DownloadPX._dl_via_requests',
            return_value=status.DownloadStatus.DOWNLOADED)
     def test_download_image_successful_dl(self, dl_pending_mock):
 
-        dl_dir = '/tmp'
-        if 'nt' in os.name.lower():
-            dl_dir = 'C:\\tmp'
-
-        dl_image = dl.DownloadPX(image_url=self.DUMMY_URL, dl_dir=dl_dir)
+        dl_image = dl.DownloadPX(image_url=self.EXISTS_DUMMY_URL, dl_dir=self.DL_DIR)
         dl_image.RETRY_DELAY = 0
         dl_status = dl_image.download_image()
 
@@ -378,15 +385,11 @@ class TestDownloadPX(object):
            return_value=status.DownloadStatus.DOWNLOADED)
     def test_download_image_successful_dl_wget(self, dl_pending_mock):
 
-        dl_dir = '/tmp'
-        if 'nt' in os.name.lower():
-            dl_dir = 'C:\\tmp'
-
         dl_image = dl.DownloadPX(
-            image_url=self.DUMMY_URL, dl_dir=dl_dir, use_wget=True)
+            image_url=self.EXISTS_DUMMY_URL, dl_dir=self.DL_DIR, use_wget=True, test=True)
         dl_image.RETRY_DELAY = 0
+        dl_image.dl_file_spec = os.path.sep.join([self.DL_DIR, self.EXIST_IMAGE_NAME])
         dl_status = dl_image.download_image()
 
         assert dl_status == status.DownloadStatus.DOWNLOADED
         assert dl_pending_mock.call_count == 1
-
