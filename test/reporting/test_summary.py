@@ -7,7 +7,7 @@ from PDL.reporting.summary import ReportingSummary
 data = list()
 num_data = 100
 
-statuses = Status.get_statuses_()
+statuses = Status.get_statuses()
 
 for _ in range(num_data):
     dummy_image = ImageData()
