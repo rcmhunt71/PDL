@@ -35,8 +35,6 @@ class TestDownloadPX(object):
     DNE_DUMMY_URL = DUMMY_URL_FMT.format(delim=DELIM, image=DNE_IMAGE_NAME)
 
     DL_DIR = os.path.sep.join([os.getcwd(), 'test', 'data'])
-    if 'nt' in os.name.lower():
-        DL_DIR = 'C:\\tmp'
 
     def test_set_status_updates_all_statuses(self):
 
