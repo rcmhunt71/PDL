@@ -83,7 +83,7 @@ class ReportingSummary(object):
         debug_msg = "Creating status dict with '{type_}' value structure."
 
         # Get a list of all the possible statuses
-        statuses = DownloadStatus.get_statuses_()
+        statuses = DownloadStatus.get_statuses()
 
         # Value Type = INTEGER
         if value_type.lower() == self.INT_VALUE_TYPE:
