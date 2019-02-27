@@ -1,7 +1,14 @@
 from typing import List
 
 
-class DownloadStatus(object):
+class Constants(object):
+    @classmethod
+    def get_statuses(cls) -> List[str]:
+        return [status for status in sorted(dir(cls)) if
+                (not status.startswith('_') and not callable(getattr(cls, status)) and status.lower() != status)]
+
+
+class DownloadStatus(Constants):
     NOT_SET = 'Status_Not_Set'
     PENDING = 'Pending'
     DOWNLOADED = 'Downloaded'
@@ -9,13 +16,8 @@ class DownloadStatus(object):
     EXISTS = 'Exists'
     ERROR = 'Error'
 
-    @staticmethod
-    def get_statuses_() -> List[str]:
-        return [status for status in dir(DownloadStatus) if (
-            (not status.startswith('_') or not status.endswith('_')) and status.lower() != status)]
 
-
-class ImageDataModificationStatus(object):
+class ImageDataModificationStatus(Constants):
     NEW = "New"
     UPDATED = "Updated"
     DELETE = "Delete"
