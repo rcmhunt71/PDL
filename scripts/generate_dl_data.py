@@ -105,7 +105,7 @@ def build_data_element(index: int) -> ImageData:
             population=metadata, k=randint(0, len(metadata)))))),
         'download_duration': index,
         'locations': '/tmp/pdl/images',
-        'dl_status': choice(DownloadStatus.get_statuses_()),
+        'dl_status': choice(DownloadStatus.get_statuses()),
         'mod_status': ModStatus.NEW,
         'error_info': None,
     })
