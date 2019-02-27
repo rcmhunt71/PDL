@@ -6,8 +6,6 @@ from nose.tools import assert_equals
 
 EXTRA_DIR = 'extra_dir'
 DL_DIR = os.path.sep.join([os.getcwd(), 'test', 'data'])
-if 'nt' in os.name.lower():
-    DL_DIR = 'C:\\tmp'
 
 
 class TestImageInfo(object):
