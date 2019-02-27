@@ -46,10 +46,6 @@ class TestPropertiesConfig(object):
         assert self.config is not None
         assert sorted(self.config.sections()) == sorted(self.VALID_SECTIONS)
 
-    @raises(CfgFileDoesNotExist)
-    def test_if_missing_cfg_file_for_init_raises_error(self):
-        AppConfig(cfg_file=self.INVALID_CFG_FILE, test=False)
-
     def test_get_sections(self):
         expected_sections = ['setup', 'test', 'teardown']
         self._print_config_file()
@@ -127,3 +123,18 @@ class TestPropertiesConfig(object):
     def test_get_option_valid_section_invalid_option_valid_list(self):
         data = self.VALID_SECTION_AND_INVALID_OPTION_LIST
         self.config.get_list(section=data[0], option=data[1])
+
+
+class TestAppConfigInit(object):
+
+    @raises(CfgFileDoesNotExist)
+    def test_if_non_existent_cfg_file_for_init_raises_error(self):
+        AppConfig(cfg_file=TestPropertiesConfig.INVALID_CFG_FILE, test=False)
+
+    @raises(CfgFileDoesNotExist)
+    def test_appcfg_raises_exc_with_no_cfg_file_specified(self):
+        AppConfig(cfg_file='')
+
+    @raises(CfgFileDoesNotExist)
+    def test_appcfg_raises_exc_with_cfg_file_specified_as_none(self):
+        AppConfig(cfg_file=None)
