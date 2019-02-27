@@ -4,10 +4,16 @@ from PDL.engine.images.image_info import Status, ImageData
 
 from nose.tools import assert_equals
 
+EXTRA_DIR = 'extra_dir'
+DL_DIR = os.path.sep.join([os.getcwd(), 'test', 'data'])
+if 'nt' in os.name.lower():
+    DL_DIR = 'C:\\tmp'
+
 
 class TestImageInfo(object):
 
-    FILENAME = 'filename.jpg'
+    DNE_FILENAME = 'filename.jpg'
+    EXISTS_FILENAME = 'image.jpg'
 
     def test_add_obj_return_new(self):
         obj_1 = ImageData()
@@ -22,7 +28,7 @@ class TestImageInfo(object):
         assert_equals(obj_3.image_name, obj_1.image_name)
 
     def test_add_obj_return_new_using_combine(self):
-        obj_1 = ImageData(image_id=self.FILENAME.split('.')[0])
+        obj_1 = ImageData(image_id=self.DNE_FILENAME.split('.')[0])
         obj_2 = ImageData()
 
         obj_3 = obj_1.combine(other=obj_2, use_self=False)
@@ -113,7 +119,7 @@ class TestImageInfo(object):
         attr_dict = dict([(x, x.upper()) for x in image._list_attributes() if not isinstance(x, list)])
         print(attr_dict.keys())
         del attr_dict[ImageData.ID]
-        attr_dict[ImageData.FILENAME] = self.FILENAME
+        attr_dict[ImageData.FILENAME] = self.DNE_FILENAME
         for attr, val in attr_dict.items():
             setattr(image, attr, val)
 
@@ -124,7 +130,7 @@ class TestImageInfo(object):
 
             # Verify ID is defined as the filename without the extension
             if attr == ImageData.ID:
-                assert_equals(getattr(test_image, ImageData.ID), self.FILENAME.split(',')[0])
+                assert_equals(getattr(test_image, ImageData.ID), self.DNE_FILENAME.split(',')[0])
 
             # Verify each attribute value matches the image object attribute value
             assert_equals(getattr(image, attr), getattr(test_image, attr))
@@ -133,15 +139,10 @@ class TestImageInfo(object):
             assert_equals(getattr(test_image, attr), val)
 
     def test_verify_locations_dne(self):
-
-        # TODO: Add test for image that exists. (Need to add one to the repo for test purposes)
-
-        image_path = '/tmp'
-        if 'nt' in os.name.lower():
-            image_path = 'C:\\DNE'
+        image_path = DL_DIR
 
         obj_1 = ImageData()
-        obj_1.filename = self.FILENAME
+        obj_1.filename = self.DNE_FILENAME
         obj_1.locations.append(image_path)
         valid_locations = obj_1._verify_locations(obj_1)
         assert_equals(valid_locations, [])
@@ -162,9 +163,49 @@ class TestImageInfo(object):
         table_1 = str(img_1)
         assert(isinstance(table_1, str))
 
+    def test_original_obj_location_exists_other_location_not_set_original_not_overwritten(self):
+        img_1, img_2 = self._build_test_objs(filename=self.EXISTS_FILENAME)
+        img_1.locations.append(DL_DIR)
+        img_3 = img_1.combine(other=img_2)
+        assert_equals(len(img_3.locations), 1)
+        assert_equals(img_3.locations[0], DL_DIR)
+
+    def test_original_obj_location_not_set_other_obj_location_set_location_added(self):
+        img_1, img_2 = self._build_test_objs(filename=self.EXISTS_FILENAME)
+        img_2.locations.append(DL_DIR)
+        img_3 = img_1.combine(other=img_2)
+        assert_equals(len(img_3.locations), 1)
+        assert_equals(img_3.locations[0], DL_DIR)
+
+    def test_original_obj_location_exists_other_obj_location_matches_not_duplicated(self):
+        img_1, img_2 = self._build_test_objs(filename=self.EXISTS_FILENAME)
+        img_1.locations.append(DL_DIR)
+        img_2.locations.append(DL_DIR)
+        img_3 = img_1.combine(other=img_2)
+        assert_equals(len(img_3.locations), 1)
+        assert_equals(img_3.locations[0], DL_DIR)
+
+    def test_original_obj_location_set_but_dne_other_obj_location_valid(self):
+        img_1, img_2 = self._build_test_objs(filename=self.EXISTS_FILENAME)
+        img_1.locations.append(os.path.sep.join(['.', 'dir', 'does', 'not', 'exist']))
+        img_2.locations.append(DL_DIR)
+        img_3 = img_1.combine(other=img_2)
+        assert_equals(len(img_3.locations), 1)
+        assert_equals(img_3.locations[0], DL_DIR)
+
+    def test_original_obj_location_set_other_obj_location_set_and_valid_but_different(self):
+        img_1, img_2 = self._build_test_objs(filename=self.EXISTS_FILENAME)
+        other_file_loc = os.path.sep.join([DL_DIR, EXTRA_DIR])
+        img_1.locations.append(DL_DIR)
+        img_2.locations.append(other_file_loc)
+        img_3 = img_1.combine(other=img_2)
+        assert_equals(len(img_3.locations), 2)
+        assert DL_DIR in img_3.locations
+        assert other_file_loc in img_3.locations
+
     @staticmethod
     def _build_test_objs(description: str = "description_1",
-                         status: str = Status.DOWNLOADED, name: str = 'obj_1', filename: str = FILENAME):
+                         status: str = Status.DOWNLOADED, name: str = 'obj_1', filename: str = DNE_FILENAME):
 
         obj_1 = ImageData()
         obj_2 = ImageData()

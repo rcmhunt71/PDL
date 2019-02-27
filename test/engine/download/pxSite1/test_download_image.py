@@ -28,7 +28,7 @@ def remove_temp_file(filename):
 class TestDownloadPX(object):
 
     DELIM = dl.DownloadPX.URL_KEY
-    EXIST_IMAGE_NAME = 'bison.jpg'
+    EXIST_IMAGE_NAME = 'image.jpg'
     DNE_IMAGE_NAME = 'wooba.jpg'
     DUMMY_URL_FMT = "https://wooba.com/help/{delim}{image}"
     EXISTS_DUMMY_URL = DUMMY_URL_FMT.format(delim=DELIM, image=EXIST_IMAGE_NAME)

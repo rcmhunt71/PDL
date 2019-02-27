@@ -8,12 +8,13 @@ import PDL.engine.download.pxSite1.parse_page as page
 import PDL.engine.images.status as status
 
 import requests
-from nose.tools import assert_equals
+from nose.tools import assert_equals, raises
 
 sample_link = r'https://foo.com/clouds.jpeg'
 sample_name = r'John Doe'
 
-sample_html_page_format = '''<HTML>
+sample_html_page_format = '''\
+<HTML>
 <HEAD>
 <TITLE>Your Title Here</TITLE>
 </HEAD>
@@ -59,6 +60,11 @@ mocked_metadata_dict = {
               }}
 
 mocked_get_no_response = None
+
+mocked_get_error_response = requests.Response()
+mocked_get_error_response._content = None
+mocked_get_error_response.status_code = 500
+mocked_get_error_response.encoding = 'utf-8'
 
 
 class TestParsePage(object):
@@ -183,3 +189,32 @@ class TestParsePage(object):
         assert_equals(valid_page.image_info.image_url, sample_link)
         assert_equals(valid_page.image_info.page_url, self.DUMMY_URL_1)
         assert_equals(mock_get.call_count, 1)
+
+    @patch('PDL.engine.download.pxSite1.parse_page.ParseDisplayPage.get_page',
+           return_value=None)
+    def test_get_source_page_for_non_existent_page(self, mock_get_page):
+        target_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
+        target_page.get_image_info()
+        assert target_page.source_list is None
+
+    @patch('PDL.engine.download.pxSite1.parse_page.requests.get',
+           return_value=mocked_get_error_response)
+    def test_get_source_page_returns_non_200_code(self, mocked_request_error):
+        target_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
+        source = target_page.get_page()
+        assert source is None
+        assert_equals(mocked_request_error.call_count, 1)
+
+    def test_no_html_source_found_returns_empty_metadata_dict(self):
+        valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
+        metadata = valid_page._get_metadata()
+        assert isinstance(metadata, dict)
+        assert_equals(len(metadata.keys()), 0)
+
+    def test_incorrect_html_source_found_returns_empty_metadata_dict(self):
+            valid_page = page.ParseDisplayPage(page_url=self.DUMMY_URL_1)
+            valid_page.source_list = sample_html_page_format.split('\n')
+            metadata = valid_page._get_metadata()
+            assert isinstance(metadata, dict)
+            assert_equals(len(metadata.keys()), 0)
+

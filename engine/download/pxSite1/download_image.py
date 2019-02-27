@@ -201,13 +201,13 @@ class DownloadPX(DownloadImage):
         match = sig_comp.search(image_url)
         if match is not None and not use_wget:
             log.debug("Image name found via regex")
-            image_name = image_url.split(delimiter_key)[1]
+            image_name = image_url.split(delimiter_key, 1)[1]
 
         else:
             log.debug("Image name found via wget")
             image_name = wget.filename_from_url(image_url)
             if image_name is not None:
-                image_name = image_name.lstrip(delimiter_key)
+                image_name = image_name.split(delimiter_key, 1)[1]
             log.debug(f'Image URL: {image_url}    Image_name: {image_name}   delimiter: {delimiter_key}')
 
         # Didn't find the url or something bad happened
