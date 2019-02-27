@@ -317,7 +317,9 @@ class ParseDisplayPage(CatalogPage):
         data_pattern = r'window\.PxPreloadedData\s*=\s*(?P<data>.*?),\"comments\"'
 
         # Search page for match to regexp (<data> group)
-        match = re.search(data_pattern, ''.join(self.source_list))
+        match = None
+        if self.source_list is not None:
+            match = re.search(data_pattern, ''.join(self.source_list))
 
         # A match was found
         if match is not None:
