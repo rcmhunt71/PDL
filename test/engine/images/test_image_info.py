@@ -10,8 +10,9 @@ DL_DIR = os.path.sep.join([os.getcwd(), 'test', 'data'])
 
 class TestImageInfo(object):
 
-    DNE_FILENAME = 'filename.jpg'
-    EXISTS_FILENAME = 'image.jpg'
+    IMAGE_EXT = 'jpg'
+    DNE_FILENAME = f'filename.{IMAGE_EXT}'
+    EXISTS_FILENAME = f'image.{IMAGE_EXT}'
 
     def test_add_obj_return_new(self):
         obj_1 = ImageData()
@@ -71,6 +72,8 @@ class TestImageInfo(object):
         attr_dict = dict([(x, x.upper()) for x in image._list_attributes() if not isinstance(x, list)])
         for attr, val in attr_dict.items():
             setattr(image, attr, val)
+            if attr.lower() == 'filename':
+                image.filename += f".{self.IMAGE_EXT}"
 
         # Build ImageData object using class method
         test_image = ImageData.build_obj(dictionary=attr_dict)
@@ -78,6 +81,10 @@ class TestImageInfo(object):
         for attr, val in attr_dict.items():
             # Verify each attribute value matches the image object attribute value
             assert_equals(getattr(image, attr), getattr(test_image, attr))
+
+            # Code automatically appends image extension to filename if missing.
+            if attr.lower() == 'filename':
+                val += f".{self.IMAGE_EXT}"
 
             # Verify each attribute value matches the expected value (obj.attribute = ATTRIBUTE)
             assert_equals(getattr(test_image, attr), val)
@@ -90,8 +97,11 @@ class TestImageInfo(object):
         # Get list of attributes, and set base image values to obj.attribute = ATTRIBUTE
         attr_dict = dict([(x, x.upper()) for x in image._list_attributes() if not isinstance(x, list)])
         for attr, val in attr_dict.items():
-            setattr(image, attr, val)
+            # Code automatically appends image extension to filename if missing.
+            if attr.lower() == 'filename':
+                val += f".{self.IMAGE_EXT}"
 
+            setattr(image, attr, val)
         attr_dict[incorrect_attr] = incorrect_attr.upper()
 
         # Build ImageData object using class method
@@ -106,6 +116,10 @@ class TestImageInfo(object):
             else:
                 # Verify each attribute value matches the image object attribute value
                 assert_equals(getattr(image, attr), getattr(test_image, attr))
+
+                # Code automatically appends image extension to filename if missing.
+                if attr.lower() == 'filename':
+                    val += f".{self.IMAGE_EXT}"
 
                 # Verify each attribute value matches the expected value (obj.attribute = ATTRIBUTE)
                 assert_equals(getattr(test_image, attr), val)
@@ -218,5 +232,4 @@ class TestImageInfo(object):
         obj_2.author = 'author_2'
         obj_2.image_name = 'obj_2'
         obj_2.id = filename.split('.')[0]
-
         return obj_1, obj_2

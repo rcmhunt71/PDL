@@ -219,13 +219,13 @@ class ImageData(object):
         # If obj being built is legacy and does not have an ID defined, set the ID.
         # Also fix bug where wrong variable was used, so metadata id was set to
         # 'filename' instead of actual id.
-        if (hasattr(obj, cls.FILENAME) and
-                (getattr(obj, cls.ID) is None or getattr(obj, cls.ID) == cls.FILENAME)):
-            setattr(obj, cls.ID, getattr(obj, cls.FILENAME).split(".")[0])
+        if hasattr(obj, cls.FILENAME) and getattr(obj, cls.FILENAME) is not None:
+            if getattr(obj, cls.ID) is None or getattr(obj, cls.ID) == cls.FILENAME:
+                setattr(obj, cls.ID, getattr(obj, cls.FILENAME).split(".")[0])
 
-        # TODO: Find where filename is stripping the extension and remove this temp fix (hack)
-        extension = 'jpg'
-        if not getattr(obj, cls.FILENAME).endswith(extension):
-            setattr(obj, cls.FILENAME, f"{getattr(obj, cls.FILENAME)}.{extension}")
+            # TODO: Find where filename is stripping the extension and remove this temp fix (hack)
+            extension = 'jpg'
+            if not getattr(obj, cls.FILENAME).endswith(extension):
+                setattr(obj, cls.FILENAME, f"{getattr(obj, cls.FILENAME)}.{extension}")
 
         return obj
