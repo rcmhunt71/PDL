@@ -204,8 +204,6 @@ class ImageData(object):
         :return: Instantiated, populated ImageData object
 
         """
-        attr_err_msg = "Unrecognized ImageData attribute: '{attr}' , value: {val}"
-
         obj = ImageData()
 
         # Iterate through the provided data, and if the attribute exists in the class definition,
@@ -216,7 +214,7 @@ class ImageData(object):
 
             # Found a key that is not in the class attribution definition
             else:
-                log.error(attr_err_msg.format(attr=key, val=value))
+                log.error(f"Unrecognized ImageData attribute: '{key}' , value: {value}")
 
         # If obj being built is legacy and does not have an ID defined, set the ID.
         # Also fix bug where wrong variable was used, so metadata id was set to
