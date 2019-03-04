@@ -7,11 +7,13 @@ from typing import List
 import unicodedata
 
 import requests
+from six.moves.urllib.parse import quote
+
 from PDL.engine.images.image_info import ImageData
 from PDL.engine.images.page_base import CatalogPage
 from PDL.engine.images.status import DownloadStatus
 from PDL.logger.logger import Logger
-from six.moves.urllib.parse import quote
+
 
 log = Logger()
 
