@@ -2,5 +2,6 @@ prettytable
 pyperclip
 pyyaml
 requests
+six
 tox
 wget
