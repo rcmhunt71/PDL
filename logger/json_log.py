@@ -38,7 +38,6 @@ class JsonLog(object):
         :return: None
 
         """
-
         # Convert list of objects into dictionary of dictionaries.
         data = dict([(x.filename, x.to_dict()) for x in self.image_obj_list])
 
