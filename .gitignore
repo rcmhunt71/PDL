@@ -84,6 +84,9 @@ celerybeat-schedule
 # PyCharm
 .idea
 
+# pyLint
+.pylintrc
+
 # Environments
 .env
 .venv
