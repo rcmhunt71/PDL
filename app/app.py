@@ -1,3 +1,7 @@
+"""
+ Basic non-class-based routines specific to the application.
+"""
+
 import os
 import pprint
 import time
@@ -12,24 +16,26 @@ from PDL.engine.images.image_info import ImageData
 from PDL.engine.images.status import DownloadStatus as Status
 from PDL.engine.module_imports import import_module_class
 import PDL.logger.json_log as json_logger
-from PDL.logger.logger import Logger as Logger
+from PDL.logger.logger import Logger
 from PDL.reporting.summary import ReportingSummary
 
 import pyperclip
 
-log = Logger()
+LOG = Logger()
 
 """
 
-The purpose of this module is to define application specific logic, such as processing 
-input (specific application requirements), URL sanitization, removing duplicates, and 
+The purpose of this module is to define application specific logic, such as processing
+input (specific application requirements), URL sanitization, removing duplicates, and
 making sure the inventory is up to date.
 
 """
 
 
 class NoURLsProvided(Exception):
-    pass
+    """
+    General Exception for "No URL was provided" - More descriptive name.
+    """
 
 
 def is_url(target_string: str) -> bool:
@@ -51,7 +57,7 @@ def read_from_buffer(read_delay: float = 0.25) -> list:
     """
     last_url = None
     url_list = list()
-    log.info("Press CTRL-C to stop buffer scanning.")
+    LOG.info("Press CTRL-C to stop buffer scanning.")
     while True:
         try:
             # Read buffer
@@ -62,14 +68,14 @@ def read_from_buffer(read_delay: float = 0.25) -> list:
 
                 # If the URL is already in the buffer, don't duplicate it.
                 if buffer in url_list:
-                    log.info(f"The specified URL is already in the list ({buffer}).")
+                    LOG.info(f"The specified URL is already in the list ({buffer}).")
                     last_url = buffer
                     continue
 
                 # Append the URL in the list and store the link in the last_buffer
                 url_list.append(buffer.strip())
                 last_url = buffer
-                log.info(f"({len(url_list)}) Copied '{buffer}'")
+                LOG.info(f"({len(url_list)}) Copied '{buffer}'")
 
             # Give user time to collect another url
             time.sleep(read_delay)
@@ -79,7 +85,7 @@ def read_from_buffer(read_delay: float = 0.25) -> list:
             break
 
     # Bye Felicia!
-    log.debug(f"Done. {len(url_list)} URLs copied.")
+    LOG.debug(f"Done. {len(url_list)} URLs copied.")
     return url_list
 
 
@@ -101,7 +107,7 @@ def process_and_record_urls(cfg_obj: PdlConfig) -> list:
 
     # If no URLs are provided, check if URL file was specified
     if not raw_url_list:
-        log.debug("URL list from CLI is empty.")
+        LOG.debug("URL list from CLI is empty.")
 
         # Check for URL file specified on the CLI
         url_file_name = getattr(
@@ -118,8 +124,8 @@ def process_and_record_urls(cfg_obj: PdlConfig) -> list:
 
         # Otherwise, no sure how to proceed... so raise an exception
         else:
-            log.info(cfg_obj.cli_args)
-            log.debug("No URL file was specified on the CLI, nor reading from buffer.")
+            LOG.info(cfg_obj.cli_args)
+            LOG.debug("No URL file was specified on the CLI, nor reading from buffer.")
             raise NoURLsProvided()
 
     # Determine the supported URL domains (to remove junk/unexpected URLs)
@@ -140,13 +146,13 @@ def process_and_record_urls(cfg_obj: PdlConfig) -> list:
                                          AppCfgFileSectionKeys.LOG_DRIVE_LETTER)
     if url_file_drive is not None:
         url_file_dir = f"{url_file_drive}:{url_file_dir}"
-        log.debug(f"Updated URL File directory for drive letter: {url_file_dir}")
+        LOG.debug(f"Updated URL File directory for drive letter: {url_file_dir}")
 
     # If there were URLs available to DL after validation, create the URL file.
-    if len(cfg_obj.urls) > 0:
+    if not cfg_obj.urls:
         url_file.write_file(urls=cfg_obj.urls, create_dir=True, location=url_file_dir)
     else:
-        log.info("No URLs for DL, no URL FILE created.")
+        LOG.info("No URLs for DL, no URL FILE created.")
 
     return cfg_obj.urls
 
@@ -176,13 +182,13 @@ def remove_duplicate_urls_from_inv(cfg_obj: PdlConfig) -> list:
     duplicates = orig_urls - new_urls
 
     # List the number of duplicates and the number of URLs to be DL'd
-    log.info("Removing URLs from existing inventory: Found {dups} duplicates.".format(
+    LOG.info("Removing URLs from existing inventory: Found {dups} duplicates.".format(
         dups=len(orig_urls)-len(new_urls)))
-    log.info(f"URLs for downloading: {len(new_urls)}")
+    LOG.info(f"URLs for downloading: {len(new_urls)}")
 
     # List the specific duplicate URLs
     for dup in duplicates:
-        log.info(f"Duplicate: {dup}")
+        LOG.info(f"Duplicate: {dup}")
 
     # Return the list of unique URLs that can be DL'd.
     return cfg_obj.urls
@@ -214,7 +220,7 @@ def download_images(cfg_obj: PdlConfig) -> None:
                             AppCfgFileSectionKeys.IMAGE_CONTACT_PARSE))
 
     # Log the list of URLs to DL
-    log.info(f"URL LIST:\n{ArgProcessing.list_urls(url_list=url_list)}")
+    LOG.info(f"URL LIST:\n{ArgProcessing.list_urls(url_list=url_list)}")
 
     # Get the correct image URL from each catalog Page
     cfg_obj.image_data = list()
@@ -226,7 +232,7 @@ def download_images(cfg_obj: PdlConfig) -> None:
         # Create a catalog object, and parse the primary image page for
         # the image URL and metadata.
         catalog = catalog_class(page_url=page_url)
-        log.info(f"({index + 1}/{len(url_list)}) Retrieving URL: {page_url}")
+        LOG.info(f"({index + 1}/{len(url_list)}) Retrieving URL: {page_url}")
         catalog.get_image_info()
 
         # If parsing was successful, store the ImageData object created
@@ -244,20 +250,22 @@ def download_images(cfg_obj: PdlConfig) -> None:
     # Get a list of the URLs and the ImageData Objects
     downloaded_image_urls = cfg_obj.inventory.get_list_of_image_urls()
     downloaded_images = cfg_obj.inventory.get_list_of_images()
-    log.debug(f"Have {len(downloaded_image_urls)} URLs in inventory.")
+    LOG.debug(f"Have {len(downloaded_image_urls)} URLs in inventory.")
 
     # Download each image
     for index, image_data in enumerate(cfg_obj.image_data):
-        log.info(f"{index + 1:>3}: {image_data.image_url}")
+        LOG.info(f"{index + 1:>3}: {image_data.image_url}")
 
         # Create a ContactPage object for storing metadata, location, and statuses.
-        contact = contact_class(image_url=image_data.image_url, dl_dir=cfg_obj.dl_dir, image_info=image_data)
+        contact = contact_class(image_url=image_data.image_url,
+                                dl_dir=cfg_obj.dl_dir, image_info=image_data)
 
         # If both the URL and image name is unique, DL the image.
         # If the image was DL'd by a different/aliased link, the name will be the same,
         # so it will not DL the image again.
-        if image_data.image_url not in downloaded_image_urls and image_data.id not in downloaded_images:
-            status = contact.download_image()
+        if (image_data.image_url not in downloaded_image_urls and
+                image_data.id not in downloaded_images):
+            contact.status = contact.download_image()
 
         else:
             # Gather information about the image was DL'd
@@ -276,11 +284,10 @@ def download_images(cfg_obj: PdlConfig) -> None:
 
             # Report where the image existence was discovered.
             # Set and record the status.
-            log.info(f"Found {match_type} that exists in metadata: {image_metadata}")
-            status = Status.EXISTS
-            contact.status = status
+            LOG.info(f"Found {match_type} that exists in metadata: {image_metadata}")
+            contact.status = Status.EXISTS
 
-        log.info(f'DL STATUS: {status}')
+        LOG.info(f'DL STATUS: {contact.status}')
 
     cfg_obj.inventory.update_inventory(cfg_obj.image_data)
     cfg_obj.inventory.write()
@@ -296,8 +303,8 @@ def download_images(cfg_obj: PdlConfig) -> None:
     # Log image metadata (DEBUG)
     if cfg_obj.cli_args.debug:
         for image_data in cfg_obj.image_data:
-            log.debug(image_data.image_name)
-            log.debug(pprint.pformat(image_data.to_dict()))
+            LOG.debug(image_data.image_name)
+            LOG.debug(pprint.pformat(image_data.to_dict()))
 
     # If images were downloaded, create the corresponding JSON file
     if cfg_obj.image_data:
@@ -305,4 +312,4 @@ def download_images(cfg_obj: PdlConfig) -> None:
             image_obj_list=cfg_obj.image_data,
             log_filespec=cfg_obj.json_logfile).write_json()
     else:
-        log.info("No images DL'd. No JSON file created.")
+        LOG.info("No images DL'd. No JSON file created.")

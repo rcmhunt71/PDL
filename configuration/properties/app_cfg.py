@@ -1,13 +1,19 @@
+"""
+
+    Definitions of expected input from configuration files
+
+"""
+
 from configparser import ConfigParser, NoSectionError, NoOptionError
 import os
 from typing import List
 
 from PDL.logger.logger import Logger
 
-log = Logger()
+LOG = Logger()
 
 
-class AppCfgFileSections(object):
+class AppCfgFileSections:
     """
     Sections available within the application configuration. Defined as
     constants to reduce typos, and if a value needs to change, it only needs to
@@ -16,15 +22,15 @@ class AppCfgFileSections(object):
     Listed in alphabetical order.
 
     """
+    CLASSIFICATION = 'classification'
     DATABASE = 'database'
-    LOGGING = 'logging'
     IMAGES = 'images'
+    LOGGING = 'logging'
     PROJECT = 'project'
     STORAGE = 'storage'
-    CLASSIFICATION = 'classification'
 
 
-class AppCfgFileSectionKeys(object):
+class AppCfgFileSectionKeys:
     """
     Options available within the various sections. Defined as constants to
     reduce typos, and if a value needs to change, it only needs to be changed
@@ -37,7 +43,6 @@ class AppCfgFileSectionKeys(object):
 
     """
     CATALOG_PARSE = 'catalog_parse'
-    SIMULTANEOUS_DLS = 'simultaneous_dls'
     EXTENSION = 'extension'
     IMAGE_CONTACT_PARSE = 'image_contact_parse'
     INVENTORY_FILENAME = 'inventory_filename'
@@ -50,18 +55,19 @@ class AppCfgFileSectionKeys(object):
     NAME = 'name'
     PORT = 'port'
     PREFIX = 'prefix'
+    SIMULTANEOUS_DLS = 'simultaneous_dls'
     STORAGE_DRIVE_LETTER = 'storage_drive_letter'
     STORAGE_DIR = 'storage_dir'
+    SUFFIX = 'suffix'
     TEMP_STORAGE_DRIVE = 'temp_storage_drive'
     TEMP_STORAGE_PATH = 'temp_storage_path'
-    SUFFIX = 'suffix'
     TYPES = 'types'
     URL = 'url'
     URL_DOMAINS = 'url_domains'
     URL_FILE_DIR = 'url_file_dir'
 
 
-class ProjectCfgFileSections(object):
+class ProjectCfgFileSections:
     """
     Sections available within the project configuration. Defined as
     constants to reduce typos, and if a value needs to change, it only needs to
@@ -71,7 +77,7 @@ class ProjectCfgFileSections(object):
     PYTHON_PROJECT = 'python_project'
 
 
-class ProjectCfgFileSectionKeys(object):
+class ProjectCfgFileSectionKeys:
     """
     Options available within the various sections. Defined as constants to
     reduce typos, and if a value needs to change, it only needs to be changed
@@ -88,6 +94,7 @@ class ConfigSectionDoesNotExist(Exception):
 
     def __init__(self, section: str, cfg_file: str) -> None:
         self.message = self.msg_fmt.format(section=section, cfg_file=cfg_file)
+        super(ConfigSectionDoesNotExist, self).__init__()
 
 
 class OptionDoesNotExist(Exception):
@@ -99,6 +106,7 @@ class OptionDoesNotExist(Exception):
     def __init__(self, section: str, option: str, cfg_file: str) -> None:
         self.message = self.msg_fmt.format(
             section=section, option=option, cfg_file=cfg_file)
+        super(OptionDoesNotExist, self).__init__()
 
 
 class CannotCastValueToType(Exception):
@@ -112,6 +120,7 @@ class CannotCastValueToType(Exception):
     def __init__(self, section: str, option: str, cfg_file: str, type_: str) -> None:
         self.message = self.msg_fmt.format(
             section=section, option=option, cfg_file=cfg_file, type_=type_)
+        super(CannotCastValueToType, self).__init__()
 
 
 class CfgFileDoesNotExist(Exception):
@@ -121,6 +130,7 @@ class CfgFileDoesNotExist(Exception):
 
     def __init__(self, cfg_file: str) -> None:
         self.message = self.msg_fmt.format(cfg_file=cfg_file)
+        super(CfgFileDoesNotExist, self).__init__()
 
 
 class AppConfig(ConfigParser):
@@ -141,18 +151,18 @@ class AppConfig(ConfigParser):
             # throw an exception
             if self.cfg_file is not None:
                 if os.path.exists(self.cfg_file):
-                    log.debug(f'Reading: {self.cfg_file}')
+                    LOG.debug(f'Reading: {self.cfg_file}')
                     self.config = self.read(self.cfg_file)
                 else:
-                    log.error(f'Unable to read cfg file: {self.cfg_file}')
+                    LOG.error(f'Unable to read cfg file: {self.cfg_file}')
                     raise CfgFileDoesNotExist(cfg_file=self.cfg_file)
             else:
-                log.error(f"No config file was provided: '{str(cfg_file)}'.")
+                LOG.error(f"No config file was provided: '{str(cfg_file)}'.")
                 raise CfgFileDoesNotExist(cfg_file=str(cfg_file))
 
         # For testing, read specified file, without checking for existence
         else:
-            log.debug(f'Reading: {self.cfg_file}')
+            LOG.debug(f'Reading: {self.cfg_file}')
             self.config = self.read(self.cfg_file)
 
     def get_options(self, section: str) -> List[str]:
@@ -167,7 +177,7 @@ class AppConfig(ConfigParser):
         """
         if self.has_section(section=section):
             options = self.options(section)
-            log.debug("Options for {section}:\n{option_list}".format(
+            LOG.debug("Options for {section}:\n{option_list}".format(
                 section=section, option_list=[f"\t{opt}\n" for opt in options]))
             return options
 

@@ -1,22 +1,29 @@
 #!/usr/bin/env python
+
+"""
+      PRIMARY APP STARTING POINT.
+      --------------
+      main() was added to prevent pylint from complaining that variables
+      not defined a class/def context should be CONSTANTS.
+
+"""
+
 from PDL.app.pdl_config import PdlConfig, AppLogging
 import PDL.app.app as app
 import PDL.configuration.cli.args as args
-from PDL.configuration.properties.app_cfg import (
-    AppCfgFileSections, AppCfgFileSectionKeys)
 
 from PDL.engine.inventory.inventory_composite import Inventory
 
 
-if __name__ == '__main__':
+def main():
+    """
+    Primary start up logic.
 
+    :return: None
+
+    """
     app_config = PdlConfig()
     log = AppLogging.configure_logging(app_cfg_obj=app_config)
-
-    # Get inventory
-    metadata = app_config.app_cfg.get_list(
-        section=AppCfgFileSections.CLASSIFICATION,
-        option=AppCfgFileSectionKeys.TYPES)
 
     app_config.inventory = Inventory(
         cfg=app_config, force_scan=getattr(app_config.cli_args, args.ArgOptions.FORCE_SCAN))
@@ -63,3 +70,7 @@ if __name__ == '__main__':
         raise args.UnrecognizedModule(app_config.cli_args.command)
 
     log.info(f"LOGGED TO: {app_config.logfile_name}")
+
+
+if __name__ == '__main__':
+    main()

@@ -1,12 +1,27 @@
+"""
+ Classes and routines for reading and processing the application configuration files.
+
+ The PdlConfig class is a container class, storing various information required
+ by the application to operate:
+  * Configuration objects (configparser-based)
+  * Directories for writing information (logs, file/data stores, DLs)
+  * URLs, data, inventory
+
+ The class will also build the various directories required by the application,
+ based on the information specified in the configuration files.
+
+"""
+
 from collections import OrderedDict
 import configparser
 import os
 
 import PDL.configuration.cli.args as args
 from PDL.configuration.properties.app_cfg import (
-    AppConfig, AppCfgFileSections, AppCfgFileSectionKeys, ProjectCfgFileSectionKeys, ProjectCfgFileSections)
+    AppConfig, AppCfgFileSections, AppCfgFileSectionKeys,
+    ProjectCfgFileSectionKeys, ProjectCfgFileSections)
 from PDL.logger.json_log import JsonLog
-from PDL.logger.logger import Logger as Logger
+from PDL.logger.logger import Logger
 import PDL.logger.utils as utils
 from PDL.reporting.summary import ReportingSummary
 
@@ -18,22 +33,16 @@ DEFAULT_APP_CONFIG = None          # Default app config file name
 PICKLE_EXT = ".dat"                # Default extension for pickled (binary) data files
 
 
-log = Logger()
-
-"""
-This class is a container class, storing various information required 
-by the application to operate:
-  * Configuration objects (configparser-based)
-  * Directories for writing information (logs, file/data stores, DLs)
-  * URLs, data, inventory
-
-The class will also build the various directories required by the application,
-based on the information specified in the configuration files.
-
-"""
+LOG = Logger()
 
 
-class PdlConfig(object):
+class PdlConfig:
+    """
+    This is a general data object, but requires some internal processing to
+    generate the various attributes based on the input from the configuration
+    file (e.g. - file paths)
+
+    """
     def __init__(self) -> None:
         self.image_data = None
         self.inventory = None
@@ -199,7 +208,7 @@ class PdlConfig(object):
         ReportingSummary.log_table(table.get_string(title="FILE INFORMATION"))
 
 
-class AppLogging(object):
+class AppLogging:
     """
 
     This class sets up the logging specific to the application.
@@ -235,7 +244,7 @@ class AppLogging(object):
 
         # Set defaults if not specified in the config file
         for key, value in logfile_info.items():
-            if value == '' or value == 'None':
+            if value in ['', 'None']:
                 logfile_info[key] = None
 
         return utils.datestamp_filename(**logfile_info)
@@ -261,7 +270,8 @@ class AppLogging(object):
             log_level = 'debug'
 
         # Determine and store the log file name, create directory if needed.
-        log_dir = os.path.abspath(os.path.sep.join(app_cfg_obj.logfile_name.split(os.path.sep)[0:-1]))
+        log_dir = os.path.abspath(
+            os.path.sep.join(app_cfg_obj.logfile_name.split(os.path.sep)[0:-1]))
         utils.check_if_location_exists(location=log_dir, create_dir=True)
 
         # Setup the root logger for the app

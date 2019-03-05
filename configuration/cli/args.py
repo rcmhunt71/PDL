@@ -1,24 +1,38 @@
+"""
+
+  Definitions for defining CLI Arguments
+
+  NOTE: Argparse docs: https://docs.python.org/3/library/argparse.html
+
+"""
+
 import argparse
 import pprint
 from typing import List, Optional
 
-# Argparse docs: https://docs.python.org/3/library/argparse.html
-
 from PDL.logger.logger import Logger as PDL_log
 
-log = PDL_log()
+LOG = PDL_log()
 
 
 class UnrecognizedModule(Exception):
+    """
+
+    Generic exception - defined for improved clarity
+
+    """
     msg_fmt = "Unrecognized module: '{module}'"
 
     def __init__(self, module: str) -> None:
         self.message = self.msg_fmt.format(module=module)
+        super(UnrecognizedModule, self).__init__()
 
 
-class ArgSubmodules(object):
+class ArgSubmodules:
     """
+
     Defined submodules for the application
+
     """
     DATABASE = 'db'
     DOWNLOAD = 'dl'
@@ -27,22 +41,35 @@ class ArgSubmodules(object):
     INFO = 'info'
 
     @classmethod
-    def get_const_values(cls) -> List[str]:
-        return [val for key, val in cls.__dict__.items()
-                if not key.startswith('_') and key.upper() == key]
-
-    @classmethod
     def get_const_names(cls) -> List[str]:
+        """
+        Return a list of the names of the class-level constants
+
+        :return: list of class-constant names
+
+        """
         return [key for key, val in cls.__dict__.items()
                 if not key.startswith('_') and key.upper() == key]
 
+    @classmethod
+    def get_const_values(cls) -> List[str]:
+        """
+        Return a list of the values of the class-level constants
 
-class ArgOptions(object):
+        :return: list of class-constant values
+
+        """
+        return [val for key, val in cls.__dict__.items()
+                if not key.startswith('_') and key.upper() == key]
+
+
+class ArgOptions:
     """
+
     Defined constants for sub-options available via the CLI across all
     sub-modules.
-    """
 
+    """
     BUFFER = 'buffer'
     CFG = 'cfg'
     COMMAND = 'command'
@@ -78,7 +105,7 @@ class ArgOptions(object):
     }
 
 
-class CLIArgs(object):
+class CLIArgs:
     """
     The class parses the CLI arguments to determine what user actions are required.
     Each "action set" is defined as a subparser, with the corresponding options.
@@ -92,8 +119,8 @@ class CLIArgs(object):
         To determine which subparser was invoked:
             - check the value stored within parser.command
             - the parser.command is defined as part of the subparsers attribute.
-    """
 
+    """
     PURPOSE = "Image Download Utility"
     FLAGS = {
         ArgSubmodules.GENERAL: [ArgOptions.DEBUG, ArgOptions.DRY_RUN],
@@ -125,7 +152,7 @@ class CLIArgs(object):
 
         """
         modules = ArgSubmodules.get_const_values()
-        log.debug(f"Request for module names: {pprint.pformat(modules)}")
+        LOG.debug(f"Request for module names: {pprint.pformat(modules)}")
         return modules
 
     @staticmethod
@@ -138,7 +165,7 @@ class CLIArgs(object):
         """
         if option in ArgOptions.SHORTCUTS.keys():
             return f"-{ArgOptions.SHORTCUTS[option]}"
-        log.error(f'No shortcut registered for "{option}".')
+        LOG.error(f'No shortcut registered for "{option}".')
         return ''
 
     def parse_args(self, test_args_list: Optional[List[str]] = None) -> argparse.Namespace:
@@ -148,9 +175,9 @@ class CLIArgs(object):
         :return:
 
         """
-        log.debug("Parsing command line args.")
+        LOG.debug("Parsing command line args.")
         if test_args_list is not None:
-            log.debug(
+            LOG.debug(
                 f"Args passed in for testing:\n\t{test_args_list}")
         return (self.parser.parse_args() if test_args_list is None else
                 self.parser.parse_args(test_args_list))
@@ -327,7 +354,7 @@ class CLIArgs(object):
         for arg, val in sorted(vars(self.args).items()):
             args += f"\t{arg}: {val}\n"
 
-        log.debug(f"Command Line Args:\n{args}")
+        LOG.debug(f"Command Line Args:\n{args}")
         return args
 
     def get_opt_args_states(self) -> str:
@@ -339,23 +366,33 @@ class CLIArgs(object):
         msg = '\nGLOBAL FLAGS:\n'
         option_keys = [ArgSubmodules.GENERAL, self.args.command]
         for key in option_keys:
-            log.debug(f"OPTION KEY: {key}")
-            log.debug(f"OPTIONS: {self.FLAGS[key]}")
+            LOG.debug(f"OPTION KEY: {key}")
+            LOG.debug(f"OPTIONS: {self.FLAGS[key]}")
             if key != ArgSubmodules.GENERAL:
                 msg += f"\nMODULE: {key}\n"
             for flag in self.FLAGS[key]:
                 if hasattr(self.args, flag):
                     setting = "ENABLED" if getattr(self.args, flag) else "DISABLED"
-                    log.debug(f"Flag: {flag} --> {setting}")
+                    LOG.debug(f"Flag: {flag} --> {setting}")
                     msg += f"--> {flag} {setting} <<--\n"
         return msg
+
+
+def test_routine():
+    """
+    To stop pylint from whining... moved __main__ code into a routine to be
+    called by __main__()
+
+    :return: None
+
+    """
+    parser = CLIArgs()
+    LOG.debug(parser.args)
+    LOG.info(f"Modules: {parser.get_module_names()}")
+    parser.get_args_str()
 
 
 # Used for visual checks like the help screen and namespaces
 # (e.g.- things not easily validated though automation)
 if __name__ == '__main__':  # pragma: no cover
-    filename = 'args.test.log'
-    parser = CLIArgs()
-    log.debug(parser.args)
-    log.info(f"Modules: {parser.get_module_names()}")
-    parser.get_args_str()
+    test_routine()

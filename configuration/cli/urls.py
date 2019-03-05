@@ -1,11 +1,20 @@
+"""
+ These classes are for validating the URLS:
+ * proper URLs
+ * expected domains
+ * no duplicates in the provided list
+ * no duplicates when compared to external list
+
+"""
+
 from typing import Dict, List, Optional
 
 import PDL.logger.logger as pdl_log
 
-log = pdl_log.Logger()
+LOG = pdl_log.Logger()
 
 
-class UrlArgProcessing(object):
+class UrlArgProcessing:
 
     """
     Purpose: A series of utilities (static methods) to take a list of
@@ -24,7 +33,9 @@ class UrlArgProcessing(object):
     INVALID = False
 
     @classmethod
-    def process_url_list(cls, url_list: List[str], domains: Optional[List[str]] = None) -> List[str]:
+    def process_url_list(
+            cls, url_list: List[str], domains: Optional[List[str]] = None) -> List[str]:
+
         """
         Split any combined URLs, verify all URLs are valid, and remove any duplicates
 
@@ -34,7 +45,7 @@ class UrlArgProcessing(object):
         :return: List of valid, unique URLs
 
         """
-        log.info(f"Number of entries (URLs) in list: {len(url_list)}")
+        LOG.info(f"Number of entries (URLs) in list: {len(url_list)}")
 
         domains = domains or list()
 
@@ -64,16 +75,17 @@ class UrlArgProcessing(object):
         unique_counts = UrlArgProcessing.counts_of_each_dup(total_dups)
         unique_dups = unique_counts.keys()
 
-        log.info(f"Number of URLs in list: {len(url_list)}")
-        log.info(f"Number of Unique URLs:  {len(reduced_list)}")
-        log.info(f"Number of Duplicates:   {len(total_dups)}")
-        log.info(f"Number of Unique Duplicates:  {len(unique_dups)})")
+        # TODO: Turn this stats output into a table and log
+        LOG.info(f"Number of URLs in list: {len(url_list)}")
+        LOG.info(f"Number of Unique URLs:  {len(reduced_list)}")
+        LOG.info(f"Number of Duplicates:   {len(total_dups)}")
+        LOG.info(f"Number of Unique Duplicates:  {len(unique_dups)})")
 
         # Log counts of duplicates per duplicate URL
-        if len(total_dups) > 0:
-            log.debug("Count of Each Unique Duplicate:")
+        if total_dups:
+            LOG.debug("Count of Each Unique Duplicate:")
             for url, count in unique_counts.items():
-                log.debug(f"DUP: {url}: Count:  {count}")
+                LOG.debug(f"DUP: {url}: Count:  {count}")
 
         return {cls.REDUCED_LIST: reduced_list,
                 cls.TOTAL_DUP_LIST: total_dups,
@@ -84,11 +96,11 @@ class UrlArgProcessing(object):
         """
         Tally the counts of each unique duplicate.
         :param duplicates: list of duplicate URLs
+
         :return: dictionary of tallied urls (k: unique_urls, v: count)
 
         """
-        return dict([(url, duplicates.count(url)) for url in
-                     list(set(duplicates))])
+        return {url: duplicates.count(url) for url in list(set(duplicates))}
 
     @classmethod
     def split_urls(cls, url_list: List[str], domains: Optional[List[str]] = None,
@@ -114,7 +126,7 @@ class UrlArgProcessing(object):
         url_temp = f' {delimiter}'.join(url_concat.split(delimiter))
         if url_concat != url_temp:
             msg = f"Concatenated URL Found (Delimiter: {delimiter}) - Fixed"
-            log.debug(msg)
+            LOG.debug(msg)
 
         # Ignore '' urls, they are not valid, and the splitting generates a ''
         # at the front of each element in a split list.
@@ -124,7 +136,7 @@ class UrlArgProcessing(object):
 
         # If url = '' are found, they are removed, but skew the count.
         diff = 0 if diff < 0 else diff
-        log.info(f"Number of concatenations: {diff}")
+        LOG.info(f"Number of concatenations: {diff}")
 
         # Check the validity of all existing URLs and classify based on validity
         urls = {cls.VALID: list(),
@@ -134,8 +146,8 @@ class UrlArgProcessing(object):
             urls[UrlArgProcessing.validate_url(
                 url, domains=domains)].append(url)
 
-        log.info(f"Number of VALID URLs in list: {len(urls[cls.VALID])}")
-        log.info(f"Number of INVALID URLs in list: {len(urls[cls.INVALID])}")
+        LOG.info(f"Number of VALID URLs in list: {len(urls[cls.VALID])}")
+        LOG.info(f"Number of INVALID URLs in list: {len(urls[cls.INVALID])}")
 
         return urls[cls.VALID]
 
@@ -154,7 +166,7 @@ class UrlArgProcessing(object):
         """
         domains = domains or list()
 
-        log.debug(f'Checking for domains: {domains}')
+        LOG.debug(f'Checking for domains: {domains}')
 
         valid = (url.lower().startswith(protocol.lower()) and
                  url.lower() != protocol.lower())
@@ -162,7 +174,7 @@ class UrlArgProcessing(object):
         if not valid:
             msg = (f"Invalid URL: '{url.lower()}'. "
                    f"Did not match expected protocol(s): '{protocol.lower()}'")
-            log.warn(msg)
+            LOG.warn(msg)
 
         # Filter out 'None' domains... it is an invalid domain.
         domains = [x for x in domains if x is not None]
@@ -170,15 +182,15 @@ class UrlArgProcessing(object):
         if domains and valid:
             if any(x.lower() in url.lower() for x in domains):
                 valid = True
-                log.debug('Matching domain found.')
+                LOG.debug('Matching domain found.')
             else:
                 valid = False
                 msg = ("Invalid URL: '{0}'. "
                        "Did not match expected domains: '{1}'")
-                log.warn(msg.format(url.lower(), ', '.join(domains)))
+                LOG.warn(msg.format(url.lower(), ', '.join(domains)))
 
-        log.debug("{status}: URL='{url}'".format(
-            status="VALID" if valid else "INVALID", url=url))
+        url_status = "VALID" if valid else "INVALID"
+        LOG.debug(f"{url_status}: URL='{url}'")
 
         return valid
 
