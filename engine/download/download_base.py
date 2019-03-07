@@ -1,3 +1,10 @@
+"""
+
+   Base class for Downloading Images. (Allows building a class per website, and
+   specifying which class to use in the specific config file.
+
+"""
+
 from typing import NoReturn
 
 
@@ -13,9 +20,10 @@ class NotImplementedMethod(Exception):
 
     def __init__(self, routine):
         self.message = self.msg.format(routine)
+        super(NotImplementedMethod, self).__init__()
 
 
-class DownloadImage(object):
+class DownloadImage:
     """
     Provided a list of images (or ImageObjects), provide logic for determining
     existence, download, status, location, etc.
@@ -40,7 +48,8 @@ class DownloadImage(object):
         Determine if image has been downloaded, or already exists. If it does
         exist, don't download again.
 
-        :return: No return; raise exception (implementation should return <str: DownloadStatus.<str>)
+        :return: No return; raise exception (implementation should return
+             <str: DownloadStatus.<str>)
 
         """
         raise NotImplementedMethod('get_image_status')

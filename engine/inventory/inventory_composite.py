@@ -1,3 +1,10 @@
+"""
+
+    Module for defining how to combine inventories of different types
+    (into a common data store format)
+
+"""
+
 from typing import Dict, List, Optional
 
 from PDL.configuration.properties.app_cfg import AppCfgFileSections, AppCfgFileSectionKeys
@@ -6,22 +13,20 @@ from PDL.engine.inventory.json.inventory import JsonInventory
 from PDL.engine.inventory.filesystems.inventory import FSInv
 from PDL.logger.logger import Logger
 
-log = Logger()
+LOG = Logger()
 
 # TODO: Figure out how to type the __init__ parameters (circular reference)
 
-"""
-A container class that combines the inventory from multiple sources, such as the 
-file system and JSON logs.
 
-There are routines to combine, enforce consistency, and report that state of the inventory. 
-Currently this is done in a pickled, binary file, but can (and should be) replaced with a database, 
-such as ElasticSearch.
+class Inventory:
+    """
+    A container class that combines the inventory from multiple sources, such as the
+    file system and JSON logs.
 
-"""
-
-
-class Inventory(object):
+    There are routines to combine, enforce consistency, and report that state of the inventory.
+    Currently this is done in a pickled, binary file, but can (and should be) replaced
+    with a database such as ElasticSearch.
+    """
     def __init__(self, cfg, force_scan=False) -> None:
         """
         :param cfg: Instantiated PdlConfig object
@@ -49,9 +54,9 @@ class Inventory(object):
         self.json_inventory_obj = JsonInventory(dir_location=cfg.json_log_location)
         self.json_inv = self.json_inventory_obj.get_inventory()
 
-        log.info(f"NUM of FileSystem Records in inventory: {len(self.fs_inv.keys())}")
-        log.info(f"NUM of JSON Records in inventory: {len(self.json_inv.keys())}")
-        log.info(f"Force Inventory Scan: {self.force_scan}")
+        LOG.info(f"NUM of FileSystem Records in inventory: {len(self.fs_inv.keys())}")
+        LOG.info(f"NUM of JSON Records in inventory: {len(self.json_inv.keys())}")
+        LOG.info(f"Force Inventory Scan: {self.force_scan}")
 
         # Combine the File System and JSON inventory files.
         self.inventory = self._accumulate_inv()
@@ -71,19 +76,21 @@ class Inventory(object):
 
             # Copy the file system inventory as the base inventory (least likely to change)
             total_env = self.fs_inv.copy()
-            log.info("Accumulating inventory from file system and JSON logs")
+            LOG.info("Accumulating inventory from file system and JSON logs")
 
             # Add the JSON inventory to the total inventory.
             for image_name, image_obj in self.json_inv.items():
 
                 # If the image is not in the inventory, copy it directly into the inventory.
                 if image_name not in total_env.keys():
-                    log.debug(f"JSON: Image {image_obj.image_name} is new to inventory. Added to inventory.")
+                    LOG.debug(f"JSON: Image {image_obj.image_name} is new to inventory. "
+                              f"Added to inventory.")
                     total_env[image_name] = image_obj
                     continue
 
-                # Image already in inventory. Update the record with info contained in the JSON record.
-                log.debug("JSON: Image {0} is NOT new to inventory.".format(image_obj.image_name))
+                # Image already in inventory. Update the record with info
+                # contained in the JSON record.
+                LOG.debug("JSON: Image {0} is NOT new to inventory.".format(image_obj.image_name))
                 total_env[image_name] = total_env[image_name].combine(image_obj)
 
             # Due to an older issue, the filename schema may be different for the same image.
@@ -93,11 +100,11 @@ class Inventory(object):
 
         # Read the inventory from the pickled inventory file.
         else:
-            log.info(f"Reading from {self.fs_inventory_obj.pickle_fname}")
+            LOG.info(f"Reading from {self.fs_inventory_obj.pickle_fname}")
             total_env = self._unpickle_()
-            log.info(f"Total of {len(total_env.keys())} read from file.")
+            LOG.info(f"Total of {len(total_env.keys())} read from file.")
 
-        log.info("Accumulation complete.")
+        LOG.info("Accumulation complete.")
         return total_env
 
     def write(self):
@@ -169,7 +176,7 @@ class Inventory(object):
         :return: List of non-None values stored in all object.<attribute>
 
         """
-        log.debug("Generating list of '{attr}'s from inventory.".format(attr=attr))
+        LOG.debug("Generating list of '{attr}'s from inventory.".format(attr=attr))
         return [getattr(x, attr) for x in self.inventory.items()
                 if hasattr(x, attr) and getattr(x, attr) is not None or allow_none]
 
@@ -186,10 +193,10 @@ class Inventory(object):
         for image_obj in list_image_data_objs:
             image_name = image_obj.image_name
             if image_name in self.inventory.keys():
-                log.debug(f"Updating data for {image_name}")
+                LOG.debug(f"Updating data for {image_name}")
                 self.inventory[image_name].combine(image_obj)
             else:
-                log.debug(f"Adding data for {image_name}")
+                LOG.debug(f"Adding data for {image_name}")
                 self.inventory[image_name] = image_obj
 
     @staticmethod
@@ -208,7 +215,7 @@ class Inventory(object):
         :return: dict: Updated inventory, with corrected keys.
 
         """
-        log.info("Making inventory consistent...")
+        LOG.info("Making inventory consistent...")
         new_inv = dict()
 
         # Iterate through the existing inventory:

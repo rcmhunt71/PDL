@@ -1,3 +1,9 @@
+"""
+  Utility for timing routines as a decorator.
+  Could have used time-it or other modules, but for fun and experience with writing decorators,
+  opted to write my own.
+"""
+
 import time
 from typing import Callable
 
@@ -7,7 +13,7 @@ BASE = 10.0
 PRECISION = 4
 MULTIPLIER = pow(BASE, PRECISION)
 
-log = logger.Logger()
+LOG = logger.Logger()
 
 
 def measure_elapsed_time(event: str, test: bool = False) -> Callable:
@@ -23,14 +29,15 @@ def measure_elapsed_time(event: str, test: bool = False) -> Callable:
     :return: executed function return
 
     """
-    def wrap(f):
-        def wrapped_f(*args, **kwargs):
+    def wrap(func):
+        def wrapped_func(*args, **kwargs):
             start = time.time()
-            f(*args, **kwargs)
+            ret_val = func(*args, **kwargs)
             elapsed = int((time.time() - start) * MULTIPLIER) / MULTIPLIER
             msg = f"[{event.upper()}]: Elapsed Time: {elapsed} s"
-            log.info(msg)
+            LOG.info(msg)
             if test:
                 return elapsed
-        return wrapped_f
+            return ret_val
+        return wrapped_func
     return wrap

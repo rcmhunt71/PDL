@@ -1,3 +1,9 @@
+"""
+
+    Module for recording ImageData records in a JSON formatted text file
+
+"""
+
 import json
 import os
 from typing import Dict, List, Optional
@@ -7,7 +13,7 @@ from PDL.logger.logger import Logger
 from PDL.engine.images.status import DownloadStatus
 from PDL.engine.images.image_info import ImageData
 
-log = Logger()
+LOG = Logger()
 
 
 class JsonInventory(BaseInventory):
@@ -61,23 +67,27 @@ class JsonInventory(BaseInventory):
 
         files = list()
         if os.path.exists(loc):
-            files = [os.path.sep.join([loc, x]) for x in os.listdir(loc) if x.lower().endswith(self.EXT.lower())]
+            files = [os.path.sep.join([loc, x]) for x in os.listdir(loc) if
+                     x.lower().endswith(self.EXT.lower())]
         else:
-            log.error(f"Specified directory DOES NOT EXIST: '{loc}'")
+            LOG.error(f"Specified directory DOES NOT EXIST: '{loc}'")
         return files
 
     def _build_inventory_dict(self, content_list: List[dict]) -> Dict[str, ImageData]:
         """
         Build the inventory dictionary from the contents of the JSON files.
 
-        Iterates through the content, creates ImageData objects per image, and stores in dictionary:
+        Iterates through the content, creates ImageData objects per image, and stores
+        in dictionary:
           key = image_name
           value = ImageData object
 
-        Checks for duplicates, and will save the duplicates. When the checking is complete, check image metadata
-        from dups, and if DL'd image's ImageData attribute info is not populate, populate from Dup ImageData [1].
+        Checks for duplicates, and will save the duplicates. When the checking is complete,
+        check image metadata from dups, and if DL'd image's ImageData attribute info is not
+        populate, populate from Dup ImageData [1].
 
-        [1] - This is done because there will be DUPs that were DL'd before this functionality was available.
+        [1] - This is done because there will be DUPs that were DL'd before this functionality
+        was available.
 
         :param content_list: List of JSON blobs (1 blob per file)
         :return: Dictionary of Images in inventory (key=image_name, value=ImageData of image)
@@ -98,26 +108,30 @@ class JsonInventory(BaseInventory):
                     if image_info[ImageData.DL_STATUS] == DownloadStatus.DOWNLOADED:
                         inv[image_name] = image_obj
 
-                    # Otherwise it may have already existed and included in the JSON, so classify as a DUP.
+                    # Otherwise it may have already existed and included in the JSON,
+                    # so classify as a DUP.
                     else:
                         self._add_to_dups(dups, image_obj)
-                        log.debug(f"Download Status for '{image_obj.image_name}': {image_obj.dl_status}")
-                        log.debug(f"Duplicate in the inventory? {image_obj.image_name in inv}")
+                        LOG.debug(f"Download Status for '{image_obj.image_name}': "
+                                  f"{image_obj.dl_status}")
+                        LOG.debug(f"Duplicate in the inventory? {image_obj.image_name in inv}")
 
                 # Image was already in the inventory.
                 else:
                     self._add_to_dups(dups, image_obj)
-                    log.debug(f"Download Status for '{image_obj.image_name}': {image_obj.dl_status}")
-                    log.debug(f"Duplicate in the inventory? {image_obj.image_name in inv}")
+                    LOG.debug(f"Download Status for '{image_obj.image_name}': "
+                              f"{image_obj.dl_status}")
+                    LOG.debug(f"Duplicate in the inventory? {image_obj.image_name in inv}")
 
         # Update the metadata of the inventory, if needed, and return the inventory dict.
         return self._update_info(inv, dups)
 
     @staticmethod
-    def _update_info(inv_dict: Dict[str, ImageData], dups_dict: Dict[str, List[ImageData]]) -> Dict[str, ImageData]:
+    def _update_info(inv_dict: Dict[str, ImageData],
+                     dups_dict: Dict[str, List[ImageData]]) -> Dict[str, ImageData]:
         """
-        For images that were DL'd and recorded in the JSON, check if the image metadata is not in the original
-        inventory, and update object (although it is not recorded).
+        For images that were DL'd and recorded in the JSON, check if the image metadata
+        is not in the original inventory, and update object (although it is not recorded).
 
         :param inv_dict: Inventory dictionary. key = image_name, value = ImageData obj
 
@@ -132,13 +146,18 @@ class JsonInventory(BaseInventory):
                     if (dup_name in inv_dict and
                             getattr(inv_dict[dup_name], attribute) is None and
                             getattr(dup_image_obj, attribute) is not None):
-                        setattr(inv_dict[dup_name], attribute, getattr(dup_image_obj, attribute))
-                        log.debug(f"Updating original image info for {dup_name}: "
-                                  f"Attr: '{attribute}' : '{getattr(inv_dict[dup_name], attribute)}'")
+
+                        setattr(inv_dict[dup_name], attribute,
+                                getattr(dup_image_obj, attribute))
+
+                        LOG.debug(f"Updating original image info for {dup_name}: "
+                                  f"Attr: '{attribute}' : "
+                                  f"'{getattr(inv_dict[dup_name], attribute)}'")
         return inv_dict
 
     @staticmethod
-    def _add_to_dups(dictionary: Dict[str, List[ImageData]], image_data_obj: ImageData) -> Dict[str, List[ImageData]]:
+    def _add_to_dups(dictionary: Dict[str, List[ImageData]],
+                     image_data_obj: ImageData) -> Dict[str, List[ImageData]]:
         """
         Convenience function for adding an ImagaData object to the duplicates dictionary
 
@@ -149,7 +168,7 @@ class JsonInventory(BaseInventory):
 
         """
         image_name = image_data_obj.image_name
-        log.debug(f"Duplicate found: {image_name}")
+        LOG.debug(f"Duplicate found: {image_name}")
 
         if image_name not in dictionary:
             dictionary[image_name] = list()
@@ -169,7 +188,17 @@ class JsonInventory(BaseInventory):
         """
         content = list()
         for json_file in files:
-            with open(json_file) as FILE:
-                lines = FILE.readlines()
+            with open(json_file) as json_file:
+                lines = json_file.readlines()
             content.append(json.loads(''.join(lines)))
         return content
+
+    # TODO: Add logic to add_to_inventory, list_inventory, remove_from_inventory
+    def add_to_inventory(self, element):
+        pass
+
+    def remove_from_inventory(self, element_id):
+        pass
+
+    def list_inventory(self):
+        pass

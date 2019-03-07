@@ -1,3 +1,9 @@
+"""
+
+   Base class for parsing the listing page (Contact Page)
+
+"""
+
 from typing import NoReturn, List, Optional
 
 
@@ -13,9 +19,10 @@ class NotImplementedMethod(Exception):
 
     def __init__(self, routine: str) -> None:
         self.message = self.msg.format(routine)
+        super(NotImplementedMethod, self).__init__()
 
 
-class ParsePage(object):
+class ParsePage:
     """ Generic object for tracking page parsing actions. """
 
     def __init__(self, page_url: str) -> None:
@@ -60,8 +67,6 @@ class CatalogPage(ParsePage):
     Used when a series of contact sheets are listed: catalog of groups of images
     Return list of ImageContactPage objects
     """
-
-    pass
 
 
 class ImageContactPage(ParsePage):

@@ -21,7 +21,7 @@ class TestImageInfo(object):
         obj_3 = obj_1 + obj_2
 
         assert_equals(obj_3.filename, obj_2.filename)
-        assert_equals(obj_3.id, obj_1.id)
+        assert_equals(obj_3.id_, obj_1.id_)
         assert_equals(obj_3.description, obj_1.description)
         assert_equals(obj_3.dl_status, obj_1.dl_status)
         assert_equals(obj_3.image_name, obj_1.image_name)
@@ -32,7 +32,7 @@ class TestImageInfo(object):
 
         obj_3 = obj_1.combine(other=obj_2, use_self=False)
 
-        assert_equals(obj_3.id, obj_1.id)
+        assert_equals(obj_3.id_, obj_1.id_)
         assert_equals(obj_3.filename, obj_1.filename)
         assert_equals(obj_3.description, obj_1.description)
         assert_equals(obj_3.dl_status, obj_1.dl_status)
@@ -50,7 +50,7 @@ class TestImageInfo(object):
         obj_1 += obj_2
 
         assert_equals(obj_1.filename, obj_2.filename)
-        assert_equals(obj_1.id, obj_2.id)
+        assert_equals(obj_1.id_, obj_2.id_)
         assert_equals(obj_1.description, obj_1_description)
         assert_equals(obj_1.dl_status, obj_1_status)
         assert_equals(obj_1.author, 'author_2')
@@ -226,10 +226,10 @@ class TestImageInfo(object):
         obj_1.dl_status = status
         obj_1.image_name = name
         obj_1.filename = filename
-        obj_1.id = filename.split('.')[0]
+        obj_1.id_ = filename.split('.')[0]
 
         obj_2.filename = filename
         obj_2.author = 'author_2'
         obj_2.image_name = 'obj_2'
-        obj_2.id = filename.split('.')[0]
+        obj_2.id_ = filename.split('.')[0]
         return obj_1, obj_2

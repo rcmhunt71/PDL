@@ -1,3 +1,10 @@
+"""
+  Class for downloading the image from the direct URL (contained in the contact sheet
+  HTML page). It also scrapes the metadata from the HTML. All image-specific information
+  is stored in an instance of the ImageData class.
+
+"""
+
 import datetime
 import os
 import re
@@ -7,6 +14,7 @@ from typing import Optional
 
 import requests
 import wget
+
 from PDL.engine.download.download_base import DownloadImage
 from PDL.engine.images.image_info import ImageData
 from PDL.engine.images.status import (
@@ -14,7 +22,7 @@ from PDL.engine.images.status import (
     ImageDataModificationStatus as ModStatus)
 from PDL.logger.logger import Logger
 
-log = Logger()
+LOG = Logger()
 
 
 class DownloadPX(DownloadImage):
@@ -49,13 +57,15 @@ class DownloadPX(DownloadImage):
         """
         super(DownloadPX, self).__init__(image_url=image_url, dl_dir=dl_dir)
         self.url_split_token = url_split_token or self.URL_KEY
-        self.id = None
-        self.image_name = None
-        self.dl_file_spec = None
         self.image_info = image_info or ImageData()
-        self._status = Status.NOT_SET
         self.use_wget = use_wget
         self.test = test
+
+        self.id_ = None
+        self.image_name = None
+        self.dl_file_spec = None
+        self._status = Status.NOT_SET
+
         self.parse_image_info()
 
 
@@ -70,21 +80,22 @@ class DownloadPX(DownloadImage):
 
     @status.setter
     def status(self, new_status: str) -> None:
-        log.debug(f"Setting status from '{self._status}' to '{new_status}' for {self.image_url}")
+        LOG.debug(f"Setting status from '{self._status}' to '{new_status}' for {self.image_url}")
         self._status = new_status
         self.image_info.dl_status = new_status
 
     def parse_image_info(self) -> None:
         """
         Scrape and store relevant storage information required for the download.
-        If testing, may not have metadata, so just skip it. Tests will explicitly set the metadata as needed.
+        If testing, may not have metadata, so just skip it. Tests will explicitly
+        set the metadata as needed.
 
         :return: None
 
         """
         if not self.test:
             self.image_name = self.get_image_name()
-            self.id = self.image_name.split('.')[0]
+            self.id_ = self.image_name.split('.')[0]
             self.dl_file_spec = self._get_file_location(
                 image_name=self.image_name, dl_dir=self.dl_dir)
 
@@ -99,12 +110,12 @@ class DownloadPX(DownloadImage):
                  dl_duration (in seconds)
 
         """
-        log.debug(f"Image URL: {self.image_url}")
-        log.debug(f"DL Directory: {self.dl_dir}")
+        LOG.debug(f"Image URL: {self.image_url}")
+        LOG.debug(f"DL Directory: {self.dl_dir}")
 
         # Try to download image
         attempts = 0
-        log.debug(f"Image Status: {self.status}")
+        LOG.debug(f"Image Status: {self.status}")
 
         # Set DL and image status
         db_status = ModStatus.MOD_NOT_SET
@@ -124,7 +135,7 @@ class DownloadPX(DownloadImage):
                    self.status != Status.DOWNLOADED):
                 attempts += 1
 
-                log.debug(f"({attempts}/{self.MAX_ATTEMPTS}): Attempting to DL '{self.image_url}'")
+                LOG.debug(f"({attempts}/{self.MAX_ATTEMPTS}): Attempting to DL '{self.image_url}'")
 
                 # DL the image
                 self.status = self._dl_via_wget() if self.use_wget else self._dl_via_requests()
@@ -161,11 +172,11 @@ class DownloadPX(DownloadImage):
         self.image_info.mod_status = db_status
         self.image_info.locations.append(self.dl_dir)
         self.image_info.file_size = f"{file_size:0.2f} KB"
-        self.image_info.id = self.id
+        self.image_info.id = self.id_
 
         # Log status
-        log.info(f"Downloaded in {dl_duration:0.3f} seconds.")
-        log.info(f"{self.image_info.page_url} --> {self.status.upper()}")
+        LOG.info(f"Downloaded in {dl_duration:0.3f} seconds.")
+        LOG.info(f"{self.image_info.page_url} --> {self.status.upper()}")
 
         return self.status
 
@@ -186,12 +197,12 @@ class DownloadPX(DownloadImage):
         image_url = image_url or self.image_url
         delimiter_key = delimiter_key or self.url_split_token
 
-        log.debug(f"Image URL: {image_url}")
+        LOG.debug(f"Image URL: {image_url}")
         if image_url is None:
             msg = 'Image Url is None.'
             self.status = Status.ERROR
             self.image_info.error_info = msg
-            log.error(msg)
+            LOG.error(msg)
             return ''
 
         # Build regexp from key
@@ -200,32 +211,34 @@ class DownloadPX(DownloadImage):
         # Check if url has key (try two different ways)
         match = sig_comp.search(image_url)
         if match is not None and not use_wget:
-            log.debug("Image name found via regex")
+            LOG.debug("Image name found via regex")
             image_name = image_url.split(delimiter_key, 1)[1]
 
         else:
-            log.debug("Image name found via wget")
+            LOG.debug("Image name found via wget")
             image_name = wget.filename_from_url(image_url)
             if image_name is not None:
                 image_name = image_name.split(delimiter_key, 1)[1]
-            log.debug(f'Image URL: {image_url}    Image_name: {image_name}   delimiter: {delimiter_key}')
+            LOG.debug(f'Image URL: {image_url}    Image_name: {image_name}   '
+                      f'delimiter: {delimiter_key}')
 
         # Didn't find the url or something bad happened
         if image_name is None:
             msg = f"Unable to get image_name from url: {image_url}"
             self.status = Status.ERROR
             self.image_info.error_info = msg
-            log.error(msg)
+            LOG.error(msg)
 
         # Append the extension if it is not present (and image name is not an empty string)
         elif image_name != '' and not image_name.endswith(self.EXTENSION):
             image_name += f'.{self.EXTENSION}'
 
-        log.debug(f"Image Name: {image_name}")
+        LOG.debug(f"Image Name: {image_name}")
 
         return image_name
 
-    def _get_file_location(self, image_name: Optional[str] = None, dl_dir: Optional[str] = None) -> str:
+    def _get_file_location(self, image_name: Optional[str] = None,
+                           dl_dir: Optional[str] = None) -> str:
         """
         Builds download file_spec based on image name and dl_path
 
@@ -245,7 +258,7 @@ class DownloadPX(DownloadImage):
                    ' provided.')
             self.status = Status.ERROR
             self.image_info.error_info = msg
-            log.error(msg)
+            LOG.error(msg)
 
         # Build filespec
         else:
@@ -267,19 +280,19 @@ class DownloadPX(DownloadImage):
             msg = f"No File Location set. Status set to '{self.status}'."
             self.status = Status.ERROR
             self.image_info.error_info = msg
-            log.error(msg)
+            LOG.error(msg)
 
         # Check to see if specified file exists, if so, set metadata data
         # and log results
         elif os.path.exists(self.dl_file_spec):
             self.status = Status.EXISTS
-            log.debug(f"File '{self.dl_file_spec}' already exists. "
+            LOG.debug(f"File '{self.dl_file_spec}' already exists. "
                       f"Set status to '{self.status}'")
             exists = True
 
         # File does not exist. Set metadata and log results
         else:
-            log.debug(f"File does not exist. {self.dl_file_spec}\n"
+            LOG.debug(f"File does not exist. {self.dl_file_spec}\n"
                       f"Status set to '{self.status}'")
 
         # Return results
@@ -324,7 +337,7 @@ class DownloadPX(DownloadImage):
                         attempts=attempts, delay=self.RETRY_DELAY,
                         max=self.MAX_ATTEMPTS)
 
-                    log.error(conn_err_msg)
+                    LOG.error(conn_err_msg)
                     time.sleep(self.RETRY_DELAY)
 
                 # Download successful, but check the file size. Error pages will
@@ -338,8 +351,8 @@ class DownloadPX(DownloadImage):
                             self.status = Status.ERROR
                             error_msg = f"Incorrect filesize: {file_size}"
                             self.image_info.error_info = error_msg
-                            log.warn(error_msg)
-                            log.warn(retry_msg)
+                            LOG.warn(error_msg)
+                            LOG.warn(retry_msg)
                             os.remove(filename)
 
                             time.sleep(self.RETRY_DELAY)
@@ -373,18 +386,18 @@ class DownloadPX(DownloadImage):
 
         # If the return code was SUCCESSFUL (200):
         if image.status_code == 200:
-            log.debug(status_msg)
+            LOG.debug(status_msg)
 
             # Transfer binary contents to a file (dl_filespec)
-            with open(self.dl_file_spec, 'wb') as OUTPUT:
+            with open(self.dl_file_spec, 'wb') as output_file:
                 image.raw.decode_content = True
-                shutil.copyfileobj(image.raw, OUTPUT)
+                shutil.copyfileobj(image.raw, output_file)
                 self.status = Status.DOWNLOADED
                 self.image_info.error_info = None
 
         # Any status other than 200 is an error...
         else:
-            log.error(status_msg)
+            LOG.error(status_msg)
             self.status = Status.ERROR
             self.image_info.error_info = status_msg
 

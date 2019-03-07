@@ -1,3 +1,9 @@
+"""
+    Module for creating/maintaining data in a binary format.
+    Also scans file system (as configured in the config file) and builds
+    the inventory based on findings from scan.
+
+"""
 import os
 import pickle
 from typing import Dict, Optional
@@ -9,19 +15,18 @@ from PDL.logger.logger import Logger
 
 import prettytable
 
-log = Logger()
-
-# TODO: Add doctstrings
+LOG = Logger()
 
 
 class FSInv(BaseInventory):
     """
     Aggregates file storage inventory in a dictionary.
     Minimum: key = image name, value = locations
-    If metadata is provided (stored in directories by category), it can check the location, and if matches
-    the metadata, it will create a flag (rather than store the location for that instance of the image)
-    """
+    If metadata is provided (stored in directories by category), it can check the
+    location, and if matches the metadata, it will create a flag (rather than store
+    the location for that instance of the image)
 
+    """
     INV_FILE_EXT = ".jpg"
     DATA_FILE_EXT = ".dat"
     KILOBYTE = 1024
@@ -59,7 +64,7 @@ class FSInv(BaseInventory):
         # (via the method call or set during object instantiation)
         if not self._inventory or force_scan or self._scan:
             if force_scan or self._scan:
-                log.info("Forcing filesystem scan.")
+                LOG.info("Forcing filesystem scan.")
             self.scan_inventory(serialize=serialize, from_file=from_file, scan_local=scan_local)
 
         return self._inventory
@@ -81,22 +86,22 @@ class FSInv(BaseInventory):
         from_file = self.serialize if from_file is None else from_file
         pickle_fname = self.pickle_fname if filename is None else filename
 
-        log.debug(f"Serialize data: {str(serialize)}")
-        log.debug(f"Read from file: {str(from_file)}")
+        LOG.debug(f"Serialize data: {str(serialize)}")
+        LOG.debug(f"Read from file: {str(from_file)}")
 
         # If reading from a file...
         if from_file:
-            log.info(f"Reading inventory from {self.pickle_fname}")
+            LOG.info(f"Reading inventory from {self.pickle_fname}")
             self._inventory = self.unpickle(filename=pickle_fname)
 
         # Include the local storage in the inventory
         if scan_local:
-            log.debug("Scanning local inventory.")
+            LOG.debug("Scanning local inventory.")
             self._scan_(base_dir=self.base_dir)
 
         # Write inventory to file...
         if serialize:
-            log.info(f"Writing inventory to {pickle_fname}. Includes new local inventory")
+            LOG.info(f"Writing inventory to {pickle_fname}. Includes new local inventory")
             self.pickle(data=self._inventory, filename=pickle_fname)
 
     @staticmethod
@@ -110,15 +115,15 @@ class FSInv(BaseInventory):
         :return: None
 
         """
-        log.debug(f"Pickling inventory to {filename}")
+        LOG.debug(f"Pickling inventory to {filename}")
 
         # Write to file
-        with open(filename, "wb") as PICKLE:
-            pickle.dump(data, PICKLE)
+        with open(filename, "wb") as pickle_file:
+            pickle.dump(data, pickle_file)
 
         # Report status and some details about the file.
         file_size = int(os.stat(filename).st_size) / FSInv.KILOBYTE
-        log.info(f"Pickling inventory complete. {len(data.keys())} "
+        LOG.info(f"Pickling inventory complete. {len(data.keys())} "
                  f"records written. File Size:  {file_size:0.2f} KB.")
 
     def unpickle(self, filename: str) -> dict:
@@ -134,14 +139,14 @@ class FSInv(BaseInventory):
 
         # If the file exists, read it
         if os.path.exists(filename):
-            with open(filename, "rb") as PICKLE:
-                data = pickle.load(PICKLE)
+            with open(filename, "rb") as pickle_file:
+                data = pickle.load(pickle_file)
 
             # Add the data to the obj._inventory dictionary
             self._inventory.update(data)
 
         else:
-            log.warn(f"Unable to find/open '{filename}' for reading serialized data.")
+            LOG.warn(f"Unable to find/open '{filename}' for reading serialized data.")
 
         return data
 
@@ -163,23 +168,24 @@ class FSInv(BaseInventory):
         elif base_dir is None:
             base_dir = target_dir
 
-        log.debug(f"Scanning Base Dir: {base_dir}")
+        LOG.debug(f"Scanning Base Dir: {base_dir}")
 
         # Get the list of files and directories
         try:
             contents = os.listdir(directory)
         except FileNotFoundError:
-            log.error(f"Unable to find directory: {directory}")
+            LOG.error(f"Unable to find directory: {directory}")
             return
 
         # Get all files from directory listing
-        files = [str(x).rstrip(self.INV_FILE_EXT) for x in contents if x.endswith(self.INV_FILE_EXT)]
+        files = [str(x).rstrip(self.INV_FILE_EXT) for x in contents if
+                 x.endswith(self.INV_FILE_EXT)]
 
         # Get all subdirectories from directory listing
         directories = [str(x) for x in contents if '.' not in x]
 
         # Iterate through the files, populating/updating the _inventory dictionary.
-        log.debug(f"\t+ {base_dir}")
+        LOG.debug(f"\t+ {base_dir}")
         for file_name in files:
 
             # Create the object if it does not exist in the inventory
@@ -187,7 +193,8 @@ class FSInv(BaseInventory):
             image_obj = self._inventory[file_name]
 
             # Determine the absolute path for the image
-            file_path = os.path.abspath(os.path.sep.join([base_dir, f'{file_name}.{self.INV_FILE_EXT}']))
+            file_path = os.path.abspath(os.path.sep.join(
+                [base_dir, f'{file_name}.{self.INV_FILE_EXT}']))
 
             # If the image exists, record the file size (in KB)
             if os.path.exists(file_path):
@@ -201,8 +208,9 @@ class FSInv(BaseInventory):
                 # If specific image classifications were provided (via config file)...
                 if self.metadata:
 
-                    # Does the directory end with a provided classification? If so, record the directory
-                    if base_dir.lower().endswith(tuple([x.lower() for x in self.metadata])):
+                    # Does the directory end with a provided classification?
+                    # If so, record the directory
+                    if base_dir.lower().endswith(tuple([md.lower() for md in self.metadata])):
                         for meta in self.metadata:
                             if base_dir.lower().endswith(meta.lower()):
                                 getattr(image_obj, ImageData.CLASSIFICATION).append(meta)
@@ -243,14 +251,16 @@ class FSInv(BaseInventory):
         """
 
         # Find duplicates
-        duplicates = dict([(name, obj) for name, obj in self._inventory.items()
-                           if len(getattr(obj, ImageData.LOCATIONS)) > 1])
+        duplicates = {name: obj for name, obj in self._inventory.items()
+                      if len(getattr(obj, ImageData.LOCATIONS)) > 1}
 
         # List/Log the duplicates found
-        log.info(f"DUPLICATES: {len(duplicates.keys())}")
+        LOG.info(f"DUPLICATES: {len(duplicates.keys())}")
         for name, image_obj in duplicates.items():
-            log.info("{0}: {1}".format(name, ", ".join(getattr(image_obj, ImageData.CLASSIFICATION))))
-        log.info(f"TOTAL FILES ANALYZED: {len(self._inventory.keys())}")
+            LOG.info("{0}: {1}".format(name, ", ".join(
+                getattr(image_obj, ImageData.CLASSIFICATION))))
+
+        LOG.info(f"TOTAL FILES ANALYZED: {len(self._inventory.keys())}")
 
     def list_inventory(self) -> str:
         """
@@ -268,7 +278,7 @@ class FSInv(BaseInventory):
 
         # Set up the headers
         header = ['Index', 'Name']
-        header.extend([x.capitalize() for x in sorted(self.metadata)])
+        header.extend([name.capitalize() for name in sorted(self.metadata)])
         header.append('Locations')
         table.field_names = header
 
@@ -276,8 +286,8 @@ class FSInv(BaseInventory):
         table.align['Index'] = 'r'
         table.align['Name'] = 'l'
         table.align['Locations'] = 'l'
-        for x in sorted(self.metadata):
-            table.align[x.capitalize()] = 'c'
+        for metadata in sorted(self.metadata):
+            table.align[metadata.capitalize()] = 'c'
 
         # Populate the table
         for index, (name, data) in enumerate(sorted(self._inventory.items())):
@@ -294,3 +304,23 @@ class FSInv(BaseInventory):
 
         # Return string representation of the table.
         return table.get_string()
+
+    def add_to_inventory(self, element):
+        """
+        Add element to inventory
+
+        :param element: imageData object and ID
+
+        :return: None
+
+        """
+
+    def remove_from_inventory(self, element_id):
+        """
+        Remove element to inventory
+
+        :param element_id: imageData object and ID
+
+        :return: None
+
+        """

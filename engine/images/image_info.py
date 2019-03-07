@@ -1,3 +1,9 @@
+"""
+
+    Image Metadata Tracking Class
+
+"""
+
 import os
 from typing import List
 
@@ -9,20 +15,18 @@ from PDL.logger.logger import Logger
 
 import prettytable
 
-log = Logger()
+LOG = Logger()
 
 
-"""
-Provides a basic structure for storing metadata and location data about a single
-downloaded image. NOTE This class is simple, and should remain simple, since it
-is only for data storage.
+class ImageData:
+    """
+    Provides a basic structure for storing metadata and location data about a single
+    downloaded image. NOTE This class is simple, and should remain simple, since it
+    is only for data storage.
 
-The class also has some simple helper methods for reporting/displaying the information.
+    The class also has some simple helper methods for reporting/displaying the information.
 
-"""
-
-
-class ImageData(object):
+    """
 
     # Metadata used for checking specific attributes that would not change for the image. The
     # values of these variables should match the defined class attributes.
@@ -35,7 +39,7 @@ class ImageData(object):
     ERROR_INFO = 'error_info'
     FILENAME = 'filename'
     FILE_SIZE = 'file_size'
-    ID = 'id'
+    ID = 'id_'
     IMAGE_NAME = "image_name"
     LOCATIONS = 'locations'
     PAGE_URL = 'page_url'
@@ -63,7 +67,7 @@ class ImageData(object):
         self.error_info = None
         self.filename = None
         self.file_size = None
-        self.id = image_id
+        self.id_ = image_id
         self.image_date = None
         self.image_name = None
         self.image_url = None
@@ -111,7 +115,7 @@ class ImageData(object):
                 sub_action = "--> Adding to location list."
 
             # Log the result accordingly
-            log.debug(f'{obj.id} was {action} in location: {loc} {sub_action}')
+            LOG.debug(f'{obj.id_} was {action} in location: {loc} {sub_action}')
 
         return locations
 
@@ -137,7 +141,7 @@ class ImageData(object):
             # If 'this' has a default value, and the 'other' does not, copy 'other' into 'this'
             if this_value in self.DEFAULT_VALUES and other_value != this_value:
                 setattr(combined_obj, attribute, other_value)
-                log.debug(self.DEBUG_MSG_ADD.format(
+                LOG.debug(self.DEBUG_MSG_ADD.format(
                     name=combined_obj.image_name, attr=attribute, val=other_value))
 
             # For locations, combine the lists and then verify
@@ -179,7 +183,7 @@ class ImageData(object):
 
         """
         attributes = self._list_attributes()
-        attr_dict = dict([(key, getattr(self, key)) for key in attributes])
+        attr_dict = {key: getattr(self, key) for key in attributes}
         return attr_dict
 
     def _list_attributes(self) -> List[str]:
@@ -214,7 +218,7 @@ class ImageData(object):
 
             # Found a key that is not in the class attribution definition
             else:
-                log.error(f"Unrecognized ImageData attribute: '{key}' , value: {value}")
+                LOG.error(f"Unrecognized ImageData attribute: '{key}' , value: {value}")
 
         # If obj being built is legacy and does not have an ID defined, set the ID.
         # Also fix bug where wrong variable was used, so metadata id was set to

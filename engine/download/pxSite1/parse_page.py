@@ -1,3 +1,16 @@
+"""
+This class will take the primary page (the display page), and parse the source code
+for image specific metadata (currently in the form of an embedded JSON dictionary,
+find the list of image URLs (listed by resolution), and select the URL for the
+largest available resolution.
+
+It will also provide some basic translations for unicode.
+
+The primary responsibility of this class is to populate the corresponding
+ImageData object, and select the URL for downloading the image directly.
+
+"""
+
 import datetime
 import json
 import pprint
@@ -15,20 +28,7 @@ from PDL.engine.images.status import DownloadStatus
 from PDL.logger.logger import Logger
 
 
-log = Logger()
-
-"""
-This class will take the primary page (the display page), and parse the source code
-for image specific metadata (currently in the form of an embedded JSON dictionary,
-find the list of image URLs (listed by resolution), and select the URL for the 
-largest available resolution.
-
-It will also provide some basic translations for unicode.
-
-The primary responsibility of this class is to populate the corresponding 
-ImageData object, and select the URL for downloading the image directly.
-
-"""
+LOG = Logger()
 
 
 class ParseDisplayPage(CatalogPage):
@@ -93,8 +93,10 @@ class ParseDisplayPage(CatalogPage):
 
             # Page info was not downloaded
             if self.source_list is None:
-                self.image_info.download_duration += (datetime.datetime.now() - dl_start).total_seconds()
-                log.info(f"Downloaded page in {self.image_info.download_duration:0.3f} seconds.")
+                self.image_info.download_duration += \
+                    (datetime.datetime.now() - dl_start).total_seconds()
+
+                LOG.info(f"Downloaded page in {self.image_info.download_duration:0.3f} seconds.")
                 return
 
         # Using the page source, scrape and store the metadata (as a dictionary)
@@ -102,7 +104,7 @@ class ParseDisplayPage(CatalogPage):
 
         # Calculation download duration
         self.image_info.download_duration += (datetime.datetime.now() - dl_start).total_seconds()
-        log.info(f"Downloaded page in {self.image_info.download_duration:0.3f} seconds.")
+        LOG.info(f"Downloaded page in {self.image_info.download_duration:0.3f} seconds.")
 
         # Store the scraped metadata into the ImageData object
         self.image_info.page_url = self.page_url
@@ -201,8 +203,8 @@ class ParseDisplayPage(CatalogPage):
         image_list.sort(key=lambda x: x[self.SIZE])
         target_url = image_list[-1][self.URL]
 
-        log.debug(f"URL LIST:\n{pprint.pformat(image_list)}")
-        log.debug(f"Returning URL: {target_url}")
+        LOG.debug(f"URL LIST:\n{pprint.pformat(image_list)}")
+        LOG.debug(f"Returning URL: {target_url}")
 
         return target_url
 
@@ -223,7 +225,7 @@ class ParseDisplayPage(CatalogPage):
         log_msg = "Attempt: {attempt}/{max}: Requesting page: '{url}'"
         while attempt < self.MAX_ATTEMPTS and source is None:
             attempt += 1
-            log.debug(log_msg.format(
+            LOG.debug(log_msg.format(
                 url=self.page_url, attempt=attempt, max=self.MAX_ATTEMPTS))
 
             # Try to download the source page
@@ -232,7 +234,7 @@ class ParseDisplayPage(CatalogPage):
 
             # D'oh!! Connection error...
             except requests.exceptions.ConnectionError:
-                log.warn(conn_err.format(attempt=attempt))
+                LOG.warn(conn_err.format(attempt=attempt))
                 time.sleep(self.RETRY_INTERVAL)
 
         # If the source was downloaded and the status code was not a 200 series
@@ -241,7 +243,7 @@ class ParseDisplayPage(CatalogPage):
         if source is not None and int(int(source.status_code)/100) != 2:
             msg = (f"Unable to DL primary page '{self.page_url}': "
                    f"Received status code: {source.status_code}")
-            log.error(msg)
+            LOG.error(msg)
             self.image_info.page_url = f"{self.page_url} ({source.status_code})"
             self.image_info.error_info = msg
             self.image_info.dl_status = DownloadStatus.ERROR
@@ -249,7 +251,7 @@ class ParseDisplayPage(CatalogPage):
 
         # Source was downloaded successfully
         elif attempt < self.MAX_ATTEMPTS:
-            log.info(f"Primary page '{self.page_url}' DL'd!")
+            LOG.info(f"Primary page '{self.page_url}' DL'd!")
 
             # Split and strip the page into a list (elem per line), based on CR/LF.
             # Some pages are formatted with '\n' which made it difficult to parse at times.
@@ -274,7 +276,7 @@ class ParseDisplayPage(CatalogPage):
         match = re.search(domain_pattern, self.page_url)
         if match is not None:
             domain = match.group('domain')
-        log.debug(f"DOMAIN: {domain}")
+        LOG.debug(f"DOMAIN: {domain}")
         return domain
 
     def parse_page_for_link(self) -> str:
@@ -298,7 +300,7 @@ class ParseDisplayPage(CatalogPage):
         else:
             err_msg = (f'Unrecognized domain format: {domain} - '
                        'Unsure how to proceed.')
-            log.error(err_msg)
+            LOG.error(err_msg)
             self.image_info.dl_status = DownloadStatus.ERROR
             self.image_info.error_info = err_msg
             url = None
@@ -331,7 +333,7 @@ class ParseDisplayPage(CatalogPage):
 
             # Adjust brace count to be zero if partial DOM is retrieved
             mismatch = raw_data.count("{") - raw_data.count("}")
-            log.debug(f"Brace mismatch count: {mismatch}")
+            LOG.debug(f"Brace mismatch count: {mismatch}")
             raw_data = "{0}{1}".format(raw_data, '}' * mismatch)
 
             # Remove literal "\n" in source
@@ -343,28 +345,28 @@ class ParseDisplayPage(CatalogPage):
                 metadata = json.loads(raw_data)
 
             except ValueError as exc:
-                log.error("ValueError: Unable to convert to JSON "
+                LOG.error("ValueError: Unable to convert to JSON "
                           f"representation: {exc.args}")
-                log.debug(f"Matching Source:  {raw_data}")
+                LOG.debug(f"Matching Source:  {raw_data}")
 
         # Did not find a match... something has changed on the page
         # Log the source for forensic analysis
         else:
-            log.error("*** Unable to parse metadata from page. ***")
-            log.error(f"PAGE:\n{self.source_list}")
+            LOG.error("*** Unable to parse metadata from page. ***")
+            LOG.error(f"PAGE:\n{self.source_list}")
 
-        log.debug(f"Image Metadata:\n{pprint.pformat(metadata)}")
+        LOG.debug(f"Image Metadata:\n{pprint.pformat(metadata)}")
         return metadata
 
     @staticmethod
-    def remove_control_characters(s: str) -> str:
+    def remove_control_characters(string: str) -> str:
         """
         Remove any non-printing control characters from a string (breaks regexps)
-        :param s: String to check/fix.
+        :param string: String to check/fix.
         :return: String without non-printing characters
 
         """
-        return "".join(ch for ch in s if unicodedata.category(ch)[0] != "C")
+        return "".join(ch for ch in string if unicodedata.category(ch)[0] != "C")
 
     @staticmethod
     def _translate_unicode_in_link(link: str) -> str:
