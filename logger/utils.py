@@ -1,3 +1,10 @@
+"""
+   Generic routines for used for logging
+   * Timestamp_filename building - used for naming logs and time-specific data files.
+   * Check if location exists, if not, give chance to create it.
+          (Used by logging when logging to file)
+"""
+
 import datetime
 import os
 from typing import Optional
@@ -8,7 +15,7 @@ DEFAULT_EXTENSION = 'log'      # Used for finding log files
 DELIMITER = '_'                # Delimiter for file naming convention
 TIMESTAMP = r'%y%m%dT%H%M%S'   # Timestamp: YYYYMMDDThhmmss
 
-log = logger.Logger()
+LOG = logger.Logger()
 
 
 def datestamp_filename(prefix: Optional[str] = None, suffix: Optional[str] = None,
@@ -55,13 +62,13 @@ def datestamp_filename(prefix: Optional[str] = None, suffix: Optional[str] = Non
     # Add extension
     filename += f"{DELIMITER}{log_level.upper()}.{extension}"
 
-    log.debug(f"RAW LOG FILENAME: {filename}")
+    LOG.debug(f"RAW LOG FILENAME: {filename}")
 
     # Build drive specification (if drive letter is provided)
     if drive_letter is not None and drive_letter != '':
         directory = f"{drive_letter}:{directory}"
 
-    log.debug(f"DIRECTORY: {directory}")
+    LOG.debug(f"DIRECTORY: {directory}")
 
     # Join the path and filename
     filename = os.path.sep.join([directory, filename])
@@ -70,7 +77,7 @@ def datestamp_filename(prefix: Optional[str] = None, suffix: Optional[str] = Non
     if drive_letter is None:
         filename = os.path.abspath(filename)
 
-    log.debug(f"FINAL LOG FILENAME: {filename}")
+    LOG.debug(f"FINAL LOG FILENAME: {filename}")
 
     return filename
 
@@ -95,12 +102,12 @@ def check_if_location_exists(location: str, create_dir: bool = False) -> bool:
             # Unexpected exception
             except Exception as exc:
                 result = False
-                log.exception(exc)
+                LOG.exception(exc)
 
             # Directories created
             else:
                 result = True
-                log.debug(f"Created URL save directory: '{location}'")
+                LOG.debug(f"Created URL save directory: '{location}'")
 
         # Path does not exist, but not asked to create it.
         else:
@@ -108,11 +115,11 @@ def check_if_location_exists(location: str, create_dir: bool = False) -> bool:
             msg = (f"URL save file directory does not exist "
                    f"('{location}'), and was not configured "
                    f"to create dir.")
-            log.error(msg)
+            LOG.error(msg)
 
     # Path exists
     else:
         result = True
-        log.debug(f"URL save file directory exists ('{location}')")
+        LOG.debug(f"URL save file directory exists ('{location}')")
 
     return result

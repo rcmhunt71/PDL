@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+"""
+    Utility to generate test data for routines requiring JSON data or
+    ImageData objects.
+
+    Can be used as a module or as a stand-alone script.
+
+"""
+
 import argparse
 import configparser
 import json
@@ -15,22 +23,10 @@ from PDL.engine.images.status import DownloadStatus
 from PDL.logger.logger import Logger
 import PDL.logger.utils as utils
 
-PURPOSE_CLI = "Generate JSON data files for parsing and cataloging."
+PURPOSE_CLI = ("Generate JSON data files for testing the parsing and "
+               "cataloging routines.")
 
-
-# Don't instantiate logger if it is using the code as the primary script.
-# Logic to load logger is in __main__ portion of the script.
-if __name__ != '__main__':
-    log = Logger()
-
-
-"""
-Utility to generate test data for routines requiring JSON data or
-ImageData objects.
-
-Can be used as a module or as a stand-alone script.
-
-"""
+LOG = Logger()
 
 
 def parse_cli() -> argparse.Namespace:
@@ -47,7 +43,7 @@ def parse_cli() -> argparse.Namespace:
     parser.add_argument(
         'max_records', help="Max number of records per data set.")
     parser.add_argument(
-        '-d', '--debug', help="Enabled debug",  action='store_true')
+        '-d', '--debug', help="Enabled debug", action='store_true')
     return parser.parse_args()
 
 
@@ -68,10 +64,10 @@ def build_json_log_location(cfg: configparser.ConfigParser) -> str:
         json_log_location = f"{json_drive.strip(':')}:{json_log_location}"
 
     # Verify directory exists
-    log.info(f"Checking directory: {json_log_location}")
+    LOG.info(f"Checking directory: {json_log_location}")
     if not utils.check_if_location_exists(
             location=json_log_location, create_dir=True):
-        log.error(f"Unable to find source directory: {json_log_location}")
+        LOG.error(f"Unable to find source directory: {json_log_location}")
         exit()
 
     return json_log_location
@@ -86,7 +82,7 @@ def build_data_element(index: int) -> ImageData:
     :return: Instantiated ImageData Object
 
     """
-    log.debug(f"Building dataset #:{index}")
+    LOG.debug(f"Building dataset #:{index}")
     metadata = [f"category_{x}" for x in range(1, 7)]
 
     return ImageData.build_obj({
@@ -111,7 +107,8 @@ def build_data_element(index: int) -> ImageData:
     })
 
 
-def generate_data(num_data_sets: int, max_num_recs_per_file: int) -> Dict[str, Dict[str, ImageData]]:
+def generate_data(num_data_sets: int, max_num_recs_per_file: int) -> \
+        Dict[str, Dict[str, ImageData]]:
     """
     Builds dictionary of data_sets for each filename
 
@@ -129,13 +126,13 @@ def generate_data(num_data_sets: int, max_num_recs_per_file: int) -> Dict[str, D
 
     data_sets = dict()
 
-    log.info(f"Generating {num_data_sets} data sets.")
+    LOG.info(f"Generating {num_data_sets} data sets.")
     for number in range(num_data_sets):
         filename = filename_fmt.format(number + 1)
         data_sets[filename] = dict()
 
         num_records = randint(1, max_num_recs_per_file)
-        log.info(f"Data set has {num_records} records.")
+        LOG.info(f"Data set has {num_records} records.")
 
         for data_set in range(num_records):
             record = build_data_element(data_set)
@@ -147,9 +144,9 @@ def generate_data(num_data_sets: int, max_num_recs_per_file: int) -> Dict[str, D
 def execute(num_data_sets: int, max_records: int, cfg_file: str) -> List[str]:
     """
 
-    Given the parameters, generate the requested data files in the specified directory. The number of
-    records per data set is a random value between [1, max_records]. The files will be generated in the log
-    directory defined in the App cfg file provided.
+    Given the parameters, generate the requested data files in the specified directory.
+    The number of records per data set is a random value between [1, max_records].
+    The files will be generated in the log directory defined in the App cfg file provided.
 
     :param num_data_sets: Number of files to generate
     :param max_records: Max number of records per data set.
@@ -166,12 +163,12 @@ def execute(num_data_sets: int, max_records: int, cfg_file: str) -> List[str]:
     data = generate_data(
         num_data_sets=int(num_data_sets),
         max_num_recs_per_file=int(max_records))
-    log.debug(pprint.pformat(data))
+    LOG.debug(pprint.pformat(data))
 
     # Determine the number of records generated
     actual_count = sum([len(x.keys()) for x in data.values()])
     max_count = int(num_data_sets) * int(max_records)
-    log.info(f"Count: {actual_count} (MAX: {max_count})")
+    LOG.info(f"Count: {actual_count} (MAX: {max_count})")
 
     # Write the dictionary to JSON files in the predetermined directory
     gen_files = []
@@ -186,24 +183,34 @@ def execute(num_data_sets: int, max_records: int, cfg_file: str) -> List[str]:
         gen_files.append(filepath)
 
         # Write the data to file.
-        with open(filepath, "w") as DATA_FILE:
-            DATA_FILE.write(json.dumps(data))
-        log.info(f"Wrote data to '{filepath}'.")
+        with open(filepath, "w") as data_file:
+            data_file.write(json.dumps(data))
+        LOG.info(f"Wrote data to '{filepath}'.")
 
-    log.info("Done")
+    LOG.info("Done")
     return gen_files
 
 
-if __name__ == '__main__':
+def main_test_routine():
+    """
+    Main test routine.
+       * Get args from CLI
+       * Setup Logging
+       * Execute data generation
+
+    :return:
+    """
     args = parse_cli()
 
-    # TODO: Figure out what is causing adding second logger (duplicate logs)
     log = Logger(set_root=True,
                  default_level=Logger.DEBUG if args.debug else Logger.INFO)
+
     log.debug("DEBUG enabled.")
 
-    data_files = execute(
-        num_data_sets=args.num_data_sets,
-        max_records=args.max_records,
-        cfg_file=args.cfg
-    )
+    execute(num_data_sets=args.num_data_sets,
+            max_records=args.max_records,
+            cfg_file=args.cfg)
+
+
+if __name__ == '__main__':
+    main_test_routine()

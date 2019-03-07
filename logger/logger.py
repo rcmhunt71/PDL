@@ -1,3 +1,14 @@
+"""
+    Generic Logging functionality with specific formatting, manipulation of
+    the handlers, shortcuts to logging levels.
+
+    specific formatting includes:
+      * ASCII Timestamp in ISO8604 formatting
+      * PID
+      * LOGLEVEL (explicitly listed)
+      * FILENAME, ROUTINE, and LINE NUMBER of invoking code
+
+"""
 import inspect
 import logging
 import os
@@ -9,7 +20,7 @@ import prettytable
 # TODO: <DOC> Add README.md to directory
 
 
-class Logger(object):
+class Logger:
     """
     Creates a logging facility that can be used by any module.
     Import the loggeer and instantiate in module:
@@ -53,7 +64,7 @@ class Logger(object):
     # Reverse lookups: logging.LEVEL are integers, and this creates
     # a quick lookup: given a value, what is the corresponding string
     # e.g. = 40 --> INFO
-    VAL_TO_STR = dict([(value, text) for text, value in STR_TO_VAL.items()])
+    VAL_TO_STR = {value: text for text, value in STR_TO_VAL.items()}
 
     # Logging statement format
     LOG_FORMAT = (r'[%(asctime)-15s][%(pid)s][%(levelname)-5s]'
@@ -67,8 +78,9 @@ class Logger(object):
     ROOT_LOGGER = 'root'
 
     def __init__(
-            self, filename: Optional[str] = None, default_level: Optional[str] = None, added_depth: int = 0,
-            project: Optional[str] = None, set_root: bool = False, test_name: Optional[str] = None) -> None:
+            self, filename: Optional[str] = None, default_level: Optional[str] = None,
+            added_depth: int = 0, project: Optional[str] = None, set_root: bool = False,
+            test_name: Optional[str] = None) -> None:
         """
         :param filename: Filename to write logs to...
         :param default_level: Default stack level (default = DEFAULT_STACK_DEPTH)
@@ -249,7 +261,9 @@ class Logger(object):
     @staticmethod
     def _translate_to_dotted_lib_path(path: str) -> str:
         """
-        Create a python import path from a filesystem path by replacing the '/' (os.path.sep) with '.'
+        Create a python import path from a filesystem path by replacing
+        the os.path.sep with '.'
+
         :param path: path of module
 
         :return: (str) dotted module path
@@ -283,40 +297,98 @@ class Logger(object):
     # ------------------------------------------------------------------
 
     def fatal(self, msg) -> None:
+        """
+        Shortcut to logging.fatal() logging call
+        :param msg: Message to log
+
+        :return: None
+
+        """
         self._log_level(level='FATAL', msg=msg)
 
     def error(self, msg) -> None:
+        """
+        Shortcut to logging.error() logging call
+        :param msg: Message to log
+
+        :return: None
+
+        """
         self._log_level(level='ERROR', msg=msg)
 
     def warn(self, msg) -> None:
+        """
+        Shortcut to logging.warn() logging call
+        :param msg: Message to log
+
+        :return: None
+
+        """
         self._log_level(level='WARN', msg=msg)
 
     def info(self, msg) -> None:
+        """
+        Shortcut to logging.info() logging call
+        :param msg: Message to log
+
+        :return: None
+
+        """
         self._log_level(level='INFO', msg=msg)
 
     def debug(self, msg) -> None:
+        """
+        Shortcut to logging.debug() logging call
+        :param msg: Message to log
+
+        :return: None
+
+        """
         self._log_level(level='DEBUG', msg=msg)
 
     def exception(self, msg) -> None:
+        """
+        Shortcut to logging.exception() logging call
+        :param msg: Message to log
+        :return: None
+
+        """
         self._log_level(level='EXCEPTION', msg=msg)
 
 
 # FOR VISUAL/MANUAL TESTING PURPOSES
 #   - Need to be executed explicitly.
-#   - pragma = not monitored by coverage tool
+#   - pragma keyword => not monitored by unittest coverage tool
 
 if __name__ == '__main__':  # pragma: no cover
 
     def test_routine(logger: logging.Logger, level: str, msg: str) -> None:
+        """
+        Get the specified logger level method, and log msg.
+
+        :param logger: Logger facility to use
+        :param level: Logging level (method) to retrieve
+        :param msg: Msg to log...
+
+        :return: None
+
+        """
         test_log = getattr(logger, level.lower())
         test_log(msg)
 
     def test_logging() -> None:
-        test_routine(log, 'info', 'TEST')
-        test_routine(log, 'debug', 'TEST2')
+        """
+        Execute a series of logging messages at different levels
 
-    log = Logger(default_level=logging.DEBUG,
+        :return: None
+
+        """
+        test_routine(LOG, 'info', 'TEST')
+        test_routine(LOG, 'debug', 'TEST2')
+
+    LOG = Logger(default_level=logging.DEBUG,
                  filename="logger_test.log",
                  set_root=True,
                  added_depth=1)
+
     test_logging()

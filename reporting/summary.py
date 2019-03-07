@@ -1,3 +1,11 @@
+"""
+This module creates the various prettyTable tables used within the application.
+
+NOTE: There is a wrapper function _log_table that will process a string_version of
+   the table and record it into the logs (at requested or default level)
+
+"""
+
 from typing import Dict, List, Optional
 
 from PDL.engine.images.image_info import ImageData
@@ -6,18 +14,10 @@ from PDL.logger.logger import Logger
 
 import prettytable
 
-log = Logger()
-
-"""
-This module creates the various prettyTable tables used within the application.
-
-NOTE: There is a wrapper function _log_table that will process a string_version of the table and
-   record it into the logs (at requested or default level)
-
-"""
+LOG = Logger()
 
 
-class ReportingSummary(object):
+class ReportingSummary:
 
     """
     Builds various reports for DL'd images, leveraging the data in
@@ -51,22 +51,22 @@ class ReportingSummary(object):
         """
 
         # Try to get requested logger level call
-        log_call = getattr(log, log_level.lower(), None)
+        log_call = getattr(LOG, log_level.lower(), None)
 
         # If None, report error and use default level.
         if log_call is None:
-            log.error(f"Unable to log at level '{log_level.lower()}', "
+            LOG.error(f"Unable to log at level '{log_level.lower()}', "
                       f"defaulting to '{ReportingSummary.DEFAULT_LOG_LEVEL}'")
-            log_call = getattr(log, ReportingSummary.DEFAULT_LOG_LEVEL, None)
+            log_call = getattr(LOG, ReportingSummary.DEFAULT_LOG_LEVEL, None)
 
         # Record the log in the tables
         # Temporarily adjust log depth by 1 , so routine that created table is
         # logged, not this routine (which only prints the table)
-        log_depth = log.depth
-        log.depth += 1
+        log_depth = LOG.depth
+        LOG.depth += 1
         for line in table.split('\n'):
             log_call(line)
-        log.depth = log_depth
+        LOG.depth = log_depth
 
     # ------------------- BASIC RESULT TABLE STRUCTURE -------------------
 
@@ -87,18 +87,18 @@ class ReportingSummary(object):
 
         # Value Type = INTEGER
         if value_type.lower() == self.INT_VALUE_TYPE:
-            log.debug(debug_msg.format(type_=self.INT_VALUE_TYPE))
-            init_dict = dict([(getattr(DownloadStatus, status), 0) for status in statuses])
+            LOG.debug(debug_msg.format(type_=self.INT_VALUE_TYPE))
+            init_dict = {getattr(DownloadStatus, status): 0 for status in statuses}
 
         # Value Type = LIST
         elif value_type.lower() == self.LIST_VALUE_TYPE:
-            log.debug(debug_msg.format(type_=self.LIST_VALUE_TYPE))
-            init_dict = dict([(getattr(DownloadStatus, status), list()) for status in statuses])
+            LOG.debug(debug_msg.format(type_=self.LIST_VALUE_TYPE))
+            init_dict = {getattr(DownloadStatus, status): list() for status in statuses}
 
         # Value Type = DICTIONARY
         elif value_type.lower() == self.DICT_VALUE_TYPE:
-            log.debug(debug_msg.format(type_=self.DICT_VALUE_TYPE))
-            init_dict = dict([(getattr(DownloadStatus, status), dict()) for status in statuses])
+            LOG.debug(debug_msg.format(type_=self.DICT_VALUE_TYPE))
+            init_dict = {getattr(DownloadStatus, status): dict() for status in statuses}
 
         return init_dict
 
@@ -111,7 +111,7 @@ class ReportingSummary(object):
         :return: Dictionary (key: status type, value: total count)
 
         """
-        log.debug("Tallying Download Status results.")
+        LOG.debug("Tallying Download Status results.")
         status_tally = self.init_status_dict_(value_type=self.INT_VALUE_TYPE)
 
         # Iterate through all ImageData objects, and
@@ -150,7 +150,7 @@ class ReportingSummary(object):
             self.status_tally = self.tally_status_results()
 
         # Populate table
-        log.debug("Building Download Status Results table.")
+        LOG.debug("Building Download Status Results table.")
         for status, count in self.status_tally.items():
             table.add_row([status.upper(), count])
 
@@ -218,9 +218,9 @@ class ReportingSummary(object):
             data_dict[image.dl_status].append(image)
 
         if specific_status is not None:
-            log.debug(f"Displaying specific status: '{str(specific_status).upper()}'")
+            LOG.debug(f"Displaying specific status: '{str(specific_status).upper()}'")
 
-        log.debug("Building URL results table.")
+        LOG.debug("Building URL results table.")
         total_dur = 0.0
 
         # Iterate through data, scanning for status types and corresponding links
@@ -236,7 +236,9 @@ class ReportingSummary(object):
                     table.add_row([
                         "{delim}{url}".format(
                             url='{name}'.format(
-                                name=image.filename if image.filename is not None else image.page_url),
+                                name=image.filename if image.filename is not None else
+                                image.page_url),
+
                             delim=delimiter),
                         time_format.format(image.download_duration)])
 

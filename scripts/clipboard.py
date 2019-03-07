@@ -1,3 +1,7 @@
+"""
+   Simple script for testing pyperclip functionality via the CLI
+"""
+
 import argparse
 import time
 import pyperclip
@@ -30,8 +34,14 @@ def is_url(target_string: str) -> bool:
     return target_string.lstrip().lower().startswith('http')
 
 
-if __name__ == '__main__':
+def main():
+    """
+    Primary routine. Get args, process copy buffer until interrupt is caught,
+    write file and exit.
 
+    :return: None
+
+    """
     # Get the filename to store info...
     filename = get_cli_args().filename
 
@@ -41,9 +51,10 @@ if __name__ == '__main__':
     # Counter for number of URLs written
     num_urls = 0
 
-    # Open file, and keep polling copy buffer. If data is found, verify it has not been recorded in last loop
-    # and it is a URL. If so, write to file. Wait for Ctrl-C (Keyboard Interrupt) to exit.
-    with open(filename, "w+") as FILE:
+    # Open file, and keep polling copy buffer. If data is found, verify it has not been
+    # recorded in last loop and it is a URL. If so, write to file.
+    # Wait for Ctrl-C (Keyboard Interrupt) to exit.
+    with open(filename, "w+") as copy_buffer_file:
         while True:
             try:
                 # Read buffer
@@ -53,7 +64,7 @@ if __name__ == '__main__':
                 if is_url(buffer) and buffer != last_url:
 
                     # Write the URL and store the link in the last_buffer
-                    FILE.write('{0}\n'.format(buffer.strip()))
+                    copy_buffer_file.write('{0}\n'.format(buffer.strip()))
                     num_urls += 1
                     last_url = buffer
                     print(f"({num_urls}) Copied '{buffer}' to {filename}")
@@ -67,3 +78,7 @@ if __name__ == '__main__':
 
     # Bye Felicia!
     print(f"Done. {num_urls} URLs written.")
+
+
+if __name__ == '__main__':
+    main()

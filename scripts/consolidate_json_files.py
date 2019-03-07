@@ -1,3 +1,14 @@
+"""
+    PURPOSE: Utility to combine multiple JSON files into a single JSON file (DL'd images only)
+    ===========================================================================================
+        * Find all <data>.json files
+        * Read all records with dl_status == DOWNLOADED into a single dictionary
+        * Write dictionary to file in JSON format
+        * Verify data integrity
+        * Delete <data>.json files
+        * Verify all <data>.json files were deleted.
+"""
+
 import argparse
 import configparser
 import json
@@ -13,22 +24,12 @@ from PDL.engine.inventory.json.inventory import JsonInventory
 from PDL.logger.logger import Logger
 import PDL.logger.utils as utils
 
-"""
-PURPOSE: Utility to combine multiple JSON files into a single JSON file (DL'd images only)
-===========================================================================================
-* Find all <data>.json files
-* Read all records with dl_status == DOWNLOADED into a single dictionary
-* Write dictionary to file in JSON format
-* Verify data integrity
-* Delete <data>.json files
-* Verify all <data>.json files were deleted. 
-"""
 
 PURPOSE_CLI = "Consolidate JSON files into single file."
 BASE_FILE_NAME = "CONSOLIDATED_"
 EXTENSION = "json"
 
-log = Logger()
+LOG = Logger()
 
 
 def parse_cli() -> argparse.Namespace:
@@ -63,9 +64,9 @@ def build_json_log_location(cfg: configparser.ConfigParser) -> str:
         json_log_location = f"{json_drive.strip(':')}:{json_log_location}"
 
     # Verify directory exists
-    log.info(f"Checking directory: {json_log_location}")
+    LOG.info(f"Checking directory: {json_log_location}")
     if not utils.check_if_location_exists(location=json_log_location, create_dir=False):
-        log.error(f"Unable to find source directory: {json_log_location}")
+        LOG.error(f"Unable to find source directory: {json_log_location}")
         exit()
 
     return json_log_location
@@ -73,8 +74,8 @@ def build_json_log_location(cfg: configparser.ConfigParser) -> str:
 
 def read_files(files: List[str]) -> Dict[str, ImageData]:
     """
-    Read list of <data>.json files into a common dictionary. All keeps stats about how many records were found,
-    and how many were dl_status == DOWNLOAD.
+    Read list of <data>.json files into a common dictionary. All keeps stats about
+    how many records were found, and how many were dl_status == DOWNLOAD.
 
     :param files: list of absolute_path <data>.json files
 
@@ -89,12 +90,12 @@ def read_files(files: List[str]) -> Dict[str, ImageData]:
     for json_file in files:
 
         # Read JSON contents and convert into python structure
-        with open(json_file, "r") as JSON:
-            lines = "\n".join(JSON.readlines())
+        with open(json_file, "r") as source_json_file:
+            lines = "\n".join(source_json_file.readlines())
         raw_data = json.loads(lines)
         num_raw_recs += len(raw_data.keys())
 
-        log.info(f"Reading JSON File: {json_file}")
+        LOG.info(f"Reading JSON File: {json_file}")
 
         # Filter out non-DOWNLOAD'ed records
         dl_images = get_downloads_only(raw_data)
@@ -103,8 +104,8 @@ def read_files(files: List[str]) -> Dict[str, ImageData]:
         # Add entries to dictionary
         data.update(dl_images)
 
-    log.info(f"RAW RECORDS: {num_raw_recs}  DOWNLOADED: {num_dl_recs}")
-    log.debug(pprint.pformat(data))
+    LOG.info(f"RAW RECORDS: {num_raw_recs}  DOWNLOADED: {num_dl_recs}")
+    LOG.debug(pprint.pformat(data))
     return data
 
 
@@ -117,8 +118,8 @@ def get_downloads_only(json_dict: Dict[str, ImageData]) -> Dict[str, ImageData]:
     :return: dictionary of JSON records where dl_status == DOWNLOAD
 
     """
-    return dict([(image, data) for image, data in json_dict.items() if
-                 data[ImageData.DL_STATUS] == DownloadStatus.DOWNLOADED])
+    return {image: data for image, data in json_dict.items() if
+            getattr(data, ImageData.DL_STATUS) == DownloadStatus.DOWNLOADED}
 
 
 def determine_consolidate_file_name(files: List[str], target_dir: str) -> str:
@@ -144,9 +145,9 @@ def determine_consolidate_file_name(files: List[str], target_dir: str) -> str:
     if file_names:
         file_names = [x.split('.')[0] for x in file_names]
         last_index = sorted([int(x.split('_')[-1]) for x in file_names])[-1]
-        log.info(f"Last Index Found: {last_index}")
+        LOG.info(f"Last Index Found: {last_index}")
     else:
-        log.warn("CONSOLIDATED FILE NOT FOUND.")
+        LOG.warn("CONSOLIDATED FILE NOT FOUND.")
 
     filename = f'{BASE_FILE_NAME}{last_index + 1}.{EXTENSION}'
     return os.path.abspath(os.path.sep.join([target_dir, filename]))
@@ -161,9 +162,9 @@ def write_json_file(filename: str, data: dict) -> None:
 
     :return: None
     """
-    with open(filename, "w") as FILE:
-        FILE.write(json.dumps(data))
-    log.info(f"Wrote data to: {filename}")
+    with open(filename, "w") as json_output_file:
+        json_output_file.write(json.dumps(data))
+    LOG.info(f"Wrote data to: {filename}")
 
 
 def read_json_file(filename: str) -> dict:
@@ -176,9 +177,9 @@ def read_json_file(filename: str) -> dict:
 
     """
     data = dict()
-    with open(filename, "r") as FILE:
-        data.update(json.loads('\n'.join(FILE.readlines())))
-    log.info(f"Read data from: {filename}")
+    with open(filename, "r") as json_file:
+        data.update(json.loads('\n'.join(json_file.readlines())))
+    LOG.info(f"Read data from: {filename}")
     return data
 
 
@@ -203,35 +204,45 @@ def verify_records_match(original: dict, consolidated: dict) -> bool:
         errors = True
         diff = orig - consolid
 
-        log.error("*** Missing records!!!")
+        LOG.error("*** Missing records!!!")
         for rec in diff:
-            log.error(f"+ Did not find: {rec}")
+            LOG.error(f"+ Did not find: {rec}")
 
     # Dictionaries match!
     else:
-        log.info("VALIDATED: All records accounted for.")
+        LOG.info("VALIDATED: All records accounted for.")
 
     return not errors
 
 
-if __name__ == '__main__':
+def main_routine():
+    """
+    Primary routine:
+       * Get list of non-consolidated JSON files based on info from config file
+       * Read all JSON files into a common structure, and combine any identical items
+       * Write data to file.
+       * Verify all data in consolidated file matches the source files.
+       * Delete source JSON files that were consolidated (and verify all files were deleted)
 
+    :return: None
+
+    """
     length = 80
     border = "=" * length
 
     # Parse CLI for specified config file
     cfg_name = parse_cli().cfg
-    log.info(border)
-    log.info(f"     USING CFG: {cfg_name}")
-    log.info(border)
+    LOG.info(border)
+    LOG.info(f"     USING CFG: {cfg_name}")
+    LOG.info(border)
 
     # Determine the JSON log directory from the config file
     log_location = build_json_log_location(cfg=AppConfig(cfg_file=cfg_name))
 
     # Get a list of the JSON files in the 'log_location' directory
-    log.info(border)
-    log.info("    GET LISTING OF JSON FILES TO CONSOLIDATE.")
-    log.info(border)
+    LOG.info(border)
+    LOG.info("    GET LISTING OF JSON FILES TO CONSOLIDATE.")
+    LOG.info(border)
     inv = JsonInventory(dir_location=log_location)
     json_files = inv.get_json_files()
 
@@ -242,15 +253,15 @@ if __name__ == '__main__':
 
     # Determine name and location of where CONSOLIDATED JSON file
     consolidated_log = determine_consolidate_file_name(files=json_files, target_dir=log_location)
-    log.info(f"Consolidating to: {consolidated_log}")
+    LOG.info(f"Consolidating to: {consolidated_log}")
 
     # Create the CONSOLIDATED JSON file
     write_json_file(data=records, filename=consolidated_log)
 
     # Verify CONSOLIDATED JSON file matches the original data
-    log.info(border)
-    log.info("    VERIFY CONTENTS MATCH ORIGINAL FILES")
-    log.info(border)
+    LOG.info(border)
+    LOG.info("    VERIFY CONTENTS MATCH ORIGINAL FILES")
+    LOG.info(border)
     success = verify_records_match(
         original=read_files(files=data_files),
         consolidated=read_json_file(consolidated_log))
@@ -259,12 +270,12 @@ if __name__ == '__main__':
     if success:
 
         # Delete files
-        log.info(border)
-        log.info("    DELETING NON-CONSOLIDATED JSON FILES")
-        log.info(border)
+        LOG.info(border)
+        LOG.info("    DELETING NON-CONSOLIDATED JSON FILES")
+        LOG.info(border)
         for data_file in data_files:
             os.remove(data_file)
-            log.info(f"Deleted {data_file}")
+            LOG.info(f"Deleted {data_file}")
 
         # Get updated list of JSON files in the directory
         json_files = inv.get_json_files()
@@ -272,10 +283,14 @@ if __name__ == '__main__':
 
         # data_files should be empty (no <data>.JSON files)
         if data_files:
-            log.error("JSON data files NOT deleted:")
+            LOG.error("JSON data files NOT deleted:")
             for data_file in data_files:
-                log.error(f"+ {data_file}")
+                LOG.error(f"+ {data_file}")
         else:
-            log.info(border)
-            log.info(f"    CONSOLIDATION SUCCESSFUL. {consolidated_log}")
-            log.info(border)
+            LOG.info(border)
+            LOG.info(f"    CONSOLIDATION SUCCESSFUL. {consolidated_log}")
+            LOG.info(border)
+
+
+if __name__ == '__main__':
+    main_routine()

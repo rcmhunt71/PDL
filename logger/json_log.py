@@ -1,13 +1,17 @@
+"""
+ Export multiple ImageData Objects to a single JSON file
+"""
+
 import json
 from typing import List
 
 from PDL.engine.images.image_info import ImageData
 from PDL.logger.logger import Logger as Log
 
-log = Log()
+LOG = Log()
 
 
-class JsonLog(object):
+class JsonLog:
     """
     This class provides methods to take a python data structure,
     convert it to JSON, and write to file, with it's own logging.
@@ -28,6 +32,9 @@ class JsonLog(object):
         """
         self.image_obj_list = image_obj_list
         self.logfile_name = log_filespec
+        # Convert list of objects into dictionary of dictionaries.
+        self.data = {image_obj.filename: image_obj.to_dict() for image_obj
+                     in self.image_obj_list}
 
     def write_json(self) -> None:
         """
@@ -38,12 +45,20 @@ class JsonLog(object):
         :return: None
 
         """
-        # Convert list of objects into dictionary of dictionaries.
-        data = dict([(x.filename, x.to_dict()) for x in self.image_obj_list])
-
         # Write to file
-        with open(self.logfile_name, "w") as JSON:
-            JSON.write(json.dumps(data))
+        with open(self.logfile_name, "w") as json_file:
+            json_file.write(json.dumps(self.data))
 
         # Log action.
-        log.info(f"Output image info to: {self.logfile_name}")
+        LOG.info(f"Output image info to: {self.logfile_name}")
+
+    def write_to_log(self):
+        """
+        Rather than write to file, output to the log.
+
+        return: None
+
+        """
+        output = json.dumps(self.data)
+        for line in output.split('\n'):
+            LOG.info(line)
