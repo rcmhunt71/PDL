@@ -149,7 +149,8 @@ def process_and_record_urls(cfg_obj: PdlConfig) -> list:
         LOG.debug(f"Updated URL File directory for drive letter: {url_file_dir}")
 
     # If there were URLs available to DL after validation, create the URL file.
-    if not cfg_obj.urls:
+    # TODO: Write test to verify URL file is written if there are URLs and no file if there are not URLS
+    if cfg_obj.urls:
         url_file.write_file(urls=cfg_obj.urls, create_dir=True, location=url_file_dir)
     else:
         LOG.info("No URLs for DL, no URL FILE created.")
