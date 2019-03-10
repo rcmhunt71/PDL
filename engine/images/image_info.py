@@ -5,7 +5,10 @@
 """
 
 import os
+from dataclasses import dataclass, field
 from typing import List
+
+import prettytable
 
 from PDL.engine.images.status import (
     DownloadStatus as Status,
@@ -13,11 +16,11 @@ from PDL.engine.images.status import (
 )
 from PDL.logger.logger import Logger
 
-import prettytable
 
 LOG = Logger()
 
 
+@dataclass
 class ImageData:
     """
     Provides a basic structure for storing metadata and location data about a single
@@ -57,24 +60,27 @@ class ImageData:
     DEFAULT_VALUES = [None, Status.NOT_SET, ModStatus.MOD_NOT_SET, list(), 0]
     DEBUG_MSG_ADD = "JSON: Image {name}: Added Attribute: '{attr}' Value: '{val}'"
 
-    def __init__(self, image_id=None):
-        self.author = None
-        self.classification_metadata = list()
-        self.description = None
-        self.dl_status = Status.NOT_SET
-        self.download_duration = 0
-        self.downloaded_on = None
-        self.error_info = None
-        self.filename = None
-        self.file_size = None
-        self.id_ = image_id
-        self.image_date = None
-        self.image_name = None
-        self.image_url = None
-        self.locations = list()
-        self.mod_status = ModStatus.MOD_NOT_SET
-        self.page_url = None
-        self.resolution = None
+    author: str = field(default=None, metadata={'descr': 'Photographer'})
+    classification_metadata: List[str] = field(
+        default_factory=lambda: [], metadata={'descr': 'Classifications'})
+    description: str = field(default=None, metadata={'descr': 'Description of image'})
+    dl_status: str = field(default=Status.NOT_SET, metadata={'descr': 'Download Status'})
+    download_duration: float = field(
+        default=0.0, metadata={'descr': 'Time taken to download'})
+    downloaded_on: str = field(default=None, metadata={'descr':'Timestamp of download'})
+    error_info: str = field(default=None, metadata={'descr': 'Errors encountered during DL'})
+    filename: str = field(default=None, metadata={'descr': 'Name of image file'})
+    file_size: int = field(default=0, metadata={'descr': 'Size of image file, in bytes'})
+    id_: str = field(default=None, metadata={'descr': 'Unique Identification Str'})
+    image_date: str = field(default=None, metadata={'descr': 'Date photo was taken'})
+    image_name: str = field(default=None, metadata={'descr': 'Title of Image'})
+    image_url: str = field(default=None, metadata={'descr': 'URL of Image DL'})
+    locations: List[str] = field(
+        default_factory=lambda: [], metadata={'descr': 'List of locations image is stored'})
+    mod_status: str = field(
+        default=ModStatus.MOD_NOT_SET, metadata={'descr': 'Database Status'})
+    page_url: str = field(default=None, metadata={'descr': 'Primary Page URL'})
+    resolution: str = field(default=None, metadata={'descr': 'Image Resolution: L x W'})
 
     def __str__(self) -> str:
         return f"\n{self.table()}"
@@ -213,6 +219,10 @@ class ImageData:
         # Iterate through the provided data, and if the attribute exists in the class definition,
         # populate the object attribute
         for key, value in dictionary.items():
+
+            # Fix legacy issue where name changed from id to id_
+            if key == 'id':
+                key = cls.ID
             if hasattr(obj, key):
                 setattr(obj, key, value)
 
@@ -225,11 +235,11 @@ class ImageData:
         # 'filename' instead of actual id.
         if hasattr(obj, cls.FILENAME) and getattr(obj, cls.FILENAME) is not None:
             if getattr(obj, cls.ID) is None or getattr(obj, cls.ID) == cls.FILENAME:
-                setattr(obj, cls.ID, getattr(obj, cls.FILENAME).split(".")[0])
+                setattr(obj, cls.ID, str(getattr(obj, cls.FILENAME)).split(".")[0])
 
             # TODO: Find where filename is stripping the extension and remove this temp fix (hack)
             extension = 'jpg'
-            if not getattr(obj, cls.FILENAME).endswith(extension):
+            if not str(getattr(obj, cls.FILENAME)).endswith(extension):
                 setattr(obj, cls.FILENAME, f"{getattr(obj, cls.FILENAME)}.{extension}")
 
         return obj
