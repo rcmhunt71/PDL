@@ -54,13 +54,13 @@ def main():
     # -----------------------------------------------------------------
     elif app_config.cli_args.command == args.ArgSubmodules.INFO:
         log.debug("Selected args.ArgSubmodules.INFO")
-        image = getattr(app_config.cli_args, args.ArgOptions.IMAGE, None).lower()
-        if image.lower().endswith('jpg'):
-            image = image.split('.')[0]
-        if image.lower() in app_config.inventory.inventory.keys():
-            log.info(app_config.inventory.inventory[image])
+        image_id = getattr(app_config.cli_args, args.ArgOptions.IMAGE, None).lower()
+        if image_id.lower().endswith('jpg'):
+            image_id = image_id.split('.')[0]
+        if image_id.lower() in app_config.inventory.inventory.keys():
+            log.info(app_config.inventory.inventory[image_id])
         else:
-            log.info(f"Image '{image}' not found.")
+            log.info(f"Image '{image_id}' not found.")
 
     # -----------------------------------------------------------------
     #                UNRECOGNIZED SUB-COMMAND

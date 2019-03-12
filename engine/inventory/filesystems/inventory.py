@@ -8,12 +8,12 @@ import os
 import pickle
 from typing import Dict, Optional
 
+import prettytable
+
 from PDL.engine.images.image_info import ImageData
 from PDL.engine.images.status import DownloadStatus
 from PDL.engine.inventory.base_inventory import BaseInventory
 from PDL.logger.logger import Logger
-
-import prettytable
 
 LOG = Logger()
 
@@ -122,7 +122,7 @@ class FSInv(BaseInventory):
             pickle.dump(data, pickle_file)
 
         # Report status and some details about the file.
-        file_size = int(os.stat(filename).st_size) / FSInv.KILOBYTE
+        file_size = float(os.stat(filename).st_size) / FSInv.KILOBYTE
         LOG.info(f"Pickling inventory complete. {len(data.keys())} "
                  f"records written. File Size:  {file_size:0.2f} KB.")
 
@@ -153,7 +153,7 @@ class FSInv(BaseInventory):
     def _scan_(self, target_dir: Optional[str] = None, base_dir: Optional[str] = None) -> None:
         """
         Recursively determine the images and directories. Store the information about the image
-        in the _inventory dictionary, then traverse the sub-drectories.
+        in the _inventory dictionary, then traverse the sub-directories.
 
         :param target_dir: Used by recursive call.
         :param base_dir: Starting point for scanning
@@ -161,6 +161,7 @@ class FSInv(BaseInventory):
         :return: None
 
         """
+
         # Determine current location to start scan (based on current place in recursion)
         directory = target_dir or self.base_dir
         if base_dir is None and target_dir is None:
@@ -178,28 +179,37 @@ class FSInv(BaseInventory):
             return
 
         # Get all files from directory listing
-        files = [str(x).rstrip(self.INV_FILE_EXT) for x in contents if
-                 x.endswith(self.INV_FILE_EXT)]
+        file_ids = [str(target_file).rstrip(self.INV_FILE_EXT) for target_file
+                    in contents if target_file.lower().endswith(self.INV_FILE_EXT)]
 
         # Get all subdirectories from directory listing
-        directories = [str(x) for x in contents if '.' not in x]
+        directories = [str(dirctry) for dirctry in contents if '.' not in dirctry]
 
         # Iterate through the files, populating/updating the _inventory dictionary.
         LOG.debug(f"\t+ {base_dir}")
-        for file_name in files:
+        for file_id in file_ids:
 
             # Create the object if it does not exist in the inventory
-            self._add_imagedata_object(file_name)
-            image_obj = self._inventory[file_name]
+            self._add_imagedata_object(file_id)
+            image_obj = self._inventory[file_id]
 
             # Determine the absolute path for the image
             file_path = os.path.abspath(os.path.sep.join(
-                [base_dir, f'{file_name}.{self.INV_FILE_EXT}']))
+                [base_dir, f'{file_id}{self.INV_FILE_EXT}']))
 
             # If the image exists, record the file size (in KB)
             if os.path.exists(file_path):
-                file_size = int(os.stat(file_path).st_size) / self.KILOBYTE
+                file_size = float(os.stat(file_path).st_size) / self.KILOBYTE
                 setattr(image_obj, ImageData.FILE_SIZE, f'{file_size:0.2f} KB')
+
+            # Set the ID if it is missing.
+            if getattr(image_obj, ImageData.ID) is None:
+                setattr(image_obj, ImageData.ID, file_id)
+
+            # Make sure filename ends with file extension. (Fixes old issue with stripping ext)
+            f_name = getattr(image_obj, ImageData.FILENAME)
+            if not f_name.lower().endswith(self.INV_FILE_EXT):
+                setattr(image_obj, ImageData.FILENAME, f"{f_name}{self.INV_FILE_EXT}")
 
             # If the image is not in the base directory (meaning it has been categorized),
             # get the file system metadata
@@ -216,31 +226,38 @@ class FSInv(BaseInventory):
                                 getattr(image_obj, ImageData.CLASSIFICATION).append(meta)
                                 getattr(image_obj, ImageData.LOCATIONS).append(base_dir)
 
+                                loc_list = getattr(image_obj, ImageData.LOCATIONS)
+                                setattr(image_obj, ImageData.LOCATIONS, list(set(loc_list)))
+
                     # Directory did not match metadata, so add new location
                     else:
-                        getattr(self._inventory[file_name], ImageData.LOCATIONS).append(base_dir)
+                        getattr(self._inventory[file_id], ImageData.LOCATIONS).append(base_dir)
+                        loc_list = getattr(self._inventory[file_id], ImageData.LOCATIONS)
+                        setattr(self._inventory[file_id], ImageData.LOCATIONS, list(set(loc_list)))
 
                 # No metadata provided... just store location
                 else:
-                    getattr(self._inventory[file_name], ImageData.LOCATIONS).append(base_dir)
+                    getattr(self._inventory[file_id], ImageData.LOCATIONS).append(base_dir)
+                    loc_list = getattr(self._inventory[file_id], ImageData.LOCATIONS)
+                    setattr(self._inventory[file_id], ImageData.LOCATIONS, list(set(loc_list)))
 
         # Recursively iterate through the directories
         for directory in directories:
             directory = os.path.join(str(base_dir), str(directory))
             self._scan_(target_dir=directory)
 
-    def _add_imagedata_object(self, file_name: str) -> None:
+    def _add_imagedata_object(self, file_id: str) -> None:
         """
         Used to initialize each dictionary entry in _inventory with an ImageData object
-        :param file_name: Image to add to _inventory
+        :param file_id: Image id to add to _inventory
 
         :return: None
 
         """
-        if file_name not in self._inventory:
-            self._inventory[file_name] = ImageData()
-            setattr(self._inventory[file_name], ImageData.DL_STATUS, DownloadStatus.DOWNLOADED)
-            setattr(self._inventory[file_name], ImageData.FILENAME, file_name)
+        if file_id not in self._inventory:
+            self._inventory[file_id] = ImageData()
+            setattr(self._inventory[file_id], ImageData.DL_STATUS, DownloadStatus.DOWNLOADED)
+            setattr(self._inventory[file_id], ImageData.FILENAME, f"{file_id}{self.INV_FILE_EXT}")
 
     def list_duplicates(self) -> None:
         """
@@ -309,7 +326,7 @@ class FSInv(BaseInventory):
         """
         Add element to inventory
 
-        :param element: imageData object and ID
+        :param element: ImageData object and ID
 
         :return: None
 
@@ -319,7 +336,7 @@ class FSInv(BaseInventory):
         """
         Remove element to inventory
 
-        :param element_id: imageData object and ID
+        :param element_id: ImageData object and ID
 
         :return: None
 

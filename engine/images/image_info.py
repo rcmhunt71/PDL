@@ -49,6 +49,7 @@ class ImageData:
     RESOLUTION = 'resolution'
     IMAGE_URL = 'image_url'
     IMAGE_DATE = 'image_date'
+    EXTENSION = 'jpg'
 
     # List of the metadata specific to the image (in order of importance/relation
     # but many reports will reorder alphabetically.
@@ -57,7 +58,7 @@ class ImageData:
                 FILE_SIZE, IMAGE_DATE, ID]
     DL_METADATA = [CLASSIFICATION, DOWNLOADED_ON, ERROR_INFO, LOCATIONS]
 
-    DEFAULT_VALUES = [None, Status.NOT_SET, ModStatus.MOD_NOT_SET, list(), 0]
+    DEFAULT_VALUES = [None, Status.NOT_SET, ModStatus.MOD_NOT_SET, [], 0.0, 0]
     DEBUG_MSG_ADD = "JSON: Image {name}: Added Attribute: '{attr}' Value: '{val}'"
 
     author: str = field(default=None, metadata={'descr': 'Photographer'})
@@ -70,7 +71,7 @@ class ImageData:
     downloaded_on: str = field(default=None, metadata={'descr':'Timestamp of download'})
     error_info: str = field(default=None, metadata={'descr': 'Errors encountered during DL'})
     filename: str = field(default=None, metadata={'descr': 'Name of image file'})
-    file_size: int = field(default=0, metadata={'descr': 'Size of image file, in bytes'})
+    file_size: str = field(default='unknown', metadata={'descr': 'Size of image file, in KB'})
     id_: str = field(default=None, metadata={'descr': 'Unique Identification Str'})
     image_date: str = field(default=None, metadata={'descr': 'Date photo was taken'})
     image_name: str = field(default=None, metadata={'descr': 'Title of Image'})
@@ -91,8 +92,7 @@ class ImageData:
     def __add__(self, other: "ImageData") -> "ImageData":
         return self.combine(other, use_self=True)
 
-    @staticmethod
-    def _verify_locations(obj: "ImageData") -> List[str]:
+    def _verify_locations(self, obj: "ImageData") -> List[str]:
         """
         Given a list of locations for the image, verify the image exists in those locations.
         Save the locations to a new list where the image exists,
@@ -106,10 +106,15 @@ class ImageData:
         locations = list()
 
         # For each location stored in ImageData.locations
-        for loc in obj.locations:
+        for loc in set(getattr(obj, ImageData.LOCATIONS)):
 
             # Determine the full path
-            full_path = os.path.abspath(os.path.sep.join([loc, obj.filename]))
+            filename = getattr(obj, ImageData.FILENAME)
+            if not filename.lower().endswith(self.EXTENSION):
+                setattr(obj, ImageData.FILENAME, f"{filename}.{self.EXTENSION}")
+
+            full_path = os.path.abspath(os.path.sep.join(
+                [loc, getattr(obj, ImageData.FILENAME)]))
 
             action = 'NOT FOUND'
             sub_action = ''
@@ -144,17 +149,27 @@ class ImageData:
             this_value = getattr(combined_obj, attribute, None)
             other_value = getattr(other, attribute, None)
 
+            # For locations, combine the lists and then verify
+            if attribute == ImageData.LOCATIONS:
+
+                # Due to setting dataclass, pylint shows error if lists are not cast as lists
+                # (listed as a 'field' which does not have an .extend method).
+                # Cast as a lists (list -> set -> list), and store as combined_obj.locations()
+                # and cast via list(set()) to remove duplicates.
+                loc_1 = list(set(getattr(combined_obj, ImageData.LOCATIONS)))
+                loc_1.extend(list(set(getattr(other, ImageData.LOCATIONS))))
+                setattr(combined_obj, ImageData.LOCATIONS, list(set(loc_1)))
+
+                # Verify all locations are valid
+                setattr(combined_obj, ImageData.LOCATIONS,
+                        self._verify_locations(obj=combined_obj))
+
             # If 'this' has a default value, and the 'other' does not, copy 'other' into 'this'
-            if this_value in self.DEFAULT_VALUES and other_value != this_value:
+            elif this_value in self.DEFAULT_VALUES and other_value != this_value:
                 setattr(combined_obj, attribute, other_value)
                 LOG.debug(self.DEBUG_MSG_ADD.format(
-                    name=combined_obj.image_name, attr=attribute, val=other_value))
-
-            # For locations, combine the lists and then verify
-            elif attribute == ImageData.LOCATIONS:
-                combined_obj.locations.extend(other.locations)
-                combined_obj.locations = list(set(combined_obj.locations))
-                combined_obj.locations = self._verify_locations(obj=combined_obj)
+                    name=getattr(combined_obj, ImageData.IMAGE_NAME),
+                    attr=attribute, val=other_value))
 
         return combined_obj
 
@@ -238,8 +253,7 @@ class ImageData:
                 setattr(obj, cls.ID, str(getattr(obj, cls.FILENAME)).split(".")[0])
 
             # TODO: Find where filename is stripping the extension and remove this temp fix (hack)
-            extension = 'jpg'
-            if not str(getattr(obj, cls.FILENAME)).endswith(extension):
-                setattr(obj, cls.FILENAME, f"{getattr(obj, cls.FILENAME)}.{extension}")
+            if not str(getattr(obj, cls.FILENAME)).lower().endswith(cls.EXTENSION):
+                setattr(obj, cls.FILENAME, f"{getattr(obj, cls.FILENAME)}.{cls.EXTENSION}")
 
         return obj

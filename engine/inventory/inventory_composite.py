@@ -72,40 +72,43 @@ class Inventory:
         :return: A dictionary of the combine inventory
 
         """
+
         if self.force_scan:
 
             # Copy the file system inventory as the base inventory (least likely to change)
-            total_env = self.fs_inv.copy()
+            total_inv = self.fs_inv
             LOG.info("Accumulating inventory from file system and JSON logs")
 
             # Add the JSON inventory to the total inventory.
-            for image_name, image_obj in self.json_inv.items():
+            for image_id, image_obj in self.json_inv.items():
 
                 # If the image is not in the inventory, copy it directly into the inventory.
-                if image_name not in total_env.keys():
+                if image_id not in total_inv.keys():
                     LOG.debug(f"JSON: Image {image_obj.image_name} is new to inventory. "
                               f"Added to inventory.")
-                    total_env[image_name] = image_obj
-                    continue
+                    total_inv[image_id] = image_obj
 
                 # Image already in inventory. Update the record with info
                 # contained in the JSON record.
-                LOG.debug("JSON: Image {0} is NOT new to inventory.".format(image_obj.image_name))
-                total_env[image_name] = total_env[image_name].combine(image_obj)
+                else:
+                    LOG.debug(f"JSON: Image {image_obj.image_name} is NOT new to inventory.")
+                    LOG.debug("JSON: combining object with existing element in inventory.")
+                    total_inv[image_id] = total_inv[image_id].combine(image_obj)
 
             # Due to an older issue, the filename schema may be different for the same image.
             # Verify all images have the same naming nomenclature, and combine records that
             # represent the same file.
-            total_env = self._make_inv_consistent(data_dict=total_env)
+            total_inv = self._make_inv_consistent(data_dict=total_inv)
 
         # Read the inventory from the pickled inventory file.
         else:
             LOG.info(f"Reading from {self.fs_inventory_obj.pickle_fname}")
-            total_env = self._unpickle_()
-            LOG.info(f"Total of {len(total_env.keys())} read from file.")
+            total_inv = self._unpickle_()
+            total_inv = self._make_inv_consistent(data_dict=total_inv)
+            LOG.info(f"Total of {len(total_inv.keys())} read from file.")
 
         LOG.info("Accumulation complete.")
-        return total_env
+        return total_inv
 
     def write(self):
         """
@@ -219,19 +222,24 @@ class Inventory:
         new_inv = dict()
 
         # Iterate through the existing inventory:
+        new_keys_lc = []
         for image_name, image_obj in data_dict.items():
 
-            # Split the keyname. Correct keys will not split, so [0] is the only element.
+            # Split the key name. Correct keys will not split, so [0] is the only element.
             # If it is incorrect, the [0] element will be the correct portion of the key to use.
-            image_name = image_name.split('.')[0].lower()
+            image_name = image_name.split('.')[0]
 
             # If the image key exists, combine the corrected with the existing ImageData object
-            if image_name in new_inv.keys():
-                new_inv[image_name].combine(image_obj)
+
+            if image_name.lower() in new_keys_lc:
+                if image_name.lower() in new_inv:
+                    image_name = image_name.lower()
+                new_inv[image_name] += image_obj
 
             # Otherwise, add the ImageData object with the corrected key.
             else:
                 new_inv[image_name] = image_obj
+                new_keys_lc.append(image_name)
 
         # Return the corrected inventory dictionary
         return new_inv
