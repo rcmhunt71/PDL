@@ -39,6 +39,7 @@ class ArgSubmodules:
     DUPLICATES = 'dups'
     GENERAL = 'general'
     INFO = 'info'
+    STATS = 'stats'
 
     @classmethod
     def get_const_names(cls) -> List[str]:
@@ -70,9 +71,11 @@ class ArgOptions:
     sub-modules.
 
     """
+    AUTHOR = 'author'
     BUFFER = 'buffer'
     CFG = 'cfg'
     COMMAND = 'command'
+    DIRECTORY = 'directory'
     DRY_RUN = 'dryrun'
     DEBUG = 'debug'
     DETAILS = 'details'
@@ -84,15 +87,18 @@ class ArgOptions:
     IGNORE_DUPS = 'ignore_dups'
     IMAGE = 'image'
     RECORDS = 'records'
+    SUMMARY = 'summary'
     SYNC = 'sync'
     REMOVE_DUPS = 'remove_dups'
     URLS = 'urls'
 
     SHORTCUTS = {
+        AUTHOR: "a",
         BUFFER: "b",
         CFG: "c",
         DEBUG: "d",
         DETAILS: "d",
+        DIRECTORY: "d",
         DRY_RUN: "r",
         ENGINE: "e",
         FILE: "f",
@@ -101,6 +107,7 @@ class ArgOptions:
         IGNORE_DUPS: "i",
         RECORDS: "r",
         REMOVE_DUPS: "x",
+        SUMMARY: "s",
         SYNC: "s",
     }
 
@@ -129,6 +136,7 @@ class CLIArgs:
         ArgSubmodules.DOWNLOAD: [],
         ArgSubmodules.DUPLICATES: [ArgOptions.REMOVE_DUPS],
         ArgSubmodules.INFO: [],
+        ArgSubmodules.STATS: [],
     }
 
     def __init__(self, test_args_list: Optional[List[str]] = None) -> None:
@@ -141,6 +149,7 @@ class CLIArgs:
         self._database()
         self._duplicates()
         self._image_info()
+        self._stats_()
 
         self.args = self.parse_args(test_args_list)
 
@@ -274,10 +283,10 @@ class CLIArgs:
             ArgSubmodules.DATABASE, help="Options for database management")
 
         # Either SYNC or QUERY, not both (at the same time).
-        mutex = db_args.add_mutually_exclusive_group()
+        db_mutex = db_args.add_mutually_exclusive_group()
 
         # DATABASE SYNC
-        mutex.add_argument(
+        db_mutex.add_argument(
             self.get_shortcut(ArgOptions.SYNC),
             f'--{ArgOptions.SYNC}',
             help="Scan inventory and update DB based on findings.",
@@ -285,7 +294,7 @@ class CLIArgs:
         )
 
         # RECORDS
-        mutex.add_argument(
+        db_mutex.add_argument(
             self.get_shortcut(ArgOptions.RECORDS),
             f'--{ArgOptions.RECORDS}',
             help="Display database summary.",
@@ -343,6 +352,40 @@ class CLIArgs:
             ArgOptions.IMAGE,
             help="Image Name to query",
             metavar="<IMAGE_NAME>")
+
+    def _stats_(self) -> None:
+        """
+        Args associated with collection stats
+        :param self: Automatically provided
+        :return: None
+        """
+        stats_args = self.subparsers.add_parser(
+            ArgSubmodules.STATS,
+            help="Options for querying statistics about overall collection")
+
+        # OVERALL SUMMARY
+        stats_args.add_argument(
+            self.get_shortcut(ArgOptions.SUMMARY),
+            f'--{ArgOptions.SUMMARY}',
+            help="Show Summary Statistics",
+            action='store_true')
+
+        # Either AUTHOR or DIRECTORY, not both (at the same time).
+        stats_mutex = stats_args.add_mutually_exclusive_group()
+
+        # BY AUTHOR
+        stats_mutex.add_argument(
+            self.get_shortcut(ArgOptions.AUTHOR),
+            f'--{ArgOptions.AUTHOR}',
+            help="Show Statistics Based on Author",
+            action='store_true')
+
+        # BY DIRECTORY
+        stats_mutex.add_argument(
+            self.get_shortcut(ArgOptions.DIRECTORY),
+            f'--{ArgOptions.DIRECTORY}',
+            help="Show Statistics Based on Directory",
+            action='store_true')
 
     def get_args_str(self) -> str:
         """

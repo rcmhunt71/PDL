@@ -22,8 +22,15 @@ def main():
     :return: None
 
     """
+
     app_config = PdlConfig()
     log = AppLogging.configure_logging(app_cfg_obj=app_config)
+
+    def _option_to_be_implemented(module_name):
+        log.depth += 1
+        log.debug(f"Selected args.ArgSubmodules.{module_name}")
+        log.warn(f"'{module_name}' option still to be implemented.")
+        log.depth -= 1
 
     app_config.inventory = Inventory(
         cfg=app_config, force_scan=getattr(app_config.cli_args, args.ArgOptions.FORCE_SCAN))
@@ -47,7 +54,7 @@ def main():
     #                      DATABASE
     # -----------------------------------------------------------------
     elif app_config.cli_args.command == args.ArgSubmodules.DATABASE:
-        log.debug("Selected args.ArgSubmodules.DATABASE")
+        _option_to_be_implemented('DATABASE')
 
     # -----------------------------------------------------------------
     #                      IMAGE INFO
@@ -61,6 +68,12 @@ def main():
             log.info(app_config.inventory.inventory[image_id])
         else:
             log.info(f"Image '{image_id}' not found.")
+
+    # -----------------------------------------------------------------
+    #                      INVENTORY STATS
+    # -----------------------------------------------------------------
+    elif app_config.cli_args.command == args.ArgSubmodules.STATS:
+        _option_to_be_implemented('STATS')
 
     # -----------------------------------------------------------------
     #                UNRECOGNIZED SUB-COMMAND

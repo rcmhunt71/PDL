@@ -7,7 +7,7 @@ from nose.tools import raises, assert_equals, assert_false, assert_true
 
 class TestCommandLine(object):
 
-    MODULES = ['DOWNLOAD', 'DUPLICATES', 'INFO', 'DATABASE', 'GENERAL']
+    MODULES = ArgSubmodules.get_const_names()
 
     def test_if_debug_flag_is_set(self):
         # Validate debug flag is reported as set.
@@ -28,7 +28,7 @@ class TestCommandLine(object):
             attr=attr, cli_args=cli_args, bool_expectation=expectation)
 
     def test_if_dryrun_flag_is_set(self):
-        # Validate dryrun flag is reported as set.
+        # Validate dry-run flag is reported as set.
 
         attr = ArgOptions.DRY_RUN
         cli_args = [self._build_longword_option(attr), ArgSubmodules.DOWNLOAD]
