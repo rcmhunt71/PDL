@@ -11,9 +11,8 @@
 from PDL.app.pdl_config import PdlConfig, AppLogging
 import PDL.app.app as app
 import PDL.configuration.cli.args as args
-
 from PDL.engine.inventory.inventory_composite import Inventory
-
+from PDL.logger.utils import num_file_of_type
 
 def main():
     """
@@ -82,6 +81,10 @@ def main():
         # Should never get here, argparse should prevent it...
         raise args.UnrecognizedModule(app_config.cli_args.command)
 
+    dl_inventory_count = num_file_of_type(
+        directory=app_config.temp_storage_path, file_type='jpg')
+    log.info(f"Number of files in {app_config.temp_storage_path}:"
+             f" {dl_inventory_count}")
     log.info(f"LOGGED TO: {app_config.logfile_name}")
 
 

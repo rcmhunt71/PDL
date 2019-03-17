@@ -123,3 +123,23 @@ def check_if_location_exists(location: str, create_dir: bool = False) -> bool:
         LOG.debug(f"URL save file directory exists ('{location}')")
 
     return result
+
+
+def num_file_of_type(directory: str, file_type: str) -> int:
+    """
+    Provide the number of files of type "file_type" in "directory".
+
+    :param directory: directory to check
+    :param file_type: file extension to count
+
+    :return: number of files of type "file_type"
+
+    """
+    count = 0
+    if os.path.exists(directory):
+        files = [f for f in os.listdir(directory) if f.lower().endswith(f.lower())]
+        count = len(files)
+    else:
+        LOG.warn(f"Directory '{directory}' does not exist. Unable to "
+                 f"tally files of type '{file_type}'.")
+    return count
