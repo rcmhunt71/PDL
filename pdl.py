@@ -82,8 +82,8 @@ def main():
         raise args.UnrecognizedModule(app_config.cli_args.command)
 
     dl_inventory_count = num_file_of_type(
-        directory=app_config.temp_storage_path, file_type='jpg')
-    log.info(f"Number of files in {app_config.temp_storage_path}:"
+        directory=app_config.dl_dir, file_type='jpg')
+    log.info(f"Number of files in {app_config.dl_dir}:"
              f" {dl_inventory_count}")
     log.info(f"LOGGED TO: {app_config.logfile_name}")
 
