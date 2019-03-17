@@ -138,7 +138,6 @@ def num_file_of_type(directory: str, file_type: str) -> int:
     count = 0
     if os.path.exists(directory):
         files = [f for f in os.listdir(directory) if f.lower().endswith(file_type.lower())]
-        print(files)
         count = len(files)
     else:
         LOG.warn(f"Directory '{directory}' does not exist. Unable to "
