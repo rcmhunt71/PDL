@@ -14,6 +14,14 @@ import PDL.configuration.cli.args as args
 from PDL.engine.inventory.inventory_composite import Inventory
 from PDL.logger.utils import num_file_of_type
 
+
+def determine_number_to_catalog(app_cfg, logger, file_extension='jpg'):
+    dl_inventory_count = num_file_of_type(
+        directory=app_cfg.dl_dir, file_type=file_extension)
+    logger.info(f"Number of files in {app_cfg.dl_dir}:"
+                f" {dl_inventory_count}")
+
+
 def main():
     """
     Primary start up logic.
@@ -81,10 +89,7 @@ def main():
         # Should never get here, argparse should prevent it...
         raise args.UnrecognizedModule(app_config.cli_args.command)
 
-    dl_inventory_count = num_file_of_type(
-        directory=app_config.dl_dir, file_type='jpg')
-    log.info(f"Number of files in {app_config.dl_dir}:"
-             f" {dl_inventory_count}")
+    determine_number_to_catalog(app_cfg=app_config, logger=log)
     log.info(f"LOGGED TO: {app_config.logfile_name}")
 
 
