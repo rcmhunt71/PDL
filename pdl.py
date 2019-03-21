@@ -12,14 +12,7 @@ from PDL.app.pdl_config import PdlConfig, AppLogging
 import PDL.app.app as app
 import PDL.configuration.cli.args as args
 from PDL.engine.inventory.inventory_composite import Inventory
-from PDL.logger.utils import num_file_of_type
-
-
-def determine_number_to_catalog(app_cfg, logger, file_extension='jpg'):
-    dl_inventory_count = num_file_of_type(
-        directory=app_cfg.dl_dir, file_type=file_extension)
-    logger.info(f"Number of files in {app_cfg.dl_dir}:"
-                f" {dl_inventory_count}")
+from PDL.reporting.invstats import DiskStats
 
 
 def main():
@@ -80,7 +73,8 @@ def main():
     #                      INVENTORY STATS
     # -----------------------------------------------------------------
     elif app_config.cli_args.command == args.ArgSubmodules.STATS:
-        _option_to_be_implemented('STATS')
+        log.debug("Selected args.ArgSubmodules.STATS")
+        app.display_statistics(app_config)
 
     # -----------------------------------------------------------------
     #                UNRECOGNIZED SUB-COMMAND
@@ -89,7 +83,8 @@ def main():
         # Should never get here, argparse should prevent it...
         raise args.UnrecognizedModule(app_config.cli_args.command)
 
-    determine_number_to_catalog(app_cfg=app_config, logger=log)
+    diskstats = DiskStats(app_cfg=app_config)
+    diskstats.log_number_in_temp_storage_to_catalog()
     log.info(f"LOGGED TO: {app_config.logfile_name}")
 
 

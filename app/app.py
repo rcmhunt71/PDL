@@ -17,7 +17,9 @@ from PDL.engine.images.status import DownloadStatus as Status
 from PDL.engine.module_imports import import_module_class
 import PDL.logger.json_log as json_logger
 from PDL.logger.logger import Logger
+from PDL.reporting.invstats import InvStats
 from PDL.reporting.summary import ReportingSummary
+
 
 import pyperclip
 
@@ -314,3 +316,31 @@ def download_images(cfg_obj: PdlConfig) -> None:
             log_filespec=cfg_obj.json_logfile).write_json()
     else:
         LOG.info("No images DL'd. No JSON file created.")
+
+
+def display_statistics(cfg_obj: PdlConfig) -> None:
+    """
+    Display the inventory statistics based on the CLI arguments
+
+    :param cfg_obj: PdlConfigObj with inventory.
+
+    :return: None
+
+    """
+
+    # Stats based on AUTHOR
+    if getattr(cfg_obj.cli_args, args.ArgOptions.AUTHOR, False):
+        LOG.debug("Getting inventory stats by AUTHOR")
+
+    # Stats based on DIRECTORY
+    elif getattr(cfg_obj.cli_args, args.ArgOptions.DIRECTORY, False):
+        LOG.debug("Getting inventory stats by DIRECTORY")
+
+    # SUMMARY (or no options provided for the STATS submenu)
+    else:
+        LOG.debug("Getting inventory SUMMARY stats")
+        stats = InvStats(cfg_obj.inventory)
+        ReportingSummary.log_table(table=stats.inventory_summary_table(), log_level='info')
+        data = stats.tally_directory_data("E:\\Other Backups\\System\\Media\\Music\\TC\\500px")
+        import pprint
+        pprint.pprint(data)

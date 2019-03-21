@@ -6,6 +6,7 @@
 """
 
 import datetime
+import glob
 import os
 from typing import Optional
 
@@ -136,10 +137,15 @@ def num_file_of_type(directory: str, file_type: str) -> int:
 
     """
     count = 0
+
+    # If path exists, count the number of files matching the file type.
     if os.path.exists(directory):
-        files = [f for f in os.listdir(directory) if f.lower().endswith(file_type.lower())]
+        files = glob.glob(os.path.sep.join([directory, f'*.{file_type}']), recursive=False)
         count = len(files)
+
+    # Otherwise... sorry Houston, the mission is a no-go.
     else:
         LOG.warn(f"Directory '{directory}' does not exist. Unable to "
                  f"tally files of type '{file_type}'.")
+
     return count
